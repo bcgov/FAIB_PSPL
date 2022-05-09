@@ -1,0 +1,39 @@
+---
+title: "Untitled"
+output: md_document
+date: '2022-05-09'
+---
+
+
+## get layer names within a GDB
+
+```{r}
+
+library(sf)
+
+
+x <- 'D:/data/data_projects/vri_gdb/VEG_COMP_LYR_R1_POLY_2020.gdb'#
+
+# returns list of layers present within a GDB
+layers <- st_layers(x)$name
+
+layers
+
+```
+
+## get list of attributes from GDB
+
+Note that this will only work if there is 1 layer.  
+Otherwise, pick the layer of interest.
+
+```{r}
+
+qry <- paste0('select * from ',layers,' limit 0')
+
+l1 <- st_read(x,query=qry)
+
+l1
+
+
+```
+

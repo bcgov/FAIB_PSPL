@@ -1,0 +1,57 @@
+---
+title: "GDAL Rasterize"
+output: md_document
+date: '2022-05-09'
+---
+
+
+## Old Methodology  
+
+Using gdal_rasterize from a GDAL isntallation
+
+Start: `r Sys.time()` 
+
+
+Version: 
+
+```{r version}
+
+# gdal_rasterize_version  
+system2('gdal_rasterize',args='--version',stdout = TRUE)
+
+```
+
+```{r integer_ext}
+  
+#f_name <- 'D:/data/data_projects/base_maps/tsa13_vri.gdb'
+#f_out <- 'D:/data/data_projects/base_maps/tsa13_vri.tif'
+
+f_name <- 'D:/data/data_projects/vri_gdb/VEG_COMP_LYR_R1_POLY_2020.gdb'
+f_out <-  'D:/data/data_projects/vri_gdb/VEG_COMP_LYR_R1_POLY_2020.tif'
+
+
+
+
+cmd <- paste0(c('-tr','100 100',
+                '-te','159587.5 173787.5 1881187.5 1748187.5',
+                '-ot', 'UInt32 ',
+                '-l', 'VEG_COMP_LYR_R1_POLY',
+                '-a', 'FEATURE_ID' ,
+                '-a_srs','EPSG:3005',
+                '-a_nodata', '-99 ',
+                '-co', 'COMPRESS=LZW',
+                  f_name,
+                  f_out))
+
+
+
+system2('gdal_rasterize',args=cmd,wait=TRUE,stderr=TRUE)
+  
+
+
+```
+
+End1 : `r Sys.time()`
+
+
+
