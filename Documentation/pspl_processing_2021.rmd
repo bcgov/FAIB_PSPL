@@ -67,10 +67,30 @@ These BEC zonal values are then applied to each feature_id where site index valu
 ### BEC Substitutions
 
 At this point, there will still be missing values.  To overcome this, the recommendations from Regional Ecologist were used to build an acceptable BEC substitution (crosswalk) table.
+
+| Missing BEC | Substitution |
+| ----------- | ------------ |
+| BWBSvk | BWBSwk |
+| CWHwm	| CWHvm |
+| ESSFdvw | ESSFdv |
+| ESSFmvp | ESSFmv |
+| ESSFmww | ESSFmw |
+| ESSFmz | ESSFun |
+| ESSFwcp | ESSFwc |
+| MHun | MHmm |
+| MSdv | MSxv |
+| SBSmv | SBSun |
+| SWBmk | BWBSdk |
+| SWBmks | BWBSdk |
+| SWBun	| BWBSdk |
+| SWBvk	| BWBSdk |
+
     
 
 
-BEC table
+Table 1. BEC Substitution table
+
+
 
 
 ## Input Requirements 

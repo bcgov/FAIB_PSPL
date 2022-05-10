@@ -78,7 +78,74 @@ At this point, there will still be missing values. To overcome this, the
 recommendations from Regional Ecologist were used to build an acceptable
 BEC substitution (crosswalk) table.
 
-BEC table
+<table>
+<thead>
+<tr class="header">
+<th>Missing BEC</th>
+<th>Substitution</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>BWBSvk</td>
+<td>BWBSwk</td>
+</tr>
+<tr class="even">
+<td>CWHwm</td>
+<td>CWHvm</td>
+</tr>
+<tr class="odd">
+<td>ESSFdvw</td>
+<td>ESSFdv</td>
+</tr>
+<tr class="even">
+<td>ESSFmvp</td>
+<td>ESSFmv</td>
+</tr>
+<tr class="odd">
+<td>ESSFmww</td>
+<td>ESSFmw</td>
+</tr>
+<tr class="even">
+<td>ESSFmz</td>
+<td>ESSFun</td>
+</tr>
+<tr class="odd">
+<td>ESSFwcp</td>
+<td>ESSFwc</td>
+</tr>
+<tr class="even">
+<td>MHun</td>
+<td>MHmm</td>
+</tr>
+<tr class="odd">
+<td>MSdv</td>
+<td>MSxv</td>
+</tr>
+<tr class="even">
+<td>SBSmv</td>
+<td>SBSun</td>
+</tr>
+<tr class="odd">
+<td>SWBmk</td>
+<td>BWBSdk</td>
+</tr>
+<tr class="even">
+<td>SWBmks</td>
+<td>BWBSdk</td>
+</tr>
+<tr class="odd">
+<td>SWBun</td>
+<td>BWBSdk</td>
+</tr>
+<tr class="even">
+<td>SWBvk</td>
+<td>BWBSdk</td>
+</tr>
+</tbody>
+</table>
+
+Table 1. BEC Substitution table
 
 ## Input Requirements
 
