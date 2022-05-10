@@ -22,7 +22,8 @@ PSPL site indices are assigned in a hierarchical manner.
 
 1.  PEM/TEM available, SIBEC look up tables are used.
 2.  PEM/TEM not available, a biophysical model (based on climate BC
-    data 2002) is used. 2.1 The range of climate association is expanded
+    data 2002) is used.  
+    2.1 The range of climate association is expanded
     by 5% to encompass more than the original range.
 
 The species that are assigned a site index are those for which there is
