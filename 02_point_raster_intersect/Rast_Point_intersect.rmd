@@ -2,7 +2,7 @@
 title: "Raster Point Intersect"
 author: "D. Waddell"
 date: "`r Sys.Date()`"
-output: html_document
+output: md_document
 ---
 
 ## test VRI raster intersect with PSPL points
@@ -11,30 +11,32 @@ Running on 8GB laptop
 
 Start: `r Sys.time()`
 
-```{r}
+```{r read_data}
 
 library(sf)
 library(terra)
 
 
 # read Provincial fid tif
-
 fn1 <- paste0(substr(getwd(),1,1),':/data/data_projects/base_data/vri_2021_fid_gr_skey.tif')
 r <- rast(fn1)
 
 # read Prince George PSPL point set
-fn2 <- paste0(substr(getwd(),1,1),':/data/data_projects/base_data/Site_Prod_Prince_George.gdb')
+fn2 <- paste0(substr(getwd(),1,1),':/Data/data_projects/PSPL_2021/data/Site_Prod_Kootenay_lake.gdb')
 p <- vect(fn2)
 
-#p$OBJECTID <- seq(1,30,1)
-#writeVector(p,'D:/data/data_projects/base_maps/small_pspl.shp',overwrite=TRUE)
+n <- nrow(p)
 
-# delete some random points from the PSPL points
-# to check the raster extraction
-# do this by subsetting
+print(paste0('Read n rows: ',n))
+
+Sys.time()
+
+```
 
 
-# add id to pspl
+```{r crop}
+
+# add id to point data
 p$pspl_id <- seq(1:nrow(p))
 
 
@@ -50,6 +52,12 @@ e[4] <- e[4] + 1
 # crop the raster using the extent
 rc <- crop(r,e)
 
+Sys.time()
+
+```
+
+
+```{r extract_xy}
 # extract the raster data at the x,y of the points
 x <- extract(rc,p)
 
@@ -66,19 +74,37 @@ ps_df$feature_id <- x[,"feature_id"]
 # join raster data gr_skey
 ps_df$gr_skey <- x[,"gr_skey"]
 
+n <- nrow(ps_df)
 
-# export to csv
+print(paste0('joined n rows: ',n ))
+
+Sys.time()
+
+
+```
+
+```{r cross_check}
+
+# where feature_id is valid
+ps_df$chk[!is.na(ps_df$feature_id)] <- 1
+
+s <- sum(ps_df$chk)
+
+print(paste0('num rows with valid feature_id: ', s))
+
+```
+
+
+
+```{r write}
+
+# export to csv, append if exists
 fn3 <- paste0(substr(getwd(),1,1),':/data/data_projects/base_data/pspl_out.csv')
-data.table::fwrite(ps_df,fn3,sep=',')
+data.table::fwrite(ps_df,fn3,sep=',',append=TRUE)
 
 
 ```
 
-
-The resulting object is a data.frame, where the ID variable represents the order of the observations in the points data and the second column represents the values extracted for the points from the raster cells. So, you can assign the extracted values as a new variable of the points data as follows:
-
-KS_wells$tmax_07_01 <- tmax_from_prism[, -1]
+End: `r Sys.time()`
 
 
-
-```
