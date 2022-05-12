@@ -1,0 +1,65 @@
+---
+title: "PSPL FTP Extract"
+author: "D. Waddell"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: md_document
+
+---
+
+## Load compressed PSPL gdb files to processing location
+
+## directory locations are fixed as follows:
+
+PSPL GDB Files        :/Data/Data_projects/PSPL_2021/pspl_data
+
+And is copied from:  
+
+\\tension.dmz\ftp\HTS\external\!publish\Provincial_Site_Productivity_Layer\Site_Prod_with_Approved_PEM_TEM\Site_Prod_Point_FGDBs
+
+
+
+Load Date: `r Sys.Date()`
+Start:  `r format(Sys.time(),"%c")`
+
+
+
+Copy PSPL data from FTP site
+
+```{r copy_pspl_data, eval = TRUE, echo=FALSE, message=FALSE,warning=FALSE}
+
+# this is the FTP folder
+ftp_pspl_folder <- '\\\\tension.dmz\\ftp\\HTS\\external\\!publish\\Provincial_Site_Productivity_Layer\\Site_Prod_with_Approved_PEM_TEM\\Site_Prod_Point_FGDBs'
+
+# this is where the zipped files are placed locally
+local_pspl_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/PSPL_2021/data')
+
+# copy all the zips
+f_list <- list.files(ftp_pspl_folder, full.names = TRUE)
+
+# subset for testing
+f_list <- f_list[1:4]
+
+file.copy(f_list, local_pspl_folder)
+
+# get a list of the zip file names
+zipF <- list.files(local_pspl_folder,full.names = TRUE)
+
+# unzip
+lapply(zipF,FUN=unzip,exdir = local_pspl_folder)
+
+# delete the zip files
+lapply(zipF,FUN=file.remove)
+
+
+```
+
+End of GDB Load
+
+
+
+
+End: `r format(Sys.time(),"%c")`
+
+
+
+
