@@ -1,0 +1,284 @@
+---
+title: "PSPL Stage3"
+output:
+  md_document:
+    variant: gfm
+---
+
+
+# PSPL Method 2021  
+
+## Feature_id processing 
+
+- run SI conversion on feature_id based si
+- run SI conversion on BEC based si 
+- update feature_id si using BEc avg
+
+
+Create the following tables:
+
+- pspl_bec_site_index
+- pspl_fid_site_index
+- pspl_op_site_index
+
+
+Start: `r format(Sys.time(),"%c")`
+
+```{r setup, echo=TRUE,message=TRUE,warning=TRUE}
+
+library(RPostgreSQL)
+library(tidyverse)
+library(data.table)
+library(ggplot2)
+
+# set up for schema and user
+schema <- 'msyt_2021'
+opt <- paste0("-c search_path=",schema)
+user_name <- 'postgres'
+database <- 'msyt'
+con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
+
+
+#load the R code for site index conversions
+si_convert <- paste0(getwd(),'/site_index_conversion_equations.r')
+source(si_convert, local = knitr::knit_global())
+
+```
+
+
+
+### Feature_id Site Index Conversions
+
+Run the SI conversion on avg_fid_data.   
+
+mean value data by feature
+
+
+
+```{r  si_convert_fid,echo=TRUE,message=TRUE,warning=TRUE}
+
+
+# read avg_fid_data: table = pspl_fid_site_index_pre_convert
+# this is the mean value feature_id data
+
+q1 <- 'select *  from msyt_2021.pspl_fid_site_index_pre_convert'
+r1 <- dbSendQuery(con,q1)
+avg_fid_data <- dbFetch(r1,n=-1)
+
+setDT(avg_fid_data)
+
+# note that si_convert required 0 in place of NA
+# si_convert will handle this
+
+
+# run the SI conversions
+avg_fid_data <- si_convert(avg_fid_data)
+
+
+# write the data
+file_name <- 'D:/data/data_projects/PSPL_2021/pspl_fid_site_index_post_convert.csv'
+fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+
+
+```
+
+
+
+### run SI conversion on the bec means values
+
+
+- run SI conversion on BEC based si 
+
+```{r bec_si_convert}
+
+# read avg_BEC_data: table = psql_bec_site_index_pre_convert
+q1 <- 'select *  from msyt_2021.pspl_bec_site_index_pre_convert'
+r1 <- dbSendQuery(con,q1)
+avg_BEC_data <- dbFetch(r1,n=-1)
+
+setDT(avg_BEC_data)
+
+
+avg_BEC_data <- si_convert(avg_BEC_data)
+
+
+# write the data
+file_name <- 'D:/data/data_projects/PSPL_2021/pspl_bec_site_index.csv'
+fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+
+# pre delete table
+if(dbExistsTable(con,'pspl_bec_site_index')) {
+  db_drop_table(con,'pspl_bec_site_index')
+}
+
+
+# write to table
+dbWriteTable(con,'pspl_bec_site_index',avg_BEC_data,row.names = FALSE)
+
+
+```
+
+
+
+## update converted using BEC converted
+
+
+- update feature_id si using BEc avg
+
+
+```{r update1,echo=TRUE,message=TRUE,warning=TRUE}
+
+
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), at_si := ifelse(at_si==0, i.at_si,at_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ba_si := ifelse(ba_si==0, i.ba_si,ba_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), bg_si := ifelse(bg_si==0, i.bg_si,bg_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), bl_si := ifelse(bl_si==0, i.bl_si,bl_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), cw_si := ifelse(cw_si==0, i.cw_si,cw_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), dr_si := ifelse(dr_si==0, i.dr_si,dr_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ep_si := ifelse(ep_si==0, i.ep_si,ep_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), fd_si := ifelse(fd_si==0, i.fd_si,fd_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), hm_si := ifelse(hm_si==0, i.hm_si,hm_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), hw_si := ifelse(hw_si==0, i.hw_si,hw_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), lt_si := ifelse(lt_si==0, i.lt_si,lt_si)]  
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), lw_si := ifelse(lw_si==0, i.lw_si,lw_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pa_si := ifelse(pa_si==0, i.pa_si,pa_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pl_si := ifelse(pl_si==0, i.pl_si,pl_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pw_si := ifelse(pw_si==0, i.pw_si,pw_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), py_si := ifelse(py_si==0, i.py_si,py_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sb_si := ifelse(sb_si==0, i.sb_si,sb_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), se_si := ifelse(se_si==0, i.se_si,se_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ss_si := ifelse(ss_si==0, i.ss_si,ss_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sw_si := ifelse(sw_si==0, i.sw_si,sw_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
+avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
+
+
+
+
+```
+
+
+
+```{r write_data}
+
+# drop some columns
+#avg_fid_data <- avg_fid_data #%>% select(-bec_zone,-bec_subzone)
+setDT(avg_fid_data)
+
+# add si_src
+avg_fid_data$si_src <- 'PSPL'
+
+
+# final output
+file_name <- 'D:/data/data_projects/PSPL_2021/pspl_fid_site_index.csv'
+fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+
+
+# pre delete table
+if(dbExistsTable(con,'pspl_fid_site_index')) {
+  db_drop_table(con,'pspl_fid_site_index')
+}
+
+# write to table
+dbWriteTable(con,'pspl_fid_site_index',avg_fid_data,row.names = FALSE)
+
+
+```
+
+
+## Conversion on Opening
+
+```{r si_convert_op}
+
+
+
+# read avg_op_data: table = pspl_op_site_index_pre_convert
+q1 <- 'select *  from msyt_2021.pspl_op_site_index_pre_convert'
+r1 <- dbSendQuery(con,q1)
+avg_op_data <- dbFetch(r1,n=-1)
+
+setDT(avg_op_data)
+
+# read BEC data
+q2 <- 'select * from msyt_2021.pspl_bec_site_index'
+r2 <- dbSendQuery(con,q2)
+avg_BEC_data <- dbFetch(r2,n=-1)
+
+
+# run the conversion
+
+avg_op_data <- si_convert(avg_op_data)
+
+# writeout the post conversion file
+file_name <- 'D:/data/data_projects/PSPL_2021/pspl_op_site_index_post_convert.csv'
+fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+
+
+
+# update from BEC
+
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), at_si := ifelse(at_si==0, i.at_si,at_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ba_si := ifelse(ba_si==0, i.ba_si,ba_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), bg_si := ifelse(bg_si==0, i.bg_si,bg_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), bl_si := ifelse(bl_si==0, i.bl_si,bl_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), cw_si := ifelse(cw_si==0, i.cw_si,cw_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), dr_si := ifelse(dr_si==0, i.dr_si,dr_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ep_si := ifelse(ep_si==0, i.ep_si,ep_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), fd_si := ifelse(fd_si==0, i.fd_si,fd_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), hm_si := ifelse(hm_si==0, i.hm_si,hm_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), hw_si := ifelse(hw_si==0, i.hw_si,hw_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), lt_si := ifelse(lt_si==0, i.lt_si,lt_si)]  
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), lw_si := ifelse(lw_si==0, i.lw_si,lw_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pa_si := ifelse(pa_si==0, i.pa_si,pa_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pl_si := ifelse(pl_si==0, i.pl_si,pl_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pw_si := ifelse(pw_si==0, i.pw_si,pw_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), py_si := ifelse(py_si==0, i.py_si,py_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sb_si := ifelse(sb_si==0, i.sb_si,sb_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), se_si := ifelse(se_si==0, i.se_si,se_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ss_si := ifelse(ss_si==0, i.ss_si,ss_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sw_si := ifelse(sw_si==0, i.sw_si,sw_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
+avg_op_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
+
+# add src
+
+avg_op_data$si_src <- 'PSPL'
+
+
+# pre delete table
+if(dbExistsTable(con,'pspl_op_site_index')) {
+  db_drop_table(con,'pspl_op_site_index')
+}
+
+file_name <- 'D:/data/data_projects/PSPL_2021/pspl_op_site_index.csv'
+fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+
+
+dbWriteTable(con,'pspl_op_site_index',avg_op_data,row.names = FALSE)
+
+
+```
+
+
+```{r cleanUp}
+
+
+if(dbExistsTable(con,'pspl_fid_site_index_pre_convert')) {
+  db_drop_table(con,'pspl_fid_site_index_pre_convert')
+}
+
+if(dbExistsTable(con,'pspl_op_site_index_pre_convert')) {
+  db_drop_table(con,'pspl_op_site_index_pre_convert')
+}
+
+if(dbExistsTable(con,'pspl_bec_site_index_pre_convert')) {
+  db_drop_table(con,'pspl_bec_site_index_pre_convert')
+}
+
+dbDisconnect(con)
+
+```
+
+
+
+End: `r format(Sys.time(),"%c")`
