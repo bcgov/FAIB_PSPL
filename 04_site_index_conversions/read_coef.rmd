@@ -1,0 +1,67 @@
+---
+title: "Read Convresion Coefficients"
+author: "dwaddell"
+date: '2022-05-19'
+output: md_document
+---
+
+
+Table of site idnex conversion coefficients.  
+Taken from Sindex by Ken Pollson  
+
+
+s1 = species that has a missing site index value  
+s2 = acceptable species site index that can be used to convert from  
+b0 = intercept  
+b1 = slope   
+flag = extra conversion field
+
+
+```{r}
+
+library(kableExtra)
+
+fname <- paste0(substr(getwd(),1,1),':/Data/GitManagedProjects/FAIB_PSPL/04_site_index_conversions/conversion_equations.txt')
+
+coeff <- data.table::fread(fname,sep=',')
+
+
+kable(coeff,format="markdown",caption = 'Species Site Index Conversion Coefficients') %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+
+
+```
+
+Table 1.  Conversion Coefficients.
+
+Note that a flag is used under certain conditions.  
+This follows the C code implimetation.  
+
+In general C/I indicates coast interior and is used for Cedare, Hemlock and Douglas Fir.  
+
+SS, SW are used to indicate coast / interior and differentiate between Sitka spruce, Englemann spruce and White spruce when refernencing Sx as a hybrid. 
+
+
+```{r eval=FALSE}
+
+
+# add attribution to match how C handled things  
+# coast interior indicator
+  
+  dt$c_i <- case_when(
+    dt$bec_zone == 'CWH' ~ 'C',
+    dt$bec_zone == 'CDF' ~ 'C',
+    dt$bec_zone == 'MH' ~ 'C',
+    TRUE ~ 'I'
+  )
+  
+# Original code uses indicator for Spruce depending on BEC
+  
+  dt$se_ss_sw <- case_when(
+    dt$c_i == 'C' ~ 'SS',
+    dt$c_i == 'I' & dt$bec_zone == 'ESSF' ~ 'SE',
+    TRUE ~ 'SW'
+  )
+  
+
