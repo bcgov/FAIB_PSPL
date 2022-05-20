@@ -1,6 +1,8 @@
 ---
 title: "PSPL Generate Mean values"
-output: html_document
+author: "dwaddell"
+date: '2022-05-19'
+output: md_document
 ---
 
 
@@ -392,14 +394,19 @@ drop table t1;
 
 
 drop table pspl_fid_bec;
-drop table pspl_op_bec
+drop table pspl_op_bec;
 
 
 
-select count(*) as n from pspl_fid_site_index_pre_convert;
+select count(*) as n from pspl_op_site_index_pre_convert;
 
 ```
 
+```{r}
+
+dbDisconnect(con)
+
+```
 
 
 
@@ -422,7 +429,7 @@ q1 <- "copy msyt_2021.pspl_bec_site_index_pre_convert to 'D:/data/data_projects/
 dbExecute(con,q1)
 
 
-dbDisconnect(con)
+
 
 ```
 

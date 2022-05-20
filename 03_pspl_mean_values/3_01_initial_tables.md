@@ -3,7 +3,7 @@
 -   feature\_id
 -   opening\_id
 
-<!-- -->
+Start: 2022-05-20 09:00:28
 
     library(RPostgreSQL)
 
@@ -43,45 +43,44 @@
     -- in each unit(n) objectid is unique
     -- after the merge, objectid is no longer unique
     -- create id as unique
+
+    -- use NULLIF to change 0 si values to NULL
+    -- required so AVG() ignores the 0 values 
+
     create table pspl_init_t as 
     select 
         nextval('t1_seq') as id,    -- unique id,
         feature_id,
-        cast(at_si as numeric(5,1)) as at_si,
-      cast(ba_si as numeric(5,1)) as ba_si,
-      cast(bg_si as numeric(5,1)) as bg_si,
-      cast(bl_si as numeric(5,1)) as bl_si,
-      cast(cw_si as numeric(5,1)) as cw_si,
-      cast(dr_si as numeric(5,1)) as dr_si,
-      cast(ep_si as numeric(5,1)) as ep_si,
-      cast(fd_si as numeric(5,1)) as fd_si,
-      cast(hm_si as numeric(5,1)) as hm_si,
-      cast(hw_si as numeric(5,1)) as hw_si,
-      cast(lt_si as numeric(5,1)) as lt_si,
-      cast(lw_si as numeric(5,1)) as lw_si,
-      cast(pa_si as numeric(5,1)) as pa_si,
-      cast(pl_si as numeric(5,1)) as pl_si,
-      cast(pw_si as numeric(5,1)) as pw_si,
-      cast(py_si as numeric(5,1)) as py_si,
-      cast(sb_si as numeric(5,1)) as sb_si,
-      cast(se_si as numeric(5,1)) as se_si,
-      cast(ss_si as numeric(5,1)) as ss_si,
-      cast(sw_si as numeric(5,1)) as sw_si,
-      cast(sx_si as numeric(5,1)) as sx_si,
-      cast(yc_si as numeric(5,1)) as yc_si,
+        NULLIF(at_si,0) as at_si,
+        NULLIF(ba_si,0) as ba_si,
+        NULLIF(bg_si,0) as bg_si,
+        NULLIF(bl_si,0) as bl_si,
+        NULLIF(cw_si,0) as cw_si,
+        NULLIF(dr_si,0) as dr_si,
+        NULLIF(ep_si,0) as ep_si,
+        NULLIF(fd_si,0) as fd_si,
+        NULLIF(hm_si,0) as hm_si,
+        NULLIF(hw_si,0) as hw_si,
+        NULLIF(lt_si,0) as lt_si,
+        NULLIF(lw_si,0) as lw_si,
+        NULLIF(pa_si,0) as pa_si,
+        NULLIF(pl_si,0) as pl_si,
+        NULLIF(pw_si,0) as pw_si,
+        NULLIF(py_si,0) as py_si,
+        NULLIF(sb_si,0) as sb_si,
+        NULLIF(se_si,0) as se_si,
+        NULLIF(ss_si,0) as ss_si,
+        NULLIF(sw_si,0) as sw_si,
+        NULLIF(sx_si,0) as sx_si,
+        NULLIF(yc_si,0) as yc_si,
         trim(substring(bgc_label,1,4)) as bec_zone,
         trim(substring(bgc_label,5,3)) as bec_subzone
-
     from pspl_raw 
     where feature_id is not NULL;
 
-    ;
+    select now() as "end init";
 
-
-    select now() as "create indexes on pspl raw";
      
-
-    --create index m_idx_sr1 on pspl_raw using gist(wkb_geometry);
     create index m_idx_sr2 on pspl_init_t(feature_id);
 
     tbl <- paste0(schema,'.pspl_init_t')
@@ -136,3 +135,5 @@
     db_vac(tbl)
 
     ## character(0)
+
+End: 2022-05-20 09:08:11
