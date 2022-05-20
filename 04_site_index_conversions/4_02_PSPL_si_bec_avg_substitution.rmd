@@ -1,25 +1,17 @@
 ---
-title: "PSPL Stage3"
-output:
-  md_document:
-    variant: gfm
+title: "PSPL Site Index Conversion"
+output: md_document
 ---
 
 
-# PSPL Method 2021  
+# PSPL Method 2022  
 
 ## Feature_id processing 
 
-- run SI conversion on feature_id based si
-- run SI conversion on BEC based si 
 - update feature_id si using BEc avg
 
 
-Create the following tables:
 
-- pspl_bec_site_index
-- pspl_fid_site_index
-- pspl_op_site_index
 
 
 Start: `r format(Sys.time(),"%c")`
@@ -32,16 +24,11 @@ library(data.table)
 library(ggplot2)
 
 # set up for schema and user
-schema <- 'msyt_2021'
+schema <- 'msyt_2022'
 opt <- paste0("-c search_path=",schema)
 user_name <- 'postgres'
 database <- 'msyt'
 con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
-
-
-#load the R code for site index conversions
-si_convert <- paste0(getwd(),'/site_index_conversion_equations.r')
-source(si_convert, local = knitr::knit_global())
 
 ```
 
@@ -61,9 +48,9 @@ mean value data by feature
 # read avg_fid_data: table = pspl_fid_site_index_pre_convert
 # this is the mean value feature_id data
 
-q1 <- 'select *  from msyt_2021.pspl_fid_site_index_pre_convert'
-r1 <- dbSendQuery(con,q1)
-avg_fid_data <- dbFetch(r1,n=-1)
+q1 <- 'select *  from msyt_2022.pspl_fid_site_index_pre_convert'
+avg_fid_data <- dbGetQuery(con,q1)
+ 
 
 setDT(avg_fid_data)
 
@@ -76,7 +63,7 @@ avg_fid_data <- si_convert(avg_fid_data)
 
 
 # write the data
-file_name <- 'D:/data/data_projects/PSPL_2021/pspl_fid_site_index_post_convert.csv'
+file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/PSPL_2022/pspl_fid_site_index_post_convert_v0.csv')
 fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
@@ -92,7 +79,7 @@ fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, 
 ```{r bec_si_convert}
 
 # read avg_BEC_data: table = psql_bec_site_index_pre_convert
-q1 <- 'select *  from msyt_2021.pspl_bec_site_index_pre_convert'
+q1 <- 'select *  from msyt_2022.pspl_bec_site_index_pre_convert'
 r1 <- dbSendQuery(con,q1)
 avg_BEC_data <- dbFetch(r1,n=-1)
 
@@ -103,17 +90,17 @@ avg_BEC_data <- si_convert(avg_BEC_data)
 
 
 # write the data
-file_name <- 'D:/data/data_projects/PSPL_2021/pspl_bec_site_index.csv'
+file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/PSPL_2021/pspl_bec_site_index_v0.csv')
 fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 # pre delete table
-if(dbExistsTable(con,'pspl_bec_site_index')) {
-  db_drop_table(con,'pspl_bec_site_index')
-}
+#if(dbExistsTable(con,'pspl_bec_site_index')) {
+#db_drop_table(con,'pspl_bec_site_index')
+#}
 
 
 # write to table
-dbWriteTable(con,'pspl_bec_site_index',avg_BEC_data,row.names = FALSE)
+#dbWriteTable(con,'pspl_bec_site_index',avg_BEC_data,row.names = FALSE)
 
 
 ```
@@ -123,7 +110,7 @@ dbWriteTable(con,'pspl_bec_site_index',avg_BEC_data,row.names = FALSE)
 ## update converted using BEC converted
 
 
-- update feature_id si using BEc avg
+- update feature_id si using BEC avg
 
 
 ```{r update1,echo=TRUE,message=TRUE,warning=TRUE}
