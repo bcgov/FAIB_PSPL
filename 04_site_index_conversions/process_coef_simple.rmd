@@ -79,10 +79,11 @@ Run the conversion, one species at a time
 
 # convert at
 si_data$si[which(si_data$at==0)] <- update_site_index(si_data[which(si_data$at==0)],'at')
+si_data$si1 <- si_data$si
 
 # convert sw
 si_data$si[which(si_data$sw==0)] <- update_site_index(si_data[which(si_data$sw==0)],'sw')
-
+si_data$si2 <- si_data$si
 
 
 
