@@ -1,0 +1,194 @@
+---
+title: "Test SI Conversion"
+author: "dwaddell"
+date: '2022-05-26'
+output: html_document
+---
+
+```{r}
+
+# base data
+fn <- 'C:/Data/data_projects/pspl_2022/si_data/pspl_fid_site_index_pre_convert.csv'
+
+# read 2022 data (unconverted)
+si_data <- data.table::fread(fn,sep=',')
+
+# subset 
+#si_data <- si_data[is.na(fd_si)]
+si_data <- head(si_data,n=1000)
+
+
+# keep only certain columns
+keep <- c("feature_id","at_si","ba_si","bg_si","bl_si","cw_si","dr_si","ep_si","fd_si","hm_si","hw_si","lt_si","lw_si","pa_si","pl_si","pw_si","py_si","sb_si","se_si","ss_si" ,"sw_si","sx_si","yc_si","bec_zone","bec_subzone") 
+si_data <- si_data[, keep, with = FALSE]
+
+#si_data <- si_data[si_data$feature_id == 1834957 | si_data$feature_id==1835249]
+
+#si_data <- si_data[feature_id %in% c(1810859,2029893,2032739,2055201,18099674)]
+
+# all si values NA need to be zero
+si_data[is.na(si_data)] <- 0
+
+
+names(si_data) <- c("feature_id","at","ba","bg","bl","cw","dr","ep","fd","hm","hw","lt","lw","pa","pl","pw","py","sb","se","ss" ,"sw","sx","yc","bec_zone" ,"bec_subzone")
+
+#names(si_data) <- c("feature_id","at","ba","bl","cw","fd","hw","lw","pl","sb","se","ss" ,"sw","sx","bec_zone" ) 
+
+si_data[, c_i:= 'I'][bec_zone %in% c('CDF','CWH','MH'), c_i:='C']
+
+si_data$si <- 0
+
+
+
+# get first set coefficients
+
+fnc <- paste0(getwd(),'/conversion_coefficients_v1.txt')
+coef <- data.table::fread(fnc,sep=',')
+
+
+# get 1 to 1 coefficients
+fnc2 <- paste0(getwd(),'/conversion_coefficients_1_1.txt')
+coef_1_1 <- data.table::fread(fnc2,sep=',')
+
+
+
+library(tidyverse)
+library(kableExtra)
+
+kable(coef,format="html",caption = 'Table of species site index conversion coefficients') %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+```
+
+- s1 = species that requires a site index
+- s2 = substitute species to use
+- b0 = intercept
+- b1 = slope
+
+```{r}
+
+# function to look up coefficients based on the species that has a zero for site index
+# feed it the data table that is a subset of the species
+
+update_site_index <- function(df,sp) {
+  
+  # df is the data table
+  # sp is the species to be converted
+  
+  # subset for only the species in question
+  cx <- coef[coef$s1 == sp,]
+
+  #  loop over the set of coefficients that are available for the species that has a 0 site index
+  for (i in 1:nrow(cx)){
+    x <- cx[i,]
+    df[get(x$s2) > 0 & si == 0,si := x$b0 + ( x$b1* get(x$s2))]
+  }
+  
+  # pass back the site index values
+  return(df$si)
+  
+}
+
+```
+
+```{r}
+
+# function to look up coefficients based on the species that has a zero for site index
+# feed it the data table that is a subset of the species
+
+update_site_index_1_1 <- function(df,sp) {
+  
+  # df is the data table
+  # sp is the species to be converted
+  
+  # subset for only the species in question
+  cx <- coef_1_1[coef_1_1$s1 == sp,]
+
+  #  loop over the set of coefficients that are available for the species that has a 0 site index
+  for (i in 1:nrow(cx)){
+    x <- cx[i,]
+    df[get(x$s2) > 0 & si == 0,si := get(x$s2)]
+  }
+  
+  # pass back the site index values
+  return(df$si)
+  
+}
+
+```
+
+
+
+
+```{r eval = FALSE}
+
+# universal update for sw = sx & ss = sx
+# does a one to one translation
+# coded in the coefficient table as s1 = sz
+
+si_data$sw[which(si_data$sw==0) ] <- update_site_index_1_1(si_data[which(si_data$sw==0 )],'sw')
+si_data$se[which(si_data$se==0) ] <- update_site_index_1_1(si_data[which(si_data$se==0 )],'se')
+
+
+
+si_data$at[which(si_data$at==0)] <- update_site_index(si_data[which(si_data$at==0)],'at')
+si_data$ba[which(si_data$ba==0)] <- update_site_index(si_data[which(si_data$ba==0)],'ba')
+
+# there are no coefficients for Bg
+#si_data$bg[which(si_data$bg==0)] <- update_site_index(si_data[which(si_data$bg==0)],'bg')
+
+# bl is assumed to be interior
+si_data$bl[which(si_data$bl==0)] <- update_site_index(si_data[which(si_data$bl==0)],'bl')
+
+# cwc
+si_data$cw[which(si_data$cw==0 & si_data$c_i =='C')] <- update_site_index(si_data[which(si_data$cw==0 & si_data$c_i =='C')],'cwc')
+
+
+
+si_data$fd[which(si_data$fd==0 & si_data$c_i =='C')] <- update_site_index(si_data[which(si_data$fd==0 & si_data$c_i =='C')],'fdc')
+si_data$fd[which(si_data$fd==0 & si_data$c_i =='I')] <- update_site_index(si_data[which(si_data$fd==0 & si_data$c_i =='I')],'fdi')
+
+si_data$hw[which(si_data$hw==0 & si_data$c_i =='C')] <- update_site_index(si_data[which(si_data$hw==0 & si_data$c_i =='C')],'hwc')
+si_data$hw[which(si_data$hw==0 & si_data$c_i =='I')] <- update_site_index(si_data[which(si_data$hw==0 & si_data$c_i =='I')],'hwi')
+
+si_data$lw[which(si_data$lw==0)] <- update_site_index(si_data[which(si_data$lw==0)],'lw')
+si_data$pl[which(si_data$pl==0)] <- update_site_index(si_data[which(si_data$pl==0)],'pl')
+si_data$sb[which(si_data$sb==0)] <- update_site_index(si_data[which(si_data$sb==0)],'sb')
+
+si_data$ss[which(si_data$ss==0)] <- update_site_index(si_data[which(si_data$ss==0)],'ss')
+si_data$sw[which(si_data$sw==0)] <- update_site_index(si_data[which(si_data$sw==0)],'sw')
+
+# notes 
+# Sx off
+
+
+
+# one to one
+
+# one to one conversion
+  
+  si_data$ba[which(si_data$ba==0)] <- update_site_index_1_1(si_data[which(si_data$ba==0)],'ba' )
+  si_data$bl[which(si_data$bl==0)] <- update_site_index_1_1(si_data[which(si_data$bl==0)],'bl' )
+  si_data$bg[which(si_data$bg==0)] <- update_site_index_1_1(si_data[which(si_data$bg==0)],'bg' )
+  si_data$pw[which(si_data$pw==0)] <- update_site_index_1_1(si_data[which(si_data$pw==0)],'pw' )
+  si_data$ss[which(si_data$ss==0)] <- update_site_index_1_1(si_data[which(si_data$ss==0)],'ss' )
+  si_data$lt[which(si_data$lt==0)] <- update_site_index_1_1(si_data[which(si_data$lt==0)],'lt' )
+  si_data$lw[which(si_data$lw==0)] <- update_site_index_1_1(si_data[which(si_data$lw==0)],'lw' )
+  si_data$hm[which(si_data$hm==0)] <- update_site_index_1_1(si_data[which(si_data$hm==0)],'hm' )
+  si_data$hw[which(si_data$hw==0)] <- update_site_index_1_1(si_data[which(si_data$hw==0)],'hw' )
+  si_data$pa[which(si_data$pa==0)] <- update_site_index_1_1(si_data[which(si_data$pa==0)],'pa' )
+  si_data$pl[which(si_data$pl==0)] <- update_site_index_1_1(si_data[which(si_data$pl==0)],'pl' )
+  
+  # if cwi = 0 and sw >0 cw = sw
+  si_data$cw[which(si_data$cw==0 & si_data$c_i =='I')] <- update_site_index_1_1(si_data[which(si_data$cw==0 & si_data$c_i =='I')],'cw')
+  
+  # py
+   si_data$py[which(si_data$py==0 &  si_data$bec=="SBS" & si_data$subzone == "dk")] <- update_site_index_1_1(si_data[which(si_data$py==0 & si_data$bec=="SBS" & si_data$subzone == "dk")],'py')
+  
+
+
+
+#si_data$dr[which(si_data$dr==0)] <- update_site_index(si_data[which(si_data$dr==0)],'dr')
+
+```
+
