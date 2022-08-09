@@ -1,0 +1,153 @@
+---
+title: "Compare TIFs"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+
+
+# raster files
+tif_method1 <- 'D:/data/data_projects/VRI_Rasterization/method1.tif'
+tif_method2 <- 'D:/data/data_projects/VRI_Rasterization/method2.tif'
+tif_method3 <- 'D:/data/data_projects/VRI_Rasterization/method3.tif'
+tif_method4 <- 'D:/data/data_projects/VRI_Rasterization/tif_fasterize.tif'
+
+tif_compare <- paste0(getwd(),'/r1_to_r4.tif')
+
+# read each raster set and compare
+
+# if the diff is not zero, set it to 1
+# this will show where pixel values are different
+
+
+r1 <- terra::rast(tif_method1)
+
+# compare 1 to 2
+
+r2 <- terra::rast(tif_method2)
+
+c1 <- r1 - r2
+c1[c1 != 0] <- 1
+
+f1 <- terra::freq(c1)
+f1
+
+```
+
+Table 1.  Compare sf::gdal_utils.rasterize GDB to PostgreSQL
+
+This table shows there are 31 features that are different.  
+
+
+
+```{r}
+
+# compare 1 to 3
+r3 <- terra::rast(tif_method3)
+
+c1 <- r1 - r3
+c1[c1 != 0] <- 1
+
+f2 <- terra::freq(c1)
+f2
+
+```
+
+Table 2.  Compare sf::gdal_utils.rasterize (GDB) to gdal_rasterize.exe
+
+This table shows that the 2 TIFs are identical.  
+
+
+```{r eval=FALSE}
+# compare 1 to 4
+r4 <- terra::rast(tif_method4)
+
+# force projection
+terra::crs(r4) <- 'epsg:3005'
+
+# need to change existing 0 to NA to match r1 and r2
+r4[r4 == 0] <- NA
+
+
+
+# land / water mask supplied by Mike F.
+f4 <- paste0(substr(getwd(),1,1),':/data/data_projects/base_data/land_water.tif')
+mask_raster <- rast(f4)
+
+# this mask is a 0/1 of land water
+# there are values of 0 between Vancouver Island and the mainland.
+# these need to be set to NA to be used as a land mask
+# set values in mask to NA where 0
+mask_raster[mask_raster==0] <- NA
+
+# force the CRS
+crs(mask_raster ) <- 'epsg:3005'
+
+
+# set no data to 0 in the base tif
+# this will include water and any isolated nodata values inside land
+r1[is.na(r1)] <- 0
+
+# apply the land mask
+# filter out the water
+r1_masked <- mask(r1,mask_raster)
+
+# filter out any zeros
+# set to NA
+r1_masked[r1_masked==0] <- NA
+
+
+# set no data to 0 in the base tif
+# this will include water and any isolated nodata values inside land
+r4[is.na(r4)] <- 0
+
+# apply the land mask
+# filter out the water
+r4_masked <- mask(r4,mask_raster)
+
+# filter out any zeros
+# set to NA
+r4_masked[r4_masked==0] <- NA
+
+
+
+
+
+
+
+c1 <- r1_masked - r4_masked
+c1[c1 != 0] <- 1
+
+f4 <- terra::freq(c1)
+f4
+
+#terra::writeRaster(c1,tif_compare,datatype='INT2U')
+
+
+
+```
+
+Table 3:  Compare sf::gdal_utils.rasterize to fasterize
+
+This table shows that there are some differences between fasterize and the other rasterize techniques.  
+
+## Discussion
+
+The first 3 methods seem to line up quite well.  The differences between the GDB and PostgreSQL as source come from the interpretation of a 45degree line bisecting the raster.  One method goes left, the other goes right.
+
+The fasterize raster did not line up quite so well.  I have had to force the projection to epsg:3005 in the fasterized tif.  I also had to apply the land_water mask before I could make the tifs line up.   
+
+I'm thinking that part of the problem with fasterize is that it requires a template raster before generating the tif.  Here a zero filled PROV raster is being used.  Not sure if this is creating some of the differences.
+
+Fasterize requires 64GB of RAM to be able to complete this task.  IT will NOT run on a 32GB machine.
+
+As to which method is best, it is more of a personal preference.  The first 2 methods mean the OSGEO/GDAL does NOT need to be installed on a users machine.  It also means that there are no ENV requirements that need to be updated.  From a drop on an analysts desk point of view, the first 2 methods are simpler.  
+
+The third method requires an install of GDAL and also requires an update to the ENV to locate all the software components.  This needs to be updated every time GDAL changes.
+
+The fourth method requires some further investigation.  The projection and no data values need to be evaluated. And it needs 64GB of RAM.
+
+
+
