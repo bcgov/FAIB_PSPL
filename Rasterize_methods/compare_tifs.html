@@ -11,7 +11,7 @@
 
 <meta name="author" content="D. Waddell" />
 
-<meta name="date" content="2022-08-09" />
+<meta name="date" content="2022-08-10" />
 
 <title>Compare TIFs</title>
 
@@ -365,7 +365,7 @@ pre code {
 
 <h1 class="title toc-ignore">Compare TIFs</h1>
 <h4 class="author">D. Waddell</h4>
-<h4 class="date">2022-08-09</h4>
+<h4 class="date">2022-08-10</h4>
 
 </div>
 
@@ -374,9 +374,10 @@ pre code {
 tif_method1 &lt;- &#39;D:/data/data_projects/VRI_Rasterization/method1.tif&#39;
 tif_method2 &lt;- &#39;D:/data/data_projects/VRI_Rasterization/method2.tif&#39;
 tif_method3 &lt;- &#39;D:/data/data_projects/VRI_Rasterization/method3.tif&#39;
-tif_method4 &lt;- &#39;D:/data/data_projects/VRI_Rasterization/tif_fasterize.tif&#39;
+tif_method4 &lt;- &#39;D:/data/data_projects/VRI_Rasterization/method4.tif&#39;
+tif_method5 &lt;- &#39;D:/data/data_projects/VRI_Rasterization/tif_fasterize.tif&#39;
 
-tif_compare &lt;- paste0(getwd(),&#39;/r1_to_r4.tif&#39;)
+tif_brick &lt;- &#39;D:/data/data_projects/VRI_Rasterization/tif_brick.tif&#39;
 
 # read each raster set and compare
 
@@ -400,33 +401,79 @@ f1</code></pre>
 ## [2,]     1     1       31</code></pre>
 <p>Table 1. Compare sf::gdal_utils.rasterize GDB to PostgreSQL</p>
 <p>This table shows there are 31 features that are different.</p>
+<p>Both methods use sf::gdal_utils.rasterize.<br />
+Except one points at a GDB as source.<br />
+The other points at PostgreSQL as source.</p>
 <pre class="r"><code># compare 1 to 3
 r3 &lt;- terra::rast(tif_method3)
 
+
 c1 &lt;- r1 - r3
 c1[c1 != 0] &lt;- 1
+
+# differences
+# 0 = no difference
+# 1 = difference of 1
+# 2 = difference greater than 1
 
 f2 &lt;- terra::freq(c1)
 f2</code></pre>
 <pre><code>##      layer value    count
 ## [1,]     1     0 99555563</code></pre>
-<p>Table 2. Compare sf::gdal_utils.rasterize (GDB) to
-gdal_rasterize.exe</p>
+<p>Table 2. Compare sf::gdal_utils.rasterize (GDB) to gdal_rasterize.exe
+GDB</p>
 <p>This table shows that the 2 TIFs are identical.</p>
-<pre class="r"><code># compare 1 to 4
+<pre class="r"><code># compare 2 to 4
 r4 &lt;- terra::rast(tif_method4)
 
-# force projection
-terra::crs(r4) &lt;- &#39;epsg:3005&#39;
+c1 &lt;- r2 - r4
+c1[c1 != 0] &lt;- 1
 
-# need to change existing 0 to NA to match r1 and r2
-r4[r4 == 0] &lt;- NA
+f3 &lt;- terra::freq(c1)
+f3</code></pre>
+<pre><code>##      layer value    count
+## [1,]     1     0 99555563</code></pre>
+<p>Table 3. Compare sf::gdal_utils.rasterize (PostgreSQL) to
+gdal_rasterize.exe GDB</p>
+<p>This table shows that the 2 TIFs are identical.</p>
+<pre class="r"><code># compare 1 to 4
+r5 &lt;- terra::rast(tif_method5)
+
+# force projection
+terra::crs(r5) &lt;- &#39;epsg:3005&#39;
+
+
+# use absolutes
+c1 &lt;- abs(r1 - r5)
+
+# where the difference is 1 assign 2
+c1[c1 == 1] &lt;- 1
+
+# where there is a difference of more thatn 1
+c1[c1 &gt; 1 ] &lt;- 2
+
+f4 &lt;- terra::freq(c1)
+f4</code></pre>
+<pre><code>##      layer value    count
+## [1,]     1     0 84855212
+## [2,]     1     1 14700019
+## [3,]     1     2      332</code></pre>
+<p>Table 4: Compare sf::gdal_utils.rasterize to fasterize</p>
+<p>This table shows that there are some differences between fasterize
+and the other rasterize techniques.</p>
+<ul>
+<li>0 means NO difference</li>
+<li>1 means a difference of 1</li>
+<li>2 means a entirely different</li>
+</ul>
+<pre class="r"><code># compare 1 to 5 with masking
+#r6 &lt;- terra::rast(tif_method5)
 
 
 
 # land / water mask supplied by Mike F.
-f4 &lt;- paste0(substr(getwd(),1,1),&#39;:/data/data_projects/base_data/land_water.tif&#39;)
-mask_raster &lt;- rast(f4)
+w1 &lt;- paste0(substr(getwd(),1,1),&#39;:/data/data_projects/base_data/land_water.tif&#39;)
+mask_raster &lt;- terra::rast(w1)
 
 # this mask is a 0/1 of land water
 # there are values of 0 between Vancouver Island and the mainland.
@@ -435,56 +482,97 @@ mask_raster &lt;- rast(f4)
 mask_raster[mask_raster==0] &lt;- NA
 
 # force the CRS
-crs(mask_raster ) &lt;- &#39;epsg:3005&#39;
+terra::crs(mask_raster ) &lt;- &#39;epsg:3005&#39;
+
+# need to change existing 0 to NA to match r1 and r2
+#r5[r5 == 0] &lt;- NA
 
 
-# set no data to 0 in the base tif
-# this will include water and any isolated nodata values inside land
-r1[is.na(r1)] &lt;- 0
 
-# apply the land mask
+# apply the land mask to the base layer
 # filter out the water
-r1_masked &lt;- mask(r1,mask_raster)
+r1_masked &lt;- terra::mask(r1,mask_raster)
 
 # filter out any zeros
 # set to NA
 r1_masked[r1_masked==0] &lt;- NA
 
+# apply the land mask to the fasterized tif
+# filter out the water
+r5_masked &lt;- terra::mask(r5,mask_raster)
+
+
+
 
 # set no data to 0 in the base tif
 # this will include water and any isolated nodata values inside land
-r4[is.na(r4)] &lt;- 0
+#r5[is.na(r5)] &lt;- 0
 
-# apply the land mask
-# filter out the water
-r4_masked &lt;- mask(r4,mask_raster)
+
 
 # filter out any zeros
 # set to NA
-r4_masked[r4_masked==0] &lt;- NA
+r5_masked[r5_masked==0] &lt;- NA
 
 
 
 
+#c1 &lt;- r1 - r5
 
+# use absolutes
+c5 &lt;- abs(r1 - r5)
 
+# where the difference is 1 assign 2
+c5[c5 == 1] &lt;- 1
 
-c1 &lt;- r1_masked - r4_masked
-c1[c1 != 0] &lt;- 1
+# where there is a difference of more thatn 1
+c5[c5 &gt; 1 ] &lt;- 2
 
-f4 &lt;- terra::freq(c1)
-f4
-
-#terra::writeRaster(c1,tif_compare,datatype=&#39;INT2U&#39;)</code></pre>
-<p>Table 3: Compare sf::gdal_utils.rasterize to fasterize</p>
+f5 &lt;- terra::freq(c5)
+f5</code></pre>
+<pre><code>##      layer value    count
+## [1,]     1     0 84855212
+## [2,]     1     1 14700019
+## [3,]     1     2      332</code></pre>
+<pre class="r"><code>#terra::writeRaster(c1,tif_compare,datatype=&#39;INT2U&#39;)</code></pre>
+<p>Table 5: Compare sf::gdal_utils.rasterize to fasterize Mask applied
+to both</p>
 <p>This table shows that there are some differences between fasterize
 and the other rasterize techniques.</p>
+<ul>
+<li>0 means NO difference</li>
+<li>1 means a difference of 1</li>
+<li>2 means a entirely different</li>
+</ul>
+<pre class="r"><code># build a raster brick of all the differences.
+
+r5 &lt;- terra::rast(tif_method5)
+
+# create list of rasters
+lst &lt;- list(r1,r2,r3,r4,r5)
+
+# create a brick of these rasters from list
+raster_brick &lt;-terra::rast(lst)
+
+# write brick to a tiff
+
+terra::writeRaster(raster_brick, tif_brick, datatype=&#39;INT4U&#39;, overwrite=TRUE)</code></pre>
+<pre><code>## Warning: Deleting D:/data/data_projects/VRI_Rasterization/tif_brick.tif failed:
+## Permission denied (GDAL error 1)</code></pre>
+<pre class="r"><code># write the fasterize compare to a tif
+
+diff_tif &lt;- &#39;D:/data/data_projects/VRI_Rasterization/tif_diff.tif&#39;
+terra::writeRaster(c1, diff_tif, datatype=&#39;INT4U&#39;, overwrite=TRUE)</code></pre>
+<pre><code>## Warning: Deleting D:/data/data_projects/VRI_Rasterization/tif_diff.tif failed:
+## Permission denied (GDAL error 1)</code></pre>
 <div id="discussion" class="section level2">
 <h2>Discussion</h2>
-<p>The first 3 methods seem to line up quite well. The differences
+<p>The first 4 methods seem to line up quite well. The differences
 between the GDB and PostgreSQL as source come from the interpretation of
 a 45degree line bisecting the raster. One method goes left, the other
-goes right.</p>
+goes right. Comparing athe 2 GDB reads and the 2 PostgreSQL reads, they
+are identical. There is only a difference when comparing between the GDB
+and PostgreSQL reads.</p>
 <p>The fasterize raster did not line up quite so well. I have had to
 force the projection to epsg:3005 in the fasterized tif. I also had to
 apply the land_water mask before I could make the tifs line up.</p>

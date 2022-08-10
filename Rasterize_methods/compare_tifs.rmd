@@ -12,9 +12,10 @@ output: html_document
 tif_method1 <- 'D:/data/data_projects/VRI_Rasterization/method1.tif'
 tif_method2 <- 'D:/data/data_projects/VRI_Rasterization/method2.tif'
 tif_method3 <- 'D:/data/data_projects/VRI_Rasterization/method3.tif'
-tif_method4 <- 'D:/data/data_projects/VRI_Rasterization/tif_fasterize.tif'
+tif_method4 <- 'D:/data/data_projects/VRI_Rasterization/method4.tif'
+tif_method5 <- 'D:/data/data_projects/VRI_Rasterization/tif_fasterize.tif'
 
-tif_compare <- paste0(getwd(),'/r1_to_r4.tif')
+tif_brick <- 'D:/data/data_projects/VRI_Rasterization/tif_brick.tif'
 
 # read each raster set and compare
 
@@ -40,6 +41,10 @@ Table 1.  Compare sf::gdal_utils.rasterize GDB to PostgreSQL
 
 This table shows there are 31 features that are different.  
 
+Both methods use sf::gdal_utils.rasterize.  
+Except one points at a GDB as source.   
+The other points at PostgreSQL as source.  
+
 
 
 ```{r}
@@ -47,34 +52,86 @@ This table shows there are 31 features that are different.
 # compare 1 to 3
 r3 <- terra::rast(tif_method3)
 
+
 c1 <- r1 - r3
 c1[c1 != 0] <- 1
+
+# differences
+# 0 = no difference
+# 1 = difference of 1
+# 2 = difference greater than 1
 
 f2 <- terra::freq(c1)
 f2
 
 ```
 
-Table 2.  Compare sf::gdal_utils.rasterize (GDB) to gdal_rasterize.exe
+Table 2.  Compare sf::gdal_utils.rasterize (GDB) to gdal_rasterize.exe GDB
 
 This table shows that the 2 TIFs are identical.  
 
 
-```{r eval=FALSE}
-# compare 1 to 4
+```{r}
+
+# compare 2 to 4
 r4 <- terra::rast(tif_method4)
 
-# force projection
-terra::crs(r4) <- 'epsg:3005'
+c1 <- r2 - r4
+c1[c1 != 0] <- 1
 
-# need to change existing 0 to NA to match r1 and r2
-r4[r4 == 0] <- NA
+f3 <- terra::freq(c1)
+f3
+
+```
+
+Table 3. Compare sf::gdal_utils.rasterize (PostgreSQL) to gdal_rasterize.exe GDB
+
+This table shows that the 2 TIFs are identical.  
+
+
+```{r eval=TRUE}
+# compare 1 to 4
+r5 <- terra::rast(tif_method5)
+
+# force projection
+terra::crs(r5) <- 'epsg:3005'
+
+
+# use absolutes
+c1 <- abs(r1 - r5)
+
+# where the difference is 1 assign 2
+c1[c1 == 1] <- 1
+
+# where there is a difference of more thatn 1
+c1[c1 > 1 ] <- 2
+
+f4 <- terra::freq(c1)
+f4
+
+
+
+
+```
+
+Table 4:  Compare sf::gdal_utils.rasterize to fasterize
+
+This table shows that there are some differences between fasterize and the other rasterize techniques.   
+
+- 0 means NO difference
+- 1 means a difference of 1
+- 2 means a entirely different
+
+
+```{r eval=TRUE}
+# compare 1 to 5 with masking
+#r6 <- terra::rast(tif_method5)
 
 
 
 # land / water mask supplied by Mike F.
-f4 <- paste0(substr(getwd(),1,1),':/data/data_projects/base_data/land_water.tif')
-mask_raster <- rast(f4)
+w1 <- paste0(substr(getwd(),1,1),':/data/data_projects/base_data/land_water.tif')
+mask_raster <- terra::rast(w1)
 
 # this mask is a 0/1 of land water
 # there are values of 0 between Vancouver Island and the mainland.
@@ -83,45 +140,54 @@ mask_raster <- rast(f4)
 mask_raster[mask_raster==0] <- NA
 
 # force the CRS
-crs(mask_raster ) <- 'epsg:3005'
+terra::crs(mask_raster ) <- 'epsg:3005'
+
+# need to change existing 0 to NA to match r1 and r2
+#r5[r5 == 0] <- NA
 
 
-# set no data to 0 in the base tif
-# this will include water and any isolated nodata values inside land
-r1[is.na(r1)] <- 0
 
-# apply the land mask
+# apply the land mask to the base layer
 # filter out the water
-r1_masked <- mask(r1,mask_raster)
+r1_masked <- terra::mask(r1,mask_raster)
 
 # filter out any zeros
 # set to NA
 r1_masked[r1_masked==0] <- NA
 
+# apply the land mask to the fasterized tif
+# filter out the water
+r5_masked <- terra::mask(r5,mask_raster)
+
+
+
 
 # set no data to 0 in the base tif
 # this will include water and any isolated nodata values inside land
-r4[is.na(r4)] <- 0
+#r5[is.na(r5)] <- 0
 
-# apply the land mask
-# filter out the water
-r4_masked <- mask(r4,mask_raster)
+
 
 # filter out any zeros
 # set to NA
-r4_masked[r4_masked==0] <- NA
+r5_masked[r5_masked==0] <- NA
 
 
 
 
+#c1 <- r1 - r5
 
+# use absolutes
+c5 <- abs(r1 - r5)
 
+# where the difference is 1 assign 2
+c5[c5 == 1] <- 1
 
-c1 <- r1_masked - r4_masked
-c1[c1 != 0] <- 1
+# where there is a difference of more thatn 1
+c5[c5 > 1 ] <- 2
 
-f4 <- terra::freq(c1)
-f4
+f5 <- terra::freq(c5)
+f5
 
 #terra::writeRaster(c1,tif_compare,datatype='INT2U')
 
@@ -129,13 +195,49 @@ f4
 
 ```
 
-Table 3:  Compare sf::gdal_utils.rasterize to fasterize
+Table 5:  Compare sf::gdal_utils.rasterize to fasterize Mask applied to both
 
-This table shows that there are some differences between fasterize and the other rasterize techniques.  
+This table shows that there are some differences between fasterize and the other rasterize techniques.   
+
+- 0 means NO difference
+- 1 means a difference of 1
+- 2 means a entirely different
+```{r brick}
+
+# build a raster brick of all the differences.
+
+r5 <- terra::rast(tif_method5)
+
+# create list of rasters
+lst <- list(r1,r2,r3,r4,r5)
+
+# create a brick of these rasters from list
+raster_brick <-terra::rast(lst)
+
+# write brick to a tiff
+
+terra::writeRaster(raster_brick, tif_brick, datatype='INT4U', overwrite=TRUE)
+
+
+
+
+```
+
+
+```{r}
+
+# write the fasterize compare to a tif
+
+diff_tif <- 'D:/data/data_projects/VRI_Rasterization/tif_diff.tif'
+terra::writeRaster(c1, diff_tif, datatype='INT4U', overwrite=TRUE)
+
+```
+
+
 
 ## Discussion
 
-The first 3 methods seem to line up quite well.  The differences between the GDB and PostgreSQL as source come from the interpretation of a 45degree line bisecting the raster.  One method goes left, the other goes right.
+The first 4 methods seem to line up quite well.  The differences between the GDB and PostgreSQL as source come from the interpretation of a 45degree line bisecting the raster.  One method goes left, the other goes right. Comparing athe 2 GDB reads and the 2 PostgreSQL reads, they are identical.  There is only a difference when comparing between the GDB and PostgreSQL reads.
 
 The fasterize raster did not line up quite so well.  I have had to force the projection to epsg:3005 in the fasterized tif.  I also had to apply the land_water mask before I could make the tifs line up.   
 
@@ -145,9 +247,9 @@ Fasterize requires 64GB of RAM to be able to complete this task.  IT will NOT ru
 
 As to which method is best, it is more of a personal preference.  The first 2 methods mean the OSGEO/GDAL does NOT need to be installed on a users machine.  It also means that there are no ENV requirements that need to be updated.  From a drop on an analysts desk point of view, the first 2 methods are simpler.  
 
-The third method requires an install of GDAL and also requires an update to the ENV to locate all the software components.  This needs to be updated every time GDAL changes.
+The third and fourth methods require an install of GDAL and also require an update to the ENV to locate all the software components.  This needs to be updated every time GDAL changes.
 
-The fourth method requires some further investigation.  The projection and no data values need to be evaluated. And it needs 64GB of RAM.
+The fifth method requires some further investigation.  The projection and no data values need to be evaluated. And it needs 64GB of RAM.
 
 
 
