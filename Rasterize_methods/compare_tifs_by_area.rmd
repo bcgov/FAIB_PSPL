@@ -1,0 +1,92 @@
+---
+title: "Compare TIFs"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+
+library(data.table)
+library(tidyverse)
+library(RPostgreSQL)
+
+
+# raster files
+tif_method1 <- 'D:/data/data_projects/VRI_Rasterization/method1.tif'
+
+
+getQuery<-function(sql){
+  conn <- dbConnect("PostgreSQL",
+                       dbname='msyt', 
+                       user='postgres' 
+                       )
+  
+  on.exit(dbDisconnect(conn))
+  sf::st_read(conn, query = sql)
+}
+
+base_vri_area <- getQuery('select feature_id,polygon_area from msyt_2022.veg_comp') %>% arrange(feature_id)
+
+
+r1 <- terra::rast(tif_method1)
+
+
+
+raster_base <- as.data.table(terra::values(r1)) %>% subset(!is.na(method1))
+names(raster_base) <- 'feature_id'
+
+raster_area <- count(raster_base,feature_id) %>% arrange(feature_id)
+names(raster_area) <- c('feature_id','raster_area')
+
+raster_area$feature_id <- as.integer(raster_area$feature_id)
+
+# keep raster area as integer
+
+# round vri area to integer
+
+compare <- left_join(base_vri_area,raster_area)
+
+#round the polygon_area and cat to integer
+compare$polygon_area <- as.integer(round(compare$polygon_area,0))
+
+
+# remove the NULL on the raster side
+# these are expected
+raster_null <- compare[is.na(compare$raster_area),]
+compare <- compare %>% subset(!feature_id %in% raster_null$feature_id)
+
+# compute difference
+compare$diff <- abs(compare$polygon_area - compare$raster_area)
+
+# express area difference as percentage of vri area
+compare$diff2 <- compare$diff/compare$polygon_area*100
+
+# where area is equal or difference is < 2
+raster_equal <- compare[compare$polygon_area == compare$raster_area | compare$diff < 3,]
+compare <- compare %>% subset(!feature_id %in% raster_equal$feature_id)
+
+# where area is large and % diff < 5
+raster_equal <- compare[compare$polygon_area > 100 | compare$diff2 < 5,]
+compare <- compare %>% subset(!feature_id %in% raster_equal$feature_id)
+
+
+
+
+# remove where < 5% difference based on area
+d_small <- compare %>% subset(diff2 < 5)
+compare <- compare %>% subset(!feature_id %in% d_small$feature_id)
+
+# remove where 100% diff and area small
+d_small <- compare %>% subset(diff2 == 100 & polygon_area < 4)
+compare <- compare %>% subset(!feature_id %in% d_small$feature_id)
+
+c1 <- count(compare,diff)
+c1$source <- 'r1'
+
+p1 <- ggplot(c1,aes(x=diff)) +
+    geom_density(aes(group=source,color=source),alpha=0.3) 
+
+```
+
+

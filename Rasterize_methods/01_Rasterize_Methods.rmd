@@ -59,14 +59,14 @@ gdal_utils("rasterize",src,dest,options =
                 '-l', 'VEG_COMP_LYR_R1_POLY',
                 '-a', 'FEATURE_ID' ,
                 '-a_srs','EPSG:3005',
-                '-a_nodata', '-99',
+                '-a_nodata', '0',
                 '-co','COMPRESS=LZW'),
                 '-overwrite')
 
 
 ```
 
-End GDB -> Tif: `r Sys.time()`
+End Method 1 GDB -> Tif: `r Sys.time()`
 
 
 ## Method 2: PostgreSQL to TIF using sf::gdal_utils
@@ -86,19 +86,19 @@ gdal_utils("rasterize",src,dest,options =
                 '-l', spatial_table,
                 '-a', 'FEATURE_ID' ,
                 '-a_srs','EPSG:3005',
-                '-a_nodata', '-99',
+                '-a_nodata', '0',
                 '-co','COMPRESS=LZW'),
                 '-overwrite')
 
 ```
 
+End Method 2 PostgreSQL -> Tif: `r Sys.time()`
 
-
-## Method 3: gdal_rasterize
+## Method 3: gdal_rasterize GDB
 
 Requires installation of GDAL and resetting of ENV  
 
-```{r gdal_rasterize}
+```{r gdal_rasterize_gdb}
 
 src <- 'D:/data/data_projects/AR2022/vri/VEG_COMP_LYR_R1_POLY_2021.gdb'
 dest <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/method3.tif')
@@ -110,7 +110,7 @@ cmd <- paste0(c('-tr','100',' 100',
                 '-l', 'VEG_COMP_LYR_R1_POLY',
                 '-a', 'FEATURE_ID' ,
                 '-a_srs','EPSG:3005',
-                '-a_nodata', '-99',
+                '-a_nodata', '0',
                 '-co','COMPRESS=LZW',src,dest))
 
 gdal_rasterize <- 'C:/Program Files/GDAL/gdal_rasterize.exe'
@@ -119,17 +119,46 @@ system2(gdal_rasterize,args=cmd,wait=TRUE,stderr = TRUE)
 
 ```
 
-```{r fasterize}
+End Method 3 gdal_rasterize GDB: `r Sys.time()`
+
+## Method 4: gdal_rasterize PostgreSQL
+
+Requires installation of GDAL and resetting of ENV  
+
+```{r gdal_rasterize}
+
+
+src <- shQuote("PG:dbname='msyt' user='postgres'")
+spatial_table <- 'msyt_2022.veg_comp_spatial'
+dest <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/method4.tif')
+
+cmd <- paste0(c('-tr','100',' 100',
+                '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
+                '-ot', 'UInt32 ',
+                '-l', spatial_table,
+                '-a', 'FEATURE_ID' ,
+                '-a_srs','EPSG:3005',
+                '-a_nodata', '0',
+                '-co','COMPRESS=LZW',src,dest))
+
+# point to the EXE
+gdal_rasterize <- 'C:/Program Files/GDAL/gdal_rasterize.exe'
+
+system2(gdal_rasterize,args=cmd,wait=TRUE,stderr = TRUE)
+
+```
+End Method 4 gdal_rasterize PostgreSQL: `r Sys.time()`
+
+```{r fasterize, eval=FALSE}
 
 
 #Simple database connectivity functions
 getSpatialQuery<-function(sql){
-  conn<-DBI::dbConnect(dbDriver("PostgreSQL"), 
-                       host=keyring::key_get('dbhost', keyring = 'postgreSQL'), 
-                       dbname = keyring::key_get('dbname', keyring = 'postgreSQL'), port='5432' ,
-                       user=keyring::key_get('dbuser', keyring = 'postgreSQL') ,
-                       password= keyring::key_get('dbpass', keyring = 'postgreSQL')
-  )
+  conn<-DBI::dbConnect(dbDriver("PostgreSQL"),
+                       dbname='msyt', 
+                       user='postgres' ,
+                       )
+  
   on.exit(dbDisconnect(conn))
   st_read(conn, query = sql)
 }
