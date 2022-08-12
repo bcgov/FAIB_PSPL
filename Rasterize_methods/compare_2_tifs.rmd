@@ -1,0 +1,80 @@
+---
+title: "Compare 2 TIFs"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Check that what Iaian produced for the official vri feature_id Tif matches the method checks comparing sf::gdal_utils to gdal_rasterize.exe  
+
+File provided by Iaian:  veg_comp_lyr_r1_poly_internal_2021.tif  
+
+```{r}
+
+library(kableExtra)
+
+
+# raster files
+tif1 <- 'D:/data/data_projects/VRI_Rasterization/method1.tif'
+tif2 <- 'D:/data/data_projects/AR2022/base/veg_comp_lyr_r1_poly_internal_2021.tif'
+
+
+
+# read each raster set and compare
+
+# if the diff is not zero, set it to 1
+# this will show where pixel values are different
+
+
+r1 <- terra::rast(tif1)
+r2 <- terra::rast(tif2)
+
+ext1 <- terra::ext(r1)
+ext2 <- terra::ext(r2)
+
+
+ext1
+ext2
+
+# need to crop when extents are different
+
+r1 <- terra::crop(r1,r2)
+ext1 <- terra::ext(r1)
+
+ext1
+ext2
+
+
+c1 <- r1 - r2
+c1[c1 != 0] <- 1
+
+f1 <- as.data.frame(terra::freq(c1))
+f1 <- f1[,2:3]
+
+
+kable(f1,format="html",caption = 'sf::gdal_utils.rasterize GDB to PostgreSQL') %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+
+n <- f1$count[f1$value==1]
+
+
+```
+
+This shows that there are `r n` non matching feature ids.
+
+
+```{r}
+
+# check that data types match
+
+v1 <- typeof(terra::values(r1))
+v2 <- typeof(terra::values(r2))
+
+v1
+v2
+
+
+
+```
+

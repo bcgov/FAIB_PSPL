@@ -16,6 +16,7 @@ tif_method2 <- 'D:/data/data_projects/VRI_Rasterization/method2.tif'
 tif_method3 <- 'D:/data/data_projects/VRI_Rasterization/method3.tif'
 tif_method4 <- 'D:/data/data_projects/VRI_Rasterization/method4.tif'
 tif_method5 <- 'D:/data/data_projects/VRI_Rasterization/fasterize2.tif'
+vri_official <- 'D:/data/data_projects/AR2022/base/veg_comp_lyr_r1_poly_internal_2021.tif'
 
 
 

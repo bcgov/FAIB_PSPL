@@ -1,0 +1,180 @@
+---
+title: "Comparing int to float rasters"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+An interesting comparison of the exact same raster data, except one is written a UInt32 Tif,    
+the other is written as Float32.  
+
+
+## create an UInt32 raster
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+
+library(sf)
+library(terra)
+library(RPostgreSQL)
+library(raster)
+library(tidyverse)
+library(kableExtra)
+
+
+```
+
+```{r create_int}
+
+
+
+# read gdb file
+
+src <- 'D:/data/data_projects/AR2022/vri/VEG_COMP_LYR_R1_POLY_2021.gdb'
+dest1 <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/method_int.tif')
+dest2 <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/method_float.tif')
+
+
+gdal_utils("rasterize",src,dest1,options = 
+             c('-tr','100',' 100',
+                '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
+                '-ot', 'UInt32',
+                '-l', 'VEG_COMP_LYR_R1_POLY',
+                '-a', 'FEATURE_ID' ,
+                '-a_srs','EPSG:3005',
+                '-a_nodata', '0',
+                '-co','COMPRESS=LZW'),
+                '-overwrite')
+
+
+```
+
+## create an Float32 raster
+
+```{r create_float}
+
+
+
+gdal_utils("rasterize",src,dest2,options = 
+             c('-tr','100',' 100',
+                '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
+                '-ot', 'Float32',
+                '-l', 'VEG_COMP_LYR_R1_POLY',
+                '-a', 'FEATURE_ID' ,
+                '-a_srs','EPSG:3005',
+                '-a_nodata', '0',
+                '-co','COMPRESS=LZW'),
+                '-overwrite')
+
+
+```
+
+
+## read the 2 tifs
+
+
+
+```{r read_tifs}
+
+# read each raster set and compare
+
+# if the diff is not zero, set it to 1
+# this will show where pixel values are different
+
+
+r1 <- terra::rast(dest1)
+r2 <- terra::rast(dest2)
+
+
+# Do a diff
+
+c1 <- r1 - r2
+c1[c1 != 0] <- 1
+
+f1 <- as.data.frame(terra::freq(c1))
+f1 <- f1[,2:3]
+
+
+kable(f1,format="html",caption = 'compare int to float') %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+
+n <- f1$count[f1$value==1]
+
+
+```
+
+This shows that there are `r format(n,big.mark=",")` non matching feature ids.
+
+
+
+
+
+
+
+```{r}
+
+# look at some anomalies
+
+
+raster_stack <- stack(list(dest1,dest2))
+
+rs <- as.data.frame(raster_stack[2497499])
+
+kable(rs,format="html",caption = 'Values from stack',format.args = list(big.mark = ",")) %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+
+
+```
+
+
+Look at one cell value from the 2 TIFFs:
+
+
+
+hmmmm.  off by 1.  
+
+lets see if there are values in the float TIFF that aren't even in the VRI.  
+
+
+```{r}
+
+
+
+# create a list of feature_ids form vri
+
+con <- dbConnect('PostgreSQL',dbname='msyt')
+
+fid <- dbGetQuery(con,'select feature_id from msyt_2022.veg_comp')
+
+
+stack_values <- as.data.frame(values(raster_stack))
+
+
+r1 <- stack_values %>% select(method_int) %>% subset(!method_int %in% fid$feature_id) %>% subset(!is.na(method_int))
+r1 <- unique(r1)
+
+n1 <- nrow(r1)
+
+r2 <- stack_values %>% select(method_float) %>% subset(!method_float %in% fid$feature_id) %>% subset(!is.na(method_float))
+
+r2 <- unique(r2)
+
+n2 <- nrow(r2)
+
+
+```
+
+
+Number of int values not in VRI: `r format(n1,big.mark=",")`    
+Number of float TIFF not in VRI: `r format(n2,big.mark=",")`  
+
+What this means is that the TIF created from int has not extra values in it and matches the VRI.  
+The float create TIF has values in it that aren't found in the VRI.  
+Probably not a good thing.  
+
+
+
+
+
