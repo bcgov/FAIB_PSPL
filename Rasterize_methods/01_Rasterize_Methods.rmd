@@ -1,5 +1,5 @@
 ---
-title: "Coparing 4 rasterize methods"
+title: "Comparing 5 rasterize methods"
 author: "D. Waddell"
 date: "`r Sys.Date()`"
 output: md_document
@@ -25,6 +25,8 @@ Previously impossible on 32 GB machine using R.
 sf::gdal_utils relies on backed C++ gdal rasterize function.  
 This relieves the memory load from R.  
 
+Links to: GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1; sf_use_s2() is TRUE
+
 
 
 
@@ -32,10 +34,13 @@ Reads: D:/data/data_projects/AR2022/vri/VEG_COMP_LYR_R1_POLY_2021.gdb
 
 
 Note that the supplied file is extracted from:
-https://catalogue.data.gov.bc.ca/dataset/vri-2020-forest-vegetation-composite-layer-1-l1-  
+
+catalogue.data.gov.bc.ca/dataset
+
+search for : veg_comp_lyr_r1_poly
 
 
-Publication date: 2021-02-08  
+Publication date: 2021-02-08  (which is wrong by the way), which should actually be 2022
 
 Start: `r Sys.time()`
 
@@ -44,6 +49,8 @@ Start: `r Sys.time()`
 
 library(sf)
 library(terra)
+library(RPostgreSQL)
+library(raster)
 
 
 # read gdb file
@@ -55,7 +62,7 @@ dest <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/metho
 gdal_utils("rasterize",src,dest,options = 
              c('-tr','100',' 100',
                 '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
-                '-ot', 'UInt32 ',
+                '-ot', 'UInt32',
                 '-l', 'VEG_COMP_LYR_R1_POLY',
                 '-a', 'FEATURE_ID' ,
                 '-a_srs','EPSG:3005',
@@ -71,6 +78,8 @@ End Method 1 GDB -> Tif: `r Sys.time()`
 
 ## Method 2: PostgreSQL to TIF using sf::gdal_utils
 
+Links to a local PostgreSQL database that used an Oracle Foreign data wrapper to create a copy of idwprod1.veg_comp_lyr_r1_poly.  PostgreSQL table is called veg_comp_spatial and only contains feature_id and wkb_geometry. 
+
 ```{r read_postgresql}
 
 
@@ -82,7 +91,7 @@ dest <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/metho
 gdal_utils("rasterize",src,dest,options = 
              c('-tr','100',' 100',
                 '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
-                '-ot', 'UInt32 ',
+                '-ot', 'UInt32',
                 '-l', spatial_table,
                 '-a', 'FEATURE_ID' ,
                 '-a_srs','EPSG:3005',
@@ -96,6 +105,8 @@ End Method 2 PostgreSQL -> Tif: `r Sys.time()`
 
 ## Method 3: gdal_rasterize GDB
 
+Uses an installed GDAL gdal_rasterize.ex.   
+GDAL 3.5.1, released 2022/06/30  
 Requires installation of GDAL and resetting of ENV  
 
 ```{r gdal_rasterize_gdb}
@@ -106,7 +117,7 @@ dest <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/metho
 
 cmd <- paste0(c('-tr','100',' 100',
                 '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
-                '-ot', 'UInt32 ',
+                '-ot', 'UInt32',
                 '-l', 'VEG_COMP_LYR_R1_POLY',
                 '-a', 'FEATURE_ID' ,
                 '-a_srs','EPSG:3005',
@@ -123,7 +134,8 @@ End Method 3 gdal_rasterize GDB: `r Sys.time()`
 
 ## Method 4: gdal_rasterize PostgreSQL
 
-Requires installation of GDAL and resetting of ENV  
+Uses gdal_rasterize.exe (installed)  
+Connects to local PostgreSQL database.  
 
 ```{r gdal_rasterize}
 
@@ -134,7 +146,7 @@ dest <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/metho
 
 cmd <- paste0(c('-tr','100',' 100',
                 '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
-                '-ot', 'UInt32 ',
+                '-ot', 'UInt32',
                 '-l', spatial_table,
                 '-a', 'FEATURE_ID' ,
                 '-a_srs','EPSG:3005',
@@ -149,36 +161,50 @@ system2(gdal_rasterize,args=cmd,wait=TRUE,stderr = TRUE)
 ```
 End Method 4 gdal_rasterize PostgreSQL: `r Sys.time()`
 
+
+## Method 5: fasterize
+
+Included for information only.  
+
+The R package fasterize offers very fast rasterization.  However, memory requirements for the routine require over 50GB of RAM for the process to run to completion.  
+
+
+
 ```{r fasterize, eval=FALSE}
+
 
 
 #Simple database connectivity functions
 getSpatialQuery<-function(sql){
-  conn<-DBI::dbConnect(dbDriver("PostgreSQL"),
+  conn <- dbConnect("PostgreSQL",
                        dbname='msyt', 
                        user='postgres' ,
                        )
   
   on.exit(dbDisconnect(conn))
   st_read(conn, query = sql)
+  
 }
 
-#Get dummy layer for projection (too lazy to write it) 
-lyr<-getSpatialQuery(paste("SELECT geom FROM public.gcbp_carib_polygon"))
 
-#Make an empty provincial raster aligned with hectares BC
-ProvRast <- raster(
-  nrows = 15744, ncols = 17216, xmn = 159587.5, xmx = 1881187.5, ymn = 173787.5, ymx = 1748187.5, 
-  crs = st_crs(lyr)$proj4string, resolution = c(100, 100), vals = 0
+# Make an empty provincial raster aligned with hectares BC
+# create SpatRaster so crs can be set
+ProvRast <- rast(
+  nrows = 15744, ncols = 17216, xmin = 159587.5, xmax = 1881187.5, ymin = 173787.5, ymax = 1748187.5, 
+  crs = 'epsg:3005', resolution = c(100, 100), vals = 0
 )
 
-layer<-getSpatialQuery("SELECT feature_id, shape FROM public.veg_comp_lyr_r1_poly2021")
+# convert to raster so that fasterize can be used
+ProvRast <- raster(ProvRast)
+
+layer<-getSpatialQuery("SELECT feature_id, wkb_geometry FROM msyt_2022.veg_comp_spatial")
 
 layer.ras <-fasterize::fasterize(sf= layer, raster = ProvRast , field = "feature_id")
 rm(layer)
 gc()
 
-writeRaster(layer.ras, file="vri2021_id.tif", format="GTiff", overwrite=TRUE)
+tif_name <- 'D:/data/data_projects/VRI_Rasterization/tif_from_fasterize.tif'
+writeRaster(layer.ras, file=tif_name, format="GTiff", datatype='INT4U', overwrite=TRUE)
 
 ```
 
