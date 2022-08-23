@@ -1,0 +1,236 @@
+---
+title: "Raster Value DataType Impacts"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Here is an example of how R handles the storage of large(ish) values in a Tif file.  
+
+In the case of the VRI we are interested in storing the feature_id.  
+
+The max value is: 19,258,969
+
+
+## Simple Example 
+
+Create a 4x4 raster and fill with values ranging from 17840063 to 17840066.  
+
+These values were chosen as they were seen to be causing problems.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+library(kableExtra)
+
+# create small raster
+m <- matrix(1:4,nrow=2,ncol=2)
+raster_example <- terra::rast(m)
+
+# populate with integer values
+raster_example[1] <- 17840063
+raster_example[2] <- 17840064
+raster_example[3] <- 17840065
+raster_example[4] <- 17840066
+
+# check that values are what we expect
+v0 <- as.data.frame(terra::values(raster_example))
+
+names(v0) <- 'Original Value'
+
+kable(v0,format="html") %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+```
+
+## Write to Tif using specified datatype
+
+Create 3 Tifs using the following datatypes:
+
+- INT4S
+- FLT4S
+- FLT8S
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# note on data type 
+# INT4U is available but they are best avoided as R does not support 32-bit unsigned integers.
+
+# write as integer INT4S
+terra::writeRaster(raster_example, file="test_i.tif", overwrite=TRUE, datatype = 'INT4S')
+
+# write as float FLT4S
+terra::writeRaster(raster_example, file="test_f4.tif", overwrite=TRUE, datatype = 'FLT4S')
+
+# write as float FLT8S
+terra::writeRaster(raster_example, file="test_f8.tif", overwrite=TRUE, datatype = 'FLT8S')
+
+```
+
+Now look at what was written in the Tifs.
+
+___
+
+## Integer INT4S
+
+Note that we are using INT4S as INT4U is not supported in R.  
+
+Read the Tif and display values:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# read Tif
+ri  <- terra::rast("test_i.tif")
+
+# integer values
+v1 <- as.data.frame(terra::values(ri))
+
+names(v1) <- 'Value'
+
+kable(v1,format="html") %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+```
+
+Here the values are exacly as expected.
+
+___
+
+
+## Single Precision Floating Point: FLT4S
+
+Read the Tif and display the values: 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+rf4 <- terra::rast("test_f4.tif")
+
+# float(values) FLT4S
+v2 <- as.data.frame(terra::values(rf4))
+
+names(v2) <- 'Value'
+
+kable(v2,format="html") %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+```
+
+
+Here the values are being rounded due to floating point representation.  
+
+According to the documentation:  
+
+FLT4S	-3.4e+38	3.4e+38
+
+So, in theory we should be able to store a single precision value without rounding.
+
+___
+
+
+## Double Precision Floating Point: FLT8S
+
+Read the Tif and display the values: 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+rf8 <- terra::rast("test_f8.tif")
+
+
+# float(values) FLT8S
+v3 <- as.data.frame(terra::values(rf8))
+
+names(v3) <- 'Value'
+
+kable(v3,format="html") %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+
+
+```
+
+
+Here we see that the values are the same as the original integer values.  
+
+___
+
+
+## Discussion
+
+Computers store decimal values in 3 pieces: 
+
+- the sign (+/-)
+- the exponent (biased exponent)
+- the fraction (mantissa)
+
+But the number is stored in binary (base 2).  
+
+So in general, we talk about precision: 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+prec <- data.frame('Level' = c('Single Precision','Double Precision'), 'Precision' = c('Approximately 7 decimal digits','Approximately 16 decimal digits'))
+
+kable(prec,format="html") %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+
+```
+
+
+
+So if you look up precision it is often specified as a range.  
+
+The number that we are trying to represent is 17,840,063    
+
+This is represented in scientific notation as:  `r formatC(17840063,format="e")`
+
+So the 3 at the end is going to cause problems for single precision.   This depends on how it tranlates to binary.  You may or may not lose some digits.  
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+r1 <- data.frame('Decimal' = c(17840063,17840064,17840065,17840066), 
+                 'Binary' = c('1000100000011011110111111','1000100000011011111000000','1000100000011011111000001','1000100000011011111000010'))
+  
+  
+kable(r1,format="html") %>%
+kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+```  
+
+
+So 17840063 and 17840065 are loosing precision due to digit rounding and thus are turning into 17840064 and 17840066.  
+
+
+
+___
+
+## Oracle Table
+
+The base data (feature_id) comes from an Oracle Spatial table: whse_forest_vegetation.veg_comp_lyr_r1_poly
+
+The data type for this column is: NUMBER(38)
+
+Which is defined as:
+
+- variable length numeric data
+- 38 = number of digits in the number
+- creates a column intended for integers
+
+So in the LRDW, the feature_id is stored as a Long Integer.  
+
+___
+
+
+## Recommendations
+
+To avoid having these types of rounding, it is best to use either Long Integer (INT4S) or Double Precision floating (FLT8S).  
+
+These **MUST** be specified on the write to raster call.  
+
+Note that if no datatype is specified on the write, 'FLT4S' is used.  This will cause problems with large numbers.
+
+It would be my recommendation that we use Long Integer.  
+
+___
+
+
+
+
+
+
