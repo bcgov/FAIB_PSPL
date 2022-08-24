@@ -2,7 +2,7 @@
 title: "Raster Value DataType Impacts"
 author: "D. Waddell"
 date: "`r Sys.Date()`"
-output: html_document
+output: md_document
 ---
 
 Here is an example of how R handles the storage of large(ish) values in a Tif file.  
@@ -37,8 +37,8 @@ v0 <- as.data.frame(terra::values(raster_example))
 
 names(v0) <- 'Original Value'
 
-kable(v0,format="html") %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(v0) #%>%
+#kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
 ```
 
@@ -49,6 +49,29 @@ Create 3 Tifs using the following datatypes:
 - INT4S
 - FLT4S
 - FLT8S
+
+Note that the terra::writeRaster data types are listed as: 
+
+- INT1U
+- INT2U (short)
+- INT2S (short)
+- INT4U (long)
+- INT4S (long)
+- FLT4S (single precision float)
+- FLT8S (double precision float)
+
+Where the 4th character indicates the number of bytes used.
+
+| Data type	 | Minimum value	| Maximum value |
+|:-----------|:-------------- |:-------------|
+| INT1U	| 0	 | 255 |
+| INT2S	| -32,767	| 32,767 |
+| INT2U	| 0	| 65,534 |
+| INT4S	| -2,147,483,647 |	 2,147,483,647 |
+| INT4U	| 0	 | 4,294,967,296 |
+| FLT4S	| -3.4e+38	| 3.4e+38 |
+| FLT8S	| -1.7e+308	|  1.7e+308 |
+
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -85,8 +108,8 @@ v1 <- as.data.frame(terra::values(ri))
 
 names(v1) <- 'Value'
 
-kable(v1,format="html") %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(v1)# %>%
+#kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
 ```
 
@@ -108,8 +131,8 @@ v2 <- as.data.frame(terra::values(rf4))
 
 names(v2) <- 'Value'
 
-kable(v2,format="html") %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(v2) #%>%
+#kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
 ```
 
@@ -139,8 +162,8 @@ v3 <- as.data.frame(terra::values(rf8))
 
 names(v3) <- 'Value'
 
-kable(v3,format="html") %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(v3) #%>%
+#kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
 
 
@@ -167,8 +190,8 @@ So in general, we talk about precision:
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 prec <- data.frame('Level' = c('Single Precision','Double Precision'), 'Precision' = c('Approximately 7 decimal digits','Approximately 16 decimal digits'))
 
-kable(prec,format="html") %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(prec) #%>%
+#kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
 
 ```
@@ -188,13 +211,15 @@ r1 <- data.frame('Decimal' = c(17840063,17840064,17840065,17840066),
                  'Binary' = c('1000100000011011110111111','1000100000011011111000000','1000100000011011111000001','1000100000011011111000010'))
   
   
-kable(r1,format="html") %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(r1) #%>%
+#kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
 ```  
 
 
 So 17840063 and 17840065 are loosing precision due to digit rounding and thus are turning into 17840064 and 17840066.  
+
+The largest number that can be stored in single precision is actually 16,777,216 so we are well beyond that range.
 
 
 
@@ -216,6 +241,23 @@ So in the LRDW, the feature_id is stored as a Long Integer.
 
 ___
 
+## ESRI Land
+
+If ARCMap is used to look at the data type of feature_id in whse_forest_vegetation.veg_comp_lyr_r1_poly it is typed as: LONG
+
+___
+
+## GDAL Data Types
+
+In the GDAL documentation, the list of supported integer data types includes:
+
+- Int16 (short)
+- Int32 (long)
+
+ Since the max value for Int32 is 2,147,483,647 this should be adequate to allow for future feature_ids.
+ 
+ ___
+
 
 ## Recommendations
 
@@ -228,6 +270,10 @@ Note that if no datatype is specified on the write, 'FLT4S' is used.  This will 
 It would be my recommendation that we use Long Integer.  
 
 ___
+
+Reference:
+
+https://blog.demofox.org/2017/11/21/floating-point-precision/
 
 
 

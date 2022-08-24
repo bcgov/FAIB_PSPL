@@ -28,7 +28,55 @@ search for : veg\_comp\_lyr\_r1\_poly
 Publication date: 2021-02-08 (which is wrong by the way), which should
 actually be 2022
 
-Start: 2022-08-12 10:15:40
+Start: 2022-08-24 15:22:51
+
+## Raster Standards
+
+### Spatial Extent
+
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Extent</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">xmin</td>
+<td style="text-align: left;">273287.5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">xmax</td>
+<td style="text-align: left;">1870587.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ymin</td>
+<td style="text-align: left;">367787.5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ymax &lt;- 1735787.5</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+
+### No Data Value
+
+Value = 0
+
+### Output Data Type
+
+Int32
+
+IN the GDAL documentation, the list of supported integer data types
+includes:
+
+-   Int16 (short)
+-   Int32 (long)
+
+Since the max value for Int32 is 2,147,483,647 this should be adequate
+to allow for future feature\_ids.
 
     library(sf)
 
@@ -51,15 +99,28 @@ Start: 2022-08-12 10:15:40
     src <- 'D:/data/data_projects/AR2022/vri/VEG_COMP_LYR_R1_POLY_2021.gdb'
     dest <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/method1.tif')
 
+    #SpatExtent : 273287.5, 1870587.5, 367787.5, 1735787.5 (xmin, xmax, ymin, ymax)
+
+
+    # standardize extents
+    xmin <- 273287.5
+    xmax <- 1870587.5
+    ymin <- 367787.5
+    ymax <- 1735787.5
+
+    nodata <- 0
+
+    dataType <- 'Int32'
+
 
     gdal_utils("rasterize",src,dest,options = 
                  c('-tr','100',' 100',
-                    '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
-                    '-ot', 'UInt32',
+                    '-te',xmin,ymin,xmax,ymax,
+                    '-ot', dataType,
                     '-l', 'VEG_COMP_LYR_R1_POLY',
                     '-a', 'FEATURE_ID' ,
                     '-a_srs','EPSG:3005',
-                    '-a_nodata', '0',
+                    '-a_nodata', nodata,
                     '-co','COMPRESS=LZW'),
                     '-overwrite')
 
@@ -70,7 +131,12 @@ Start: 2022-08-12 10:15:40
     ## METHOD=ONLY_CCW if you can assume that the outline of holes is counter-clock
     ## wise defined
 
-End Method 1 GDB -&gt; Tif: 2022-08-12 10:18:56
+    # update for NA
+    r1 <- terra::rast(dest)
+    r1[is.na(r1)]  <- 0
+    terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
+
+End Method 1 GDB -&gt; Tif: 2022-08-24 15:26:40
 
 ## Method 2: PostgreSQL to TIF using sf::gdal\_utils
 
@@ -86,16 +152,22 @@ feature\_id and wkb\_geometry.
 
     gdal_utils("rasterize",src,dest,options = 
                  c('-tr','100',' 100',
-                    '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
-                    '-ot', 'UInt32',
+                    '-te',xmin,ymin,xmax,ymax,
+                    '-ot', dataType,
                     '-l', spatial_table,
                     '-a', 'FEATURE_ID' ,
                     '-a_srs','EPSG:3005',
-                    '-a_nodata', '0',
+                    '-a_nodata', nodata,
                     '-co','COMPRESS=LZW'),
                     '-overwrite')
 
-End Method 2 PostgreSQL -&gt; Tif: 2022-08-12 10:22:27
+
+    # update for NA
+    r1 <- terra::rast(dest)
+    r1[is.na(r1)]  <- 0
+    terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
+
+End Method 2 PostgreSQL -&gt; Tif: 2022-08-24 15:30:22
 
 ## Method 3: gdal\_rasterize GDB
 
@@ -108,12 +180,12 @@ Requires installation of GDAL and resetting of ENV
 
 
     cmd <- paste0(c('-tr','100',' 100',
-                    '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
-                    '-ot', 'UInt32',
+                    '-te',xmin,ymin,xmax,ymax,
+                    '-ot', dataType,
                     '-l', 'VEG_COMP_LYR_R1_POLY',
                     '-a', 'FEATURE_ID' ,
                     '-a_srs','EPSG:3005',
-                    '-a_nodata', '0',
+                    '-a_nodata', nodata,
                     '-co','COMPRESS=LZW',src,dest))
 
     gdal_rasterize <- 'C:/Program Files/GDAL/gdal_rasterize.exe'
@@ -122,7 +194,12 @@ Requires installation of GDAL and resetting of ENV
 
     ## [1] "Warning 1: organizePolygons() received a polygon with more than 100 parts. The processing may be really slow.  You can skip the processing by setting METHOD=SKIP, or only make it analyze counter-clock wise parts by setting METHOD=ONLY_CCW if you can assume that the outline of holes is counter-clock wise defined"
 
-End Method 3 gdal\_rasterize GDB: 2022-08-12 10:25:40
+    # update for NA
+    r1 <- terra::rast(dest)
+    r1[is.na(r1)]  <- 0
+    terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
+
+End Method 3 gdal\_rasterize GDB: 2022-08-24 15:34:00
 
 ## Method 4: gdal\_rasterize PostgreSQL
 
@@ -134,12 +211,12 @@ Connects to local PostgreSQL database.
     dest <- paste0(substr(getwd(),1,1),':/data/data_projects/VRI_Rasterization/method4.tif')
 
     cmd <- paste0(c('-tr','100',' 100',
-                    '-te','159587.5 ','173787.5 ','1881187.5 ','1748187.5',
-                    '-ot', 'UInt32',
+                    '-te',xmin,ymin,xmax,ymax,
+                    '-ot', dataType,
                     '-l', spatial_table,
                     '-a', 'FEATURE_ID' ,
                     '-a_srs','EPSG:3005',
-                    '-a_nodata', '0',
+                    '-a_nodata', nodata,
                     '-co','COMPRESS=LZW',src,dest))
 
     # point to the EXE
@@ -149,7 +226,12 @@ Connects to local PostgreSQL database.
 
     ## character(0)
 
-End Method 4 gdal\_rasterize PostgreSQL: 2022-08-12 10:29:12
+    # update for NA
+    r1 <- terra::rast(dest)
+    r1[is.na(r1)]  <- 0
+    terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
+
+End Method 4 gdal\_rasterize PostgreSQL: 2022-08-24 15:38:39
 
 ## Method 5: fasterize
 
@@ -191,4 +273,4 @@ run to completion.
     tif_name <- 'D:/data/data_projects/VRI_Rasterization/tif_from_fasterize.tif'
     writeRaster(layer.ras, file=tif_name, format="GTiff", datatype='INT4U', overwrite=TRUE)
 
-End: 2022-08-12 10:29:12
+End: 2022-08-24 15:38:39
