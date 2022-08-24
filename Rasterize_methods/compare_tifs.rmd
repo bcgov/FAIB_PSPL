@@ -2,7 +2,7 @@
 title: "Compare TIFs"
 author: "D. Waddell"
 date: "`r Sys.Date()`"
-output: html_document
+output: md_document
 ---
 
 ```{r}
@@ -42,8 +42,8 @@ f1 <- as.data.frame(terra::freq(c1))
 f1 <- f1[,2:3]
 
 
-kable(f1,format="html",caption = 'sf::gdal_utils.rasterize GDB to PostgreSQL') %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(f1)
+
 
 ```
 
@@ -75,8 +75,9 @@ f2 <- as.data.frame(terra::freq(c1))
 f2 <- f2[,2:3]
 
 
-kable(f2,format="html",caption = 'sf::gdal_utils.rasterize GDB to gdal_rasterize.exe') %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(f2)
+
+
 
 ```
 
@@ -96,8 +97,8 @@ c1[c1 != 0] <- 1
 f3 <- as.data.frame(terra::freq(c1))
 f3 <- f3[,2:3]
 
-kable(f3,format="html",caption = 'sf::gdal_utils.rasterize PostgreSQL to gdal_rasterize.exe') %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(f3)
+
 
 ```
 
@@ -107,6 +108,36 @@ This table shows that the 2 TIFs are identical.
 
 
 ```{r eval=TRUE}
+# compare 1 to 5
+r5 <- terra::rast(vri_official)
+
+# force projection
+terra::crs(r5) <- 'epsg:3005'
+
+
+# use absolutes
+c1 <- abs(r1 - r5)
+
+# where the difference is 1 assign 2
+c1[c1 != 0] <- 1
+
+
+
+f4 <- as.data.frame(terra::freq(c1))
+f4 <- f4[,2:3]
+
+kable(f4)
+
+
+
+```
+
+Table 4:  Compare sf::gdal_utils.rasterize to Iaian's TIF
+
+This table shows there are 17 features that are different.  
+
+
+```{r eval=FALSE}
 # compare 1 to 5
 r5 <- terra::rast(tif_method5)
 
@@ -125,15 +156,15 @@ c1[c1 != 0] <- 1
 f4 <- as.data.frame(terra::freq(c1))
 f4 <- f4[,2:3]
 
-kable(f4,format="html",caption = 'sf::gdal_utils.rasterize GDB to fasterize') %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+kable(f4)
+
 
 
 ```
 
 
 
-Table 4:  Compare sf::gdal_utils.rasterize to fasterize
+Table 5:  Compare sf::gdal_utils.rasterize to fasterize
 
 This table shows that there are larger differences between fasterize and the other rasterize techniques.   
 
@@ -158,6 +189,7 @@ This shows where diagonal lines bisect the raster, the raster cell value can tak
 
 # create list of rasters
 lst <- list(r1,r2,r3,r4,r5)
+#lst <- list(r1,r2,r3,r4)
 
 # create a brick of these rasters from list
 raster_brick <-terra::rast(lst)
