@@ -28,7 +28,7 @@ search for : veg\_comp\_lyr\_r1\_poly
 Publication date: 2021-02-08 (which is wrong by the way), which should
 actually be 2022
 
-Start: 2022-08-24 15:22:51
+Start: 2022-08-25 15:45:47
 
 ## Raster Standards
 
@@ -94,6 +94,23 @@ to allow for future feature\_ids.
 
     ## Loading required package: sp
 
+    library(tidyverse)
+
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
+
+    ## v ggplot2 3.3.5     v purrr   0.3.4
+    ## v tibble  3.1.6     v dplyr   1.0.8
+    ## v tidyr   1.2.0     v stringr 1.4.0
+    ## v readr   2.1.2     v forcats 0.5.1
+
+    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+    ## x ggplot2::arrow() masks terra::arrow()
+    ## x tidyr::extract() masks raster::extract(), terra::extract()
+    ## x dplyr::filter()  masks stats::filter()
+    ## x dplyr::lag()     masks stats::lag()
+    ## x dplyr::select()  masks raster::select()
+    ## x dplyr::src()     masks terra::src()
+
     # read gdb file
 
     src <- 'D:/data/data_projects/AR2022/vri/VEG_COMP_LYR_R1_POLY_2021.gdb'
@@ -136,7 +153,7 @@ to allow for future feature\_ids.
     r1[is.na(r1)]  <- 0
     terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
 
-End Method 1 GDB -&gt; Tif: 2022-08-24 15:26:40
+End Method 1 GDB -&gt; Tif: 2022-08-25 15:49:33
 
 ## Method 2: PostgreSQL to TIF using sf::gdal\_utils
 
@@ -167,7 +184,7 @@ feature\_id and wkb\_geometry.
     r1[is.na(r1)]  <- 0
     terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
 
-End Method 2 PostgreSQL -&gt; Tif: 2022-08-24 15:30:22
+End Method 2 PostgreSQL -&gt; Tif: 2022-08-25 15:53:17
 
 ## Method 3: gdal\_rasterize GDB
 
@@ -199,7 +216,7 @@ Requires installation of GDAL and resetting of ENV
     r1[is.na(r1)]  <- 0
     terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
 
-End Method 3 gdal\_rasterize GDB: 2022-08-24 15:34:00
+End Method 3 gdal\_rasterize GDB: 2022-08-25 15:56:53
 
 ## Method 4: gdal\_rasterize PostgreSQL
 
@@ -231,7 +248,7 @@ Connects to local PostgreSQL database.
     r1[is.na(r1)]  <- 0
     terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
 
-End Method 4 gdal\_rasterize PostgreSQL: 2022-08-24 15:38:39
+End Method 4 gdal\_rasterize PostgreSQL: 2022-08-25 16:00:41
 
 ## Method 5: fasterize
 
@@ -273,4 +290,4 @@ run to completion.
     tif_name <- 'D:/data/data_projects/VRI_Rasterization/tif_from_fasterize.tif'
     writeRaster(layer.ras, file=tif_name, format="GTiff", datatype='INT4U', overwrite=TRUE)
 
-End: 2022-08-24 15:38:39
+End: 2022-08-25 16:00:41
