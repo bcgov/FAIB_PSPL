@@ -64,6 +64,12 @@ then re-write
 - EPSG:3005
 - PROJ 7.2.1 definition
 
+## Provincial Mask
+
+All data near the borders or coast needs to have a provincial mask applied to it.  
+
+It also seems that some version of VRI seems to have a piece in western Alberta?
+
 ## GDAL Backing
 
 - 3.2.1 (minimum)

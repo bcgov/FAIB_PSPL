@@ -69,7 +69,7 @@ IN the GDAL documentation, the list of supported integer data types includes:
 - Int16 (short)
 - Int32 (long)
 
- Since the max value for Int32 is 2,147,483,647 this should be adequate to allow for future feature_ids.
+Since the max value for Int32 is 2,147,483,647 this should be adequate to allow for future feature_ids.
 
 ```{r read_gdb}
 
@@ -78,6 +78,7 @@ library(sf)
 library(terra)
 library(RPostgreSQL)
 library(raster)
+library(tidyverse)
 
 
 # read gdb file
@@ -116,6 +117,7 @@ r1[is.na(r1)]  <- 0
 terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
 
 
+
 ```
 
 End Method 1 GDB -> Tif: `r Sys.time()`
@@ -149,6 +151,8 @@ gdal_utils("rasterize",src,dest,options =
 r1 <- terra::rast(dest)
 r1[is.na(r1)]  <- 0
 terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
+
+
 
 
 ```
@@ -186,6 +190,8 @@ r1[is.na(r1)]  <- 0
 terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
 
 
+
+
 ```
 
 End Method 3 gdal_rasterize GDB: `r Sys.time()`
@@ -220,6 +226,8 @@ system2(gdal_rasterize,args=cmd,wait=TRUE,stderr = TRUE)
 r1 <- terra::rast(dest)
 r1[is.na(r1)]  <- 0
 terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
+
+
 
 
 ```

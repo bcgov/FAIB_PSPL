@@ -15,7 +15,6 @@ tif_method1 <- 'D:/data/data_projects/VRI_Rasterization/method1.tif'
 tif_method2 <- 'D:/data/data_projects/VRI_Rasterization/method2.tif'
 tif_method3 <- 'D:/data/data_projects/VRI_Rasterization/method3.tif'
 tif_method4 <- 'D:/data/data_projects/VRI_Rasterization/method4.tif'
-tif_method5 <- 'D:/data/data_projects/VRI_Rasterization/fasterize2.tif'
 vri_official <- 'D:/data/data_projects/AR2022/base/veg_comp_lyr_r1_poly_internal_2021.tif'
 
 
@@ -226,5 +225,37 @@ As to which method is best, it is more of a personal preference.  The first 2 me
 The third and fourth methods require an install of GDAL and also require an update to the ENV to locate all the software components.  This needs to be updated every time GDAL changes.
 
 
+# Cross Check
 
+All data that is produced neesds to be checked against the list of feature_ids found in the vri.  
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+
+con <- dbConnect('PostgreSQL',dbname='msyt')
+
+fid <- dbGetQuery(con,'select feature_id from msyt_2022.veg_comp')
+dbDisconnect(con)
+
+# method 1
+
+# get unique values from r1 - r4
+
+new_fid_r1 <- v_r1 %>% subset(!feature_id %in% fid$feature_id)
+
+new_fid_r2 <- v_r2 %>% subset(!feature_id %in% fid$feature_id)
+
+new_fid_r3 <- v_r3 %>% subset(!feature_id %in% fid$feature_id)
+
+new_fid_r4 <- v_r4 %>% subset(!feature_id %in% fid$feature_id)
+
+new_fid_r1
+new_fid_r2
+new_fid_r3
+new_fid_r4
+
+
+
+
+```
 

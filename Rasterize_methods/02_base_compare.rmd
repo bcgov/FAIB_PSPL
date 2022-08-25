@@ -1,0 +1,255 @@
+---
+title: "Compare 2 TIFs"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: md_document
+---
+
+Check that what Iaian produced for the official vri feature_id Tif matches the method checks comparing sf::gdal_utils to gdal_rasterize.exe  
+
+File provided by Iaian:  veg_comp_lyr_r1_poly_internal_2021.tif  
+
+Note that Iaian's tif had a chunk of Alberta in it.  
+This needs to be masked out.
+
+## Create a mask using QGis
+
+- bring up the raster in QGis
+- zoom to the area that needs to be masked
+- Layer / Create Layer / New ShapeFile Layer
+- give it a file name
+- add a field (called id)
+- set geometry type to polygon
+- set CRS to EPSG:3005
+- Shp will appear in Layers list
+- Select that layer
+- Select Edit mode
+- Use Add Polygon Feature
+  - Left click to add points, right click to finish
+- Toggle off edits and save file
+
+```{r}
+
+
+
+library(sf)
+library(terra)
+library(RPostgreSQL)
+library(raster)
+library(kableExtra)
+
+del_file <- function (fn){
+  
+  #Check its existence
+  if (file.exists(fn)) {
+    #Delete file if it exists
+    file.remove(fn)
+  }
+}
+  
+
+
+
+# created a mask to get rid of Alberta blob.
+# read gdb file
+# data has single polygon with id = 101
+
+
+# standardize extents
+xmin <- 273287.5
+xmax <- 1870587.5
+ymin <- 367787.5
+ymax <- 1735787.5
+
+nodata <- 0
+
+dataType <- 'Int32'
+
+
+# raster files
+src <- 'D:/data/data_projects/AR2022/base/vri_mask.shp'
+dest <- 'D:/data/data_projects/AR2022/base/vri_mask_for_delete.tif'
+
+del_file(dest)
+
+# note that in reading a Shp file, the layer is the same as the file name
+
+gdal_utils("rasterize",src,dest,options = 
+             c('-tr','100',' 100',
+                '-te',xmin,ymin,xmax,ymax,
+                '-ot', dataType,
+                '-l', 'vri_mask',
+                '-a', 'id' ,
+                '-a_srs','EPSG:3005',
+                '-a_nodata', nodata,
+                '-co','COMPRESS=LZW'),
+                '-overwrite')
+
+# update for NA
+mask_raster <- terra::rast(dest)
+
+# change NoData to 1 for masking
+# we want the invert of the outline polygon so that it can be deleted from orginal data
+mask_raster[is.na(mask_raster)]  <- 1
+
+# change wher there are values to NA to use as mask to get rid of this from Iaian's data
+mask_raster[mask_raster != 1]  <- NA
+
+# the mask will have 1 for valid rasters and NoData where we want to mask out
+# so in effect we have blanked out the polygon defined in the Shp file
+
+
+del_file(dest)
+
+terra::writeRaster(mask_raster, dest, datatype='INT4U', overwrite=TRUE)
+
+# read Iaian's tif and apply the mask
+
+vri_in <- 'D:/data/data_projects/AR2022/base/veg_comp_lyr_r1_poly_internal_2021.tif'
+vri_out <- 'D:/data/data_projects/AR2022/base/veg_comp_2022_masked.tif'
+
+base_raster <- terra::rast(vri_in)
+
+# apply the mask
+base_raster_masked <- mask(base_raster,mask_raster)
+
+# update the NoData to zeros
+base_raster_masked[is.na(base_raster_masked)]  <- 0
+
+
+del_file(vri_out)
+terra::writeRaster(base_raster_masked, vri_out, datatype='INT4U', overwrite=TRUE)
+
+```
+
+## now that the mask has been applied we can compare
+
+
+```{r eval=TRUE}
+
+# read each raster set and compare
+
+# if the diff is not zero, set it to 1
+# this will show where pixel values are different
+
+tif1 <- 'D:/data/data_projects/VRI_Rasterization/method1.tif'
+tif2 <- 'D:/data/data_projects/AR2022/base/veg_comp_lyr_r1_poly_internal_2021.tif'
+tif3 <- 'D:/data/data_projects/AR2022/base/veg_comp_2022_masked.tif'
+
+r1 <- terra::rast(tif1)
+r3 <- terra::rast(tif3)
+
+names(r1) <- 'method1'
+names(r3) <- 'vri_masked'
+
+# get list of unique feature ids
+v_r1 <- unique(as.data.frame(values(r1)))
+names(v_r1) <- 'feature_id'
+
+v_r3 <- unique(as.data.frame(values(r3)))
+names(v_r3) <- 'feature_id'
+
+
+
+
+c1 <- r1 - r3
+c1[c1 != 0] <- 1
+
+f1 <- as.data.frame(terra::freq(c1))
+f1 <- f1[,2:3]
+
+
+kable(f1)
+
+
+```
+
+Table 1. Differences
+
+Number of differences: `r f1$count[f1$value==1]`
+
+
+```{r build_brick}
+
+# create list of rasters
+lst <- list(r1,base_raster,base_raster_masked,c1)
+
+
+# create a brick of these rasters from list
+raster_brick <-terra::rast(lst)
+
+# name the layers
+names(raster_brick) <- c('method1','vri_base','vri_base_masked','diff')
+
+# write brick to a tiff
+tif_brick <- 'D:/data/data_projects/AR2022/base/tif_brick.tif'
+
+del_file(tif_brick)
+
+terra::writeRaster(raster_brick, tif_brick, datatype='INT4U', overwrite=TRUE)
+
+
+# write the differences to a separate tif
+diff_1 <- 'D:/data/data_projects/AR2022/base/tif_diff.tif'
+
+del_file(diff_1)
+
+terra::writeRaster(c1, diff_1, datatype='INT4U', overwrite=TRUE)
+
+
+
+```
+
+
+```{r}
+
+
+# can write to points to have a look
+point_file <- 'D:/data/data_projects/AR2022/base/tif_diff.tif'
+
+pr <- terra::rast(point_file)
+
+# set 0 to NA
+pr[pr==0] <- NA
+
+p <- terra::as.points(pr,values=TRUE,na.rm=TRUE)
+
+# write to shape
+f_out <- 'D:/data/data_projects/AR2022/base/tif_diff_points.shp'
+
+del_file(f_out)
+
+writeVector(p,f_out,overwrite=TRUE)
+
+
+
+```
+
+
+# Cross Check
+
+All data that is produced neesds to be checked against the list of feature_ids found in the vri.  
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+
+con <- dbConnect('PostgreSQL',dbname='msyt')
+
+fid <- dbGetQuery(con,'select feature_id from msyt_2022.veg_comp')
+dbDisconnect(con)
+
+# method 1
+
+# get unique values from r1 - r3
+
+new_fid_r1 <- v_r1 %>% subset(!feature_id %in% fid$feature_id)
+
+new_fid_r3 <- v_r3 %>% subset(!feature_id %in% fid$feature_id)
+
+kable(new_fid_r1)
+kable(new_fid_r3)
+
+
+
+
+```
