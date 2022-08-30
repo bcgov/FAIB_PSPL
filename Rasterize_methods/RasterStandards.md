@@ -42,7 +42,9 @@ As per Iaian:
 | xmin | 273287.5 |
 | xmax | 1870587.5 |
 | ymin | 367787.5 |
-| ymax <- 1735787.5 |
+| ymax | 1735787.5 |
+
+Should we switch to a zero offset as opposed to 87.5
 
 ## No Data Value
 

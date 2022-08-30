@@ -7,16 +7,19 @@ output: md_document
 
 ## VRI raster intersect with PSPL points
 
-Assumes that PSPL GDBs are already copied and unzipped
+Use a test SHP file with a small subset of points
 
 
 Start: `r Sys.time()`
+
+## Test using a small shape file of points from PSPL
 
 ```{r read_data}
 
 library(sf)
 library(terra)
 library(RPostgreSQL)
+library(tidyverse)
 
 # set up for load to PostgreSQL
 schema <- 'msyt_2022'
@@ -31,23 +34,18 @@ fn1 <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/vri_raster.t
 raster_fid <- rast(fn1)
 
 
-# this is where the unzipped files are placed locally
-local_pspl_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/gdb_data')
-
-# build list of the PSPL gdbs
-# list of gdb files to process
-f_list <- list.files(local_pspl_folder,full.names = TRUE)
-num_gdb = length(f_list)  #number of files to process
+# test file
+shp_name <- 'd:/data/data_projects/AR2022/PSPL/gdb_data/test.shp'
 
 ```
 
-## process each gdb 
+## process the shape
 
-- Read each GDB
-- extract feature id from the raster using extract
+- Read the shape
 - join to the point attribute data
 - crop the PROV raster at the extent of each GDB + 51m
-- export to PostgreSQL table: pspl_raw
+- extract feature id from the raster using extract at the x,y location of the point
+- write to CSV
 
 ```{r fun}
 
@@ -56,21 +54,23 @@ rast_intersect <- function(r,pf,n){
   # r = PROV raster of fid
   # pf = PSPL point set
   # n = counter
-  
+
   # read the point file
   point_set <- vect(pf)
   
+  # point_set <- vect(shp_name)
+  # r <- raster_fid
+  # n <- 1
   
   # lower case the names
-  names(point_set) <- c("id_tag","at_si","ba_si","bg_si","bl_si","cw_si","dr_si","ep_si","fd_si","hm_si","hw_si","lt_si","lw_si","pa_si","pl_si","pw_si","py_si","sb_si","se_si","ss_si","sw_si","sx_si","yc_si","bapid","pem_spp","bgc_label","tsa_number")
+  # had to add ID to replace OBJECTID due to SHP format spec.
+  names(point_set) <- c("id","id_tag","at_si","ba_si","bg_si","bl_si","cw_si","dr_si","ep_si","fd_si","hm_si","hw_si","lt_si","lw_si","pa_si","pl_si","pw_si","py_si","sb_si","se_si","ss_si","sw_si","sx_si","yc_si","bapid","pem_spp","bgc_label","tsa_number")
   
-  # number points i pspl
+  # number points in pspl
   n_points <- nrow(point_set)
 
-
   # add id to point data
-  point_set$pspl_id <- seq(1:nrow(point_set))
-
+  point_set$id <- seq(1:nrow(point_set))
 
   #crop raster to point extent + 51
 
@@ -82,12 +82,15 @@ rast_intersect <- function(r,pf,n){
   e[4] <- e[4] + 51
 
   # crop the raster using the extent
-  cropped_raster <- crop(r,e)
+  rc <- crop(r,e)
   
   
   
-  # extract the raster data at the x,y of the points
-  x <- extract(cropped_raster,point_set)
+  # extract the raster data at the x,y from the points
+  # at the x,y location of the point, get the raster based feature_id
+  # in an array of which the array location matches the array location of the point data
+  
+  x <- terra::extract(rc,point_set)
 
   # drop the geometry by changing to data frame
   point_set <- as.data.frame(point_set)
@@ -97,36 +100,29 @@ rast_intersect <- function(r,pf,n){
   point_set$feature_id <- x[,"feature_id"]
 
   
-  
-  # set to 1 decimal place 
-  # this matches the output from the Biophysical model
-  
   # note that this works for CSV
   # export to PostgreSQL will keep as double
   # unless field.types are specified
   # but this has to be a named vector
   # handle the conversion in SQL
   
-  point_set[, 2:23] <- round(point_set[, 2:23], digits = 1)
+  point_set[, 3:24] <- round(point_set[, 3:24], digits = 1)
 
   
   # add a table number to allow tracking
   point_set$tab_no <- n
   
-  # at this point can drop anything with a NULL feature_id
-  # or can do this as first step in SQL
-  
 
   # export to csv, append if exists
-  #fn3 <- paste0(substr(getwd(),1,1),':/Data/data_projects/PSPL_2021/data/csv/csv',n,'.csv')
-  #data.table::fwrite(p,fn3,sep=',',append=FALSE)
+  fn3 <- paste0(substr(getwd(),1,1),':/Data/data_projects/AR2022/PSPL/csv',n,'.csv')
+  data.table::fwrite(point_set,fn3,sep=',',append=FALSE)
   
   # load to PostgreSQL
-  if (n ==1) {
-    dbWriteTable(con,'pspl_raw',point_set,row.names=FALSE,overwrite=TRUE)
-  } else {
-    dbWriteTable(con,'pspl_raw',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
-  }
+  #if (n ==1) {
+  #  dbWriteTable(con,'pspl_raw',p,row.names=FALSE,overwrite=TRUE)
+  #} else {
+  #  dbWriteTable(con,'pspl_raw',p,row.names=FALSE,overwrite=FALSE,append = TRUE)
+  #}
   
   
   rows_out <- nrow(point_set)
@@ -142,10 +138,6 @@ rast_intersect <- function(r,pf,n){
 
 ```{r intersect_all_units}
 
-# creates unit1 .. unitxx depending on the number of GDBs
-  # unit1 does NOT refer to tsa 01
-  # it is simply a reference number
-if(length(f_list) ==0 ) { print("file list EMPTY")}
 
 # initialize the counter
 n <- 1
@@ -155,18 +147,13 @@ report <- data.frame('num_points' = '','rows_out' = '', 'n' = '')
 
 
 
+## test single
+
+a1 <- rast_intersect(raster_fid,shp_name,1)
+
+report <- rbind(report,a1)
 
 
-#process the file list
-    for(fname in f_list){
-      
-      a <- rast_intersect(raster_fid,fname,n)
-      
-      report <- rbind(report,a)
-      
-      n <- n + 1
-      
-    }
 
 
 

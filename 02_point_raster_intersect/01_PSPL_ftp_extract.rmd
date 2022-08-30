@@ -10,7 +10,7 @@ output: md_document
 
 ## directory locations are fixed as follows:
 
-PSPL GDB Files        :/Data/Data_projects/PSPL_2021/pspl_data
+PSPL GDB Files        :/Data/Data_projects/AR2022/PSPL/gdb_data
 
 And is copied from:  
 
@@ -23,7 +23,7 @@ Start:  `r format(Sys.time(),"%c")`
 
 
 
-Copy PSPL data from FTP site
+Copy PSPL data from FTP site  
 
 ```{r copy_pspl_data, eval = TRUE, echo=FALSE, message=FALSE,warning=FALSE}
 
@@ -31,24 +31,29 @@ Copy PSPL data from FTP site
 ftp_pspl_folder <- '\\\\tension.dmz\\ftp\\HTS\\external\\!publish\\Provincial_Site_Productivity_Layer\\Site_Prod_with_Approved_PEM_TEM\\Site_Prod_Point_FGDBs'
 
 # this is where the zipped files are placed locally
-local_pspl_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/PSPL_2021/data')
+local_pspl_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/gdb_data')
 
 # copy all the zips
 f_list <- list.files(ftp_pspl_folder, full.names = TRUE)
 
 # subset for testing
-f_list <- f_list[1:4]
+#f_list <- f_list[1:4]
 
 file.copy(f_list, local_pspl_folder)
 
+```
+
+Unzip the Gdb files
+
+```{r unzip}
 # get a list of the zip file names
 zipF <- list.files(local_pspl_folder,full.names = TRUE)
 
 # unzip
-lapply(zipF,FUN=unzip,exdir = local_pspl_folder)
+a <- lapply(zipF,FUN=unzip,exdir = local_pspl_folder)
 
 # delete the zip files
-lapply(zipF,FUN=file.remove)
+b <- lapply(zipF,FUN=file.remove)
 
 
 ```

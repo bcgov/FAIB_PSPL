@@ -1,0 +1,202 @@
+---
+title: "Standard Approach to Rasterizing VRI"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: md_document
+---
+
+
+Develop a standardized approach to rasterization for FAIB data processing.   
+
+AR2022
+
+
+Using only R-4.1.3 
+Package: sf  
+
+No GDAL or Python installed.  
+
+Workstation config: 32GB RAM  
+
+
+Rasterize VRI from PostgreSQL 
+Previously impossible on 32 GB machine using R.  
+
+sf::gdal_utils relies on backed C++ gdal rasterize function.  
+This relieves the memory load from R.  
+
+Links to: GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1  
+
+
+
+
+Start: `r Sys.time()`
+
+## Raster Standards
+
+
+### Spatial Extent
+
+| Extent | Value |
+|:-------|:------|
+| xmin | 273287.5 |
+| xmax | 1870587.5 |
+| ymin | 367787.5 |
+| ymax | 1735787.5 |
+
+### No Data Value
+
+Value = 0
+
+### Output Data Type
+
+Int32
+
+In the GDAL documentation, the list of supported integer data types includes:
+
+- Int16 (short)
+- Int32 (long)
+
+Since the max value for Int32 is 2,147,483,647 this should be adequate to allow for future feature_ids.
+
+
+
+
+## Method: PostgreSQL to TIF using sf::gdal_utils
+
+Links to a local PostgreSQL database that used an Oracle Foreign data wrapper to create a copy of idwprod1.veg_comp_lyr_r1_poly.  PostgreSQL table is called veg_comp_spatial and only contains feature_id and wkb_geometry. 
+
+
+Define standard extent , noData Value and output dataType
+
+```{r standard_values}
+
+
+# standardize extents
+xmin <- 273287.5
+xmax <- 1870587.5
+ymin <- 367787.5
+ymax <- 1735787.5
+
+nodata <- 0
+
+dataType <- 'Int32'
+
+```
+
+
+Read PostgreSQL spatial table and export to Tif  
+
+Set the Tif layer name to be feature_id
+
+```{r create_tif_from_postgresql}
+
+
+
+src <- "PG:dbname='msyt' user='postgres'"
+spatial_table <- 'msyt_2022.veg_comp_spatial'
+dest <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/vri_raster.tif')
+
+
+sf::gdal_utils("rasterize",src,dest,options = 
+             c('-tr','100',' 100',
+                '-te',xmin,ymin,xmax,ymax,
+                '-ot', dataType,
+                '-l', spatial_table,
+                '-a', 'FEATURE_ID' ,
+                '-a_srs','EPSG:3005',
+                '-a_nodata', nodata,
+                '-co','COMPRESS=LZW'),
+                '-overwrite')
+
+
+# update for NA
+r1 <- terra::rast(dest)
+r1[is.na(r1)]  <- 0
+
+# name the layer: feature_id
+names(r1) <- 'feature_id'
+
+# overwrite to destination
+terra::writeRaster(r1, dest, datatype='INT4U', overwrite=TRUE)
+
+
+
+
+```
+
+
+Cross check the feature id 
+
+```{r cross_check}
+
+library(tidyverse)
+library(data.table)
+
+con <- RPostgreSQL::dbConnect('PostgreSQL',dbname='msyt')
+
+psql_fid <- DBI::dbGetQuery(con,'select feature_id from msyt_2022.veg_comp')
+
+RPostgreSQL::dbDisconnect(con)
+
+# read the Tif that was written
+dest <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/vri_raster.tif')
+r1 <- terra::rast(dest)
+
+tif_fid <- as.data.table(terra::values(r1))
+
+tif_fid <- unique(tif_fid)
+names(tif_fid) <- 'feature_id'
+
+# tif values should only come from the VRI
+# if there are values in the TIF that aren't in the VRI spatial
+# there is a problem (like an integer value rounding as an example)
+tif_only <- tif_fid %>% subset(!feature_id %in% psql_fid$feature_id)
+
+# there will be raster values missing from TIF
+# this is an artifact of the rasertization process
+# and is expected
+psql_only <- psql_fid %>% subset(!feature_id %in% tif_fid$feature_id)
+
+
+
+
+
+```
+
+
+
+## Tif Values NOT found in VRI spatial
+
+tif values should only come from the VRI  
+if there are values in the TIF that aren't in the VRI spatial  
+there is a problem (like an integer value rounding as an example)  
+
+Only in Tif: `r nrow(tif_only)` rows
+
+```{r check_values}
+
+if (nrow(tif_only ==1)){
+  kableExtra::kable(tif_only)
+}
+
+```
+
+
+## VRI spatial features NOT found in Raster
+
+there will be raster values missing from TIF  
+this is an artifact of the rasertization process  
+and is expected
+
+In Postgresql, **NOT** in Tif `r nrow(psql_only)`  
+
+
+PostgreSQL -> Tif: `r Sys.time()`
+
+
+
+
+End: `r Sys.time()`
+
+
