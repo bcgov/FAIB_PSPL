@@ -181,6 +181,8 @@ library(kableExtra)
 kable(report,format="markdown") %>%
 kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
+dbDisconnect(con)
+
 
 ```
 

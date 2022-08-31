@@ -1,7 +1,7 @@
 # PSPL Method 2022
 
 -   generate feature id based site index mean values
--   generate BEC averages using feature\_id mean si values
+-   generate BEC mean values using feature\_id mean site index values
 -   generate opening id based site index mean values
 
 requires table:
@@ -24,7 +24,7 @@ Note: no site index conversions have been applied
 
 Means are derived using SQL to avoid overtaxing limited Memory in R
 
-Start: Fri May 20 10:32:45 2022
+Start: Wed Aug 31 11:42:18 2022
 
     library(RPostgreSQL)
 
@@ -41,7 +41,7 @@ Start: Fri May 20 10:32:45 2022
 
 -   pspl\_fid\_bec
 
-<!-- -->
+BEC is assigned based on the largest feature\_id contribution
 
 
     -- do some intial clean up
@@ -88,7 +88,7 @@ Start: Fri May 20 10:32:45 2022
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">4721645</td>
+<td style="text-align: right;">5321242</td>
 </tr>
 </tbody>
 </table>
@@ -131,14 +131,14 @@ Start: Fri May 20 10:32:45 2022
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right;">221358</td>
+<td style="text-align: right;">256605</td>
 </tr>
 </tbody>
 </table>
 
 1 records
 
-### generate feature\_id averages using SQL
+### generate feature\_id mean values using SQL
 
 -   these are the unconverted data
 -   generate feature\_id based si mean values
@@ -158,6 +158,8 @@ if required can shut down parallell processing
 set max\_parallel\_workers\_per\_gather = 2;
 
 This process runs fine on a 32GB machine as is.
+
+Cast final values to Numeric(5,1)
 
 
 
@@ -198,9 +200,9 @@ This process runs fine on a 32GB machine as is.
 
     select count (*) as n from pspl_fid_site_index_pre_convert;
 
-### generate BEC averages from the feature\_id average data
+### generate BEC mean values
 
--   generate BEC averages using pspl\_init
+-   generate BEC mean values using pspl\_init
 -   use SQL
 
 Note that this uses the PSPL assigned BEC by point  
@@ -371,19 +373,19 @@ mean values.
     # pspl_op_site_index_pre_convert
     # pspl_bec_site_index_pre_convert
 
-    base <- paste0(substr(getwd(),1,1),':/data/data_projects/pspl_2022/si_data')
+    base <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data')
 
     f1 <- paste0(base,'/pspl_fid_site_index_pre_convert.csv')
     q1 <- paste0("copy msyt_2022.pspl_fid_site_index_pre_convert to \'",f1, "\' csv header;")
     dbExecute(con,q1)
 
-    ## [1] 4721645
+    ## [1] 5321242
 
     f2 <- paste0(base,'/pspl_op_site_index_pre_convert.csv')
     q2 <- paste0("copy msyt_2022.pspl_op_site_index_pre_convert to \'",f2, "\' csv header;")
     dbExecute(con,q2)
 
-    ## [1] 221356
+    ## [1] 256603
 
     f3 <- paste0(base,'/pspl_bec_site_index_pre_convert.csv')
     q3 <- paste0("copy msyt_2022.pspl_bec_site_index_pre_convert to \'",f3, "\' csv header;")
@@ -395,4 +397,4 @@ mean values.
 
     ## [1] TRUE
 
-End: Fri May 20 10:35:00 2022
+End: Wed Aug 31 11:44:52 2022

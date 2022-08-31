@@ -10,7 +10,7 @@ output: md_document
 
 
 - generate feature id based site index mean values
-- generate BEC averages using feature_id mean si values
+- generate BEC mean values using feature_id mean site index values
 - generate opening id based site index mean values
 
 
@@ -58,6 +58,8 @@ con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 # create the feature largest BEC table
 
 - pspl_fid_bec
+
+BEC is assigned based on the largest feature_id contribution
 
 ```{sql fid_BEC,connection = con}
 
@@ -131,7 +133,7 @@ select count (*) from pspl_op_bec;
 
 
 
-### generate feature_id averages using SQL
+### generate feature_id mean values using SQL
 
 - these are the unconverted data
 - generate feature_id based si mean values
@@ -156,6 +158,7 @@ set max_parallel_workers_per_gather = 2;
 This process runs fine on a 32GB machine as is.  
 
 
+Cast final values to Numeric(5,1)
 
 ```{sql fid_avg, connection=con,output.var="fid"}
 
@@ -201,10 +204,10 @@ select count (*) as n from pspl_fid_site_index_pre_convert;
 
 
 
-### generate BEC averages from the feature_id average data
+### generate BEC mean values
 
 
-- generate BEC averages using pspl_init
+- generate BEC mean values using pspl_init
 - use SQL 
 
 Note that this uses the PSPL assigned BEC by point  
@@ -408,7 +411,7 @@ select count(*) as n from pspl_fid_site_index_pre_convert;
 # pspl_op_site_index_pre_convert
 # pspl_bec_site_index_pre_convert
 
-base <- paste0(substr(getwd(),1,1),':/data/data_projects/pspl_2022/si_data')
+base <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data')
 
 f1 <- paste0(base,'/pspl_fid_site_index_pre_convert.csv')
 q1 <- paste0("copy msyt_2022.pspl_fid_site_index_pre_convert to \'",f1, "\' csv header;")

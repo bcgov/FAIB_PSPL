@@ -264,7 +264,7 @@ convert_sx_si <- function(x){
 
 # Spruce : Se & Sw
 
-convert_sw_from_se <- function(x) {
+convert_sw <- function(x) {
   # use Se
   # sw/se/sx all interchangeable
   #if (inp$sw_si == 0)
@@ -289,7 +289,7 @@ convert_sw_from_sx <- function(x) {
   
 }
 
-convert_se_from_sw <- function(x) {
+convert_se <- function(x) {
   #if (inp$se_si == 0 & 
   inp <- x
   si <- case_when(
@@ -507,35 +507,18 @@ si_convert <- function(dt){
 
 # make sure that data type is set to table
   setDT(dt)
-
-# One to One conversions
-# these should be applied first so that we are starting with a better filled matrix of conversions
   
-# one to one conversion
-  dt$ba_si[which(dt$ba_si==0)] <- convert_ba(dt[which(dt$ba_si==0)]) # Ba / Bg / Bl interchangeable
-  dt$bl_si[which(dt$bl_si==0)] <- convert_bl(dt[which(dt$bl_si==0)]) # Ba / Bg / Bl interchangeable
-  dt$bg_si[which(dt$bg_si==0)] <- convert_bg(dt[which(dt$bg_si==0)]) # Ba / Bg / Bl interchangeable
-  dt$pw_si[which(dt$pw_si==0)] <- convert_pw(dt[which(dt$pw_si==0)]) # Pw / Ss interchangeable
-  dt$ss_si[which(dt$ss_si==0)] <- convert_ss(dt[which(dt$ss_si==0)]) # Pw / Ss interchangeable
-  dt$lt_si[which(dt$lt_si==0)] <- convert_lt(dt[which(dt$lt_si==0)]) # Lt / Lw interchangeable
-  dt$lw_si[which(dt$lw_si==0)] <- convert_lw(dt[which(dt$lw_si==0)]) # Lt / Lw interchangeable
-  dt$hm_si[which(dt$hm_si==0)] <- convert_hm(dt[which(dt$hm_si==0)]) # Hm /Hw interchangeable
-  dt$hw_si[which(dt$hw_si==0)] <- convert_hw(dt[which(dt$hw_si==0)]) # Hm /Hw interchangeable
-  dt$pa_si[which(dt$pa_si==0)] <- convert_pa(dt[which(dt$pa_si==0)]) # Pa / Pl interchangeable
-  dt$pl_si[which(dt$pl_si==0)] <- convert_pl(dt[which(dt$pl_si==0)]) # Pa / Pl interchangeable
-
-# Spruce   Se Sw Sx all interchange
 # set sw = sx
   dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_sx(dt[which(dt$sw_si==0)]) 
 
 # set sw = se 
-  dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
+  dt$sw_si[which(dt$sw_si==0)] <- convert_sw(dt[which(dt$sw_si==0)]) 
   
 # set se = sw
-  dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)]) 
+  dt$se_si[which(dt$se_si==0)] <- convert_se(dt[which(dt$se_si==0)]) 
   
   
-# Now start regular si conversions based on Sindex conversions
+
 
 # update individual species site index using which to subset the table
   
@@ -543,6 +526,7 @@ si_convert <- function(dt){
   dt$ba_si[which(dt$ba_si==0)] <- convert_ba_si(dt[which(dt$ba_si==0)])
   dt$bl_si[which(dt$bl_si==0)] <- convert_bl_si(dt[which(dt$bl_si==0)])
   dt$cw_si[which(dt$cw_si==0)] <- convert_cw_si(dt[which(dt$cw_si==0)])
+  
   
   
   # for fir, need Coast indicator
@@ -569,17 +553,27 @@ si_convert <- function(dt){
   # Interior Sw
   #dt$sx_si[which(dt$sx_si==0 & dt$se_ss_sw == 'SW')] <- convert_sx_si(dt[which(dt$sx_si==0 & dt$se_ss_sw == 'SW')])
   
-  
+  # one to one conversion
+  dt$ba_si[which(dt$ba_si==0)] <- convert_ba(dt[which(dt$ba_si==0)])
+  dt$bl_si[which(dt$bl_si==0)] <- convert_bl(dt[which(dt$bl_si==0)])
+  dt$bg_si[which(dt$bg_si==0)] <- convert_bg(dt[which(dt$bg_si==0)])
+  dt$pw_si[which(dt$pw_si==0)] <- convert_pw(dt[which(dt$pw_si==0)])
+  dt$ss_si[which(dt$ss_si==0)] <- convert_ss(dt[which(dt$ss_si==0)])
+  dt$lt_si[which(dt$lt_si==0)] <- convert_lt(dt[which(dt$lt_si==0)])
+  dt$lw_si[which(dt$lw_si==0)] <- convert_lw(dt[which(dt$lw_si==0)])
+  dt$hm_si[which(dt$hm_si==0)] <- convert_hm(dt[which(dt$hm_si==0)])
+  dt$hw_si[which(dt$hw_si==0)] <- convert_hw(dt[which(dt$hw_si==0)])
+  dt$pa_si[which(dt$pa_si==0)] <- convert_pa(dt[which(dt$pa_si==0)])
+  dt$pl_si[which(dt$pl_si==0)] <- convert_pl(dt[which(dt$pl_si==0)])
   
   #dr Coastal only
   #dt$dr_si[which(dt$dr_si==0 & dt$c_i == 'C')] <- convert_dr(dt[which(dt$dr_si==0 & dt$c_i == 'C')])
   
   # Interior cwi
-  dt$cw_si[which(dt$cw_si==0 & dt$c_i == 'I')] <- convert_cwi(dt[which(dt$cw_si==0 & dt$c_i == 'I')])
+  dt$cw_si[which(dt$cw_si==0 & dt$c_i == 'I')] <- convert_cwi(dt[which(dt$pl_si==0)])
   
   
-  # Py in SBS dk 
-  # use fd_si
+  # Py in SBS dk  
   dt$py_si[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")] <- convert_py(dt[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")])
   
   

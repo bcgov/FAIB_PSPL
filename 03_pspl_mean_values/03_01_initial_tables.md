@@ -1,9 +1,25 @@
-## Generate PSPL point averages
+# PSPL Method 2022
 
--   feature\_id
--   opening\_id
+## PSPL data pre-processing
 
-Start: 2022-05-20 09:00:28
+-   Set all 0 values to NULL
+-   Join PSPL to VRI opening\_id
+
+Note on BEC. Although BEC values are in the VRI data, they are NOT used.
+Instead, the PSPL BEC is used throughout the MSYT process.
+
+## Treatment of NULL values
+
+There are 32 species site index values for each feature\_id. In general,
+some of these will not have data and thus be null. When deriving mean
+values, it is important to exclude these NULL values form the
+calculation. It is also important to check that 0 is not substituted for
+a NULL. This can happen inadvertently when using a DUCK Typed language
+such as R.
+
+Start: 2022-08-31 11:14:36
+
+### Initialize PostgreSQL Connection
 
     library(RPostgreSQL)
 
@@ -30,6 +46,12 @@ Start: 2022-05-20 09:00:28
       system2('psql', args=cmd_arg,stderr=TRUE)
       
     }
+
+### Create inital (temp) table
+
+-   pspl\_init\_t
+
+This contains the entire Provincial set of PSPL points
 
 
     drop sequence if exists t1_seq;
@@ -80,6 +102,8 @@ Start: 2022-05-20 09:00:28
 
     select now() as "end init";
 
+### Index the intial table
+
      
     create index m_idx_sr2 on pspl_init_t(feature_id);
 
@@ -87,6 +111,12 @@ Start: 2022-05-20 09:00:28
     db_vac(tbl)
 
     ## character(0)
+
+## Create pre convert table
+
+-   pspl\_init
+
+<!-- -->
 
 
     drop sequence t1_seq;
@@ -136,4 +166,4 @@ Start: 2022-05-20 09:00:28
 
     ## character(0)
 
-End: 2022-05-20 09:08:11
+End: 2022-08-31 11:22:59
