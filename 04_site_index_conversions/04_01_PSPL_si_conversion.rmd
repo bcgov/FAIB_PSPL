@@ -16,14 +16,16 @@ output: md_document
 
 Create the following tables:
 
-- pspl_bec_site_index
-- pspl_fid_site_index
-- pspl_op_site_index
+- pspl_site_index_bec
+- pspl_site_index_fid
+- pspl_site_index_op
 
 
 Start: `r format(Sys.time(),"%c")`
 
 ```{r setup, echo=TRUE,message=TRUE,warning=TRUE}
+
+year <- '2022'
 
 library(RPostgreSQL)
 library(tidyverse)
@@ -180,7 +182,7 @@ dbWriteTable(con,tbl_name,avg_op_data,row.names = FALSE)
 
 
 ```{r cleanUp, eval=FALSE}
-
+ 
 
 if(dbExistsTable(con,'pspl_fid_site_index_pre_convert')) {
   dbRemoveTable(con,'pspl_fid_site_index_pre_convert')
@@ -194,7 +196,92 @@ if(dbExistsTable(con,'pspl_bec_site_index_pre_convert')) {
   dbRemoveTable(con,'pspl_bec_site_index_pre_convert')
 }
 
+if(dbExistsTable(con,'pspl_init')) {
+  dbRemoveTable(con,'pspl_init')
+}
+
+if(dbExistsTable(con,'pspl_raw')) {
+  dbRemoveTable(con,'pspl_raw')
+}
+
 ```
+
+
+Rename: 
+
+pspl_bec_site_index
+pspl_fid_site_index
+pspl_op_site_index
+
+```{r rename_tables}
+
+# pre-delete
+if(dbExistsTable(con,'pspl_site_index_bec')) {
+  dbRemoveTable(con,'pspl_site_index_bec')
+}
+if(dbExistsTable(con,'pspl_site_index_fid')) {
+  dbRemoveTable(con,'pspl_site_index_fid')
+}
+if(dbExistsTable(con,'pspl_site_index_op')) {
+  dbRemoveTable(con,'pspl_site_index_op')
+}
+
+dbExecute(con,'alter table pspl_bec_site_index_post_convert rename to pspl_site_index_bec')
+dbExecute(con,'alter table pspl_fid_site_index_post_convert rename to pspl_site_index_fid')
+dbExecute(con,'alter table pspl_op_site_index_post_convert rename to pspl_site_index_op')
+
+
+
+```
+
+
+```{r dump_table}
+
+pg_dump <- function(t_name,folder){
+  
+  # -O required to negate ownership
+  
+  f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
+  tbl <- paste0('msyt_',year,'.',t_name)
+  
+  q1 <- paste0("-d ",
+               database,
+               " -O",
+                " -t ",
+                tbl,
+               " -f ",
+               f_out )
+  
+  system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
+  #print(q1)
+}
+
+```
+
+
+```{r dump,echo=FALSE,message=FALSE,warning=FALSE}
+
+folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/pg_dump/')
+
+table <- 'pspl_site_index_bec'
+pg_dump(table,folder)
+
+table <- 'pspl_site_index_fid'
+pg_dump(table,folder)
+
+table <- 'pspl_site_index_op'
+pg_dump(table,folder)
+
+
+
+
+# drop the foreign table
+
+#q1 <- paste0('drop foreign table load_',year,'.veg_comp_lyr_r1_poly')
+#dbExecute(con,q1)
+
+```
+
 
 
 ```{r discon}

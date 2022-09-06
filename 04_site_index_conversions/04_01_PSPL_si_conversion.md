@@ -12,7 +12,9 @@ Create the following tables:
 -   pspl\_fid\_site\_index
 -   pspl\_op\_site\_index
 
-Start: Wed Aug 31 14:26:06 2022
+Start: Tue Sep 6 12:58:46 2022
+
+    year <- '2022'
 
     library(RPostgreSQL)
 
@@ -184,8 +186,76 @@ mean value data by feature
       dbRemoveTable(con,'pspl_bec_site_index_pre_convert')
     }
 
+    if(dbExistsTable(con,'pspl_init')) {
+      dbRemoveTable(con,'pspl_init')
+    }
+
+    if(dbExistsTable(con,'pspl_raw')) {
+      dbRemoveTable(con,'pspl_raw')
+    }
+
+Rename:
+
+pspl\_bec\_site\_index pspl\_fid\_site\_index pspl\_op\_site\_index
+
+    # pre-delete
+    if(dbExistsTable(con,'pspl_bec_site_index')) {
+      dbRemoveTable(con,'pspl_bec_site_index')
+    }
+
+    ## [1] TRUE
+
+    if(dbExistsTable(con,'pspl_fid_site_index')) {
+      dbRemoveTable(con,'pspl_fid_site_index')
+    }
+
+    ## [1] TRUE
+
+    if(dbExistsTable(con,'pspl_op_site_index')) {
+      dbRemoveTable(con,'pspl_op_site_index')
+    }
+
+    ## [1] TRUE
+
+    dbExecute(con,'alter table pspl_bec_site_index_post_convert rename to pspl_bec_site_index')
+
+    ## [1] 0
+
+    dbExecute(con,'alter table pspl_fid_site_index_post_convert rename to pspl_fid_site_index')
+
+    ## [1] 0
+
+    dbExecute(con,'alter table pspl_op_site_index_post_convert rename to pspl_op_site_index')
+
+    ## [1] 0
+
+    pg_dump <- function(t_name,folder){
+      
+      # -O required to negate ownership
+      
+      f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
+      tbl <- paste0('msyt_',year,'.',t_name)
+      
+      q1 <- paste0("-d ",
+                   database,
+                   " -O",
+                    " -t ",
+                    tbl,
+                   " -f ",
+                   f_out )
+      
+      system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
+      #print(q1)
+    }
+
+    ## character(0)
+
+    ## character(0)
+
+    ## character(0)
+
     dbDisconnect(con)
 
     ## [1] TRUE
 
-End: Wed Aug 31 14:27:57 2022
+End: Tue Sep 6 13:01:00 2022

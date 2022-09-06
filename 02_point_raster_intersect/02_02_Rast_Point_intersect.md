@@ -2,7 +2,7 @@
 
 Assumes that PSPL GDBs are already copied and unzipped
 
-Start: 2022-08-30 20:19:21
+Start: 2022-09-06 11:17:49
 
     library(sf)
 
@@ -376,4 +376,4 @@ Start: 2022-08-30 20:19:21
 
 Table 1. PSPL Summary
 
-End: 2022-08-30 21:23:42
+End: 2022-09-06 12:24:57

@@ -6,7 +6,7 @@ output: md_document
 
 ---
 
-## Load compressed PSPL gdb files to processing location
+## Load compressed PSPL gdb files to processing location 
 
 ## directory locations are fixed as follows:
 

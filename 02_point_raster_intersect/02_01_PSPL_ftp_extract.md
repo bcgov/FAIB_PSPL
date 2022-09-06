@@ -8,7 +8,7 @@ And is copied from:
 
 \tension.dmz!publish\_Site\_Productivity\_Layer\_Prod\_with\_Approved\_PEM\_TEM\_Prod\_Point\_FGDBs
 
-Load Date: 2022-08-30 Start: Tue Aug 30 12:50:34 2022
+Load Date: 2022-09-06 Start: Tue Sep 6 08:56:13 2022
 
 Copy PSPL data from FTP site
 
@@ -29,4 +29,4 @@ Unzip the Gdb files
 
 End of GDB Load
 
-End: Tue Aug 30 12:53:09 2022
+End: Tue Sep 6 08:58:45 2022
