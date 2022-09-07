@@ -2,7 +2,9 @@
 
 Assumes that PSPL GDBs are already copied and unzipped
 
-Start: 2022-09-06 11:17:49
+Start: 2022-09-07 10:13:05
+
+    year <- '2022'
 
     library(sf)
 
@@ -17,9 +19,9 @@ Start: 2022-09-06 11:17:49
     ## Loading required package: DBI
 
     # set up for load to PostgreSQL
-    schema <- 'msyt_2022'
+    schema <- paste0('msyt_',year)
     opt <- paste0("-c search_path=",schema)
-    user_name <- 'postgres'
+    user_name <- 'results'
     database <- 'msyt'
     con <- dbConnect('PostgreSQL',dbname=database,user=user_name,options=opt)
 
@@ -119,9 +121,9 @@ Start: 2022-09-06 11:17:49
       
       # load to PostgreSQL
       if (n ==1) {
-        dbWriteTable(con,'pspl_raw',point_set,row.names=FALSE,overwrite=TRUE)
+        dbWriteTable(con,'pspl_intersected',point_set,row.names=FALSE,overwrite=TRUE)
       } else {
-        dbWriteTable(con,'pspl_raw',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
+        dbWriteTable(con,'pspl_intersected',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
       }
       
       
@@ -143,9 +145,6 @@ Start: 2022-09-06 11:17:49
 
     # create reporting data frame
     report <- data.frame('num_points' = '','rows_out' = '', 'n' = '')
-
-
-
 
 
     #process the file list
@@ -370,10 +369,35 @@ Start: 2022-09-06 11:17:49
 </tbody>
 </table>
 
+    pg_dump_table <- function(t_name,folder){
+      
+      # -O required to negate ownership
+      
+      f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
+      tbl <- paste0('msyt_',year,'.',t_name)
+      
+      q1 <- paste0("-d ",
+                   database,
+                   " -O",
+                    " -t ",
+                    tbl,
+                   " -f ",
+                   f_out )
+      
+      #system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
+      print(q1)
+      
+    }
+
+    dump_to_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
+    pg_dump_table('pspl_intersected',dump_to_folder)
+
+    ## [1] "-d msyt -O -t msyt_2022.pspl_intersected -f D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_pspl_intersected.sql"
+
     dbDisconnect(con)
 
     ## [1] TRUE
 
 Table 1. PSPL Summary
 
-End: 2022-09-06 12:24:57
+End: 2022-09-07 11:19:15

@@ -14,14 +14,17 @@ Start: `r Sys.time()`
 
 ```{r read_data}
 
+
+year <- '2022'
+
 library(sf)
 library(terra)
 library(RPostgreSQL)
 
 # set up for load to PostgreSQL
-schema <- 'msyt_2022'
+schema <- paste0('msyt_',year)
 opt <- paste0("-c search_path=",schema)
-user_name <- 'postgres'
+user_name <- 'results'
 database <- 'msyt'
 con <- dbConnect('PostgreSQL',dbname=database,user=user_name,options=opt)
 
@@ -47,7 +50,7 @@ num_gdb = length(f_list)  #number of files to process
 - extract feature id from the raster using extract
 - join to the point attribute data
 - crop the PROV raster at the extent of each GDB + 51m
-- export to PostgreSQL table: pspl_raw
+- export to PostgreSQL table: pspl_intersected
 
 ```{r fun}
 
@@ -123,9 +126,9 @@ rast_intersect <- function(r,pf,n){
   
   # load to PostgreSQL
   if (n ==1) {
-    dbWriteTable(con,'pspl_raw',point_set,row.names=FALSE,overwrite=TRUE)
+    dbWriteTable(con,'pspl_intersected',point_set,row.names=FALSE,overwrite=TRUE)
   } else {
-    dbWriteTable(con,'pspl_raw',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
+    dbWriteTable(con,'pspl_intersected',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
   }
   
   
@@ -154,9 +157,6 @@ n <- 1
 report <- data.frame('num_points' = '','rows_out' = '', 'n' = '')
 
 
-
-
-
 #process the file list
     for(fname in f_list){
       
@@ -180,6 +180,38 @@ library(kableExtra)
 
 kable(report,format="markdown") %>%
 kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+
+```
+
+
+```{r dump}
+
+
+pg_dump_table <- function(t_name,folder){
+  
+  # -O required to negate ownership
+  
+  f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
+  tbl <- paste0('msyt_',year,'.',t_name)
+  
+  q1 <- paste0("-d ",
+               database,
+               " -O",
+                " -t ",
+                tbl,
+               " -f ",
+               f_out )
+  
+  system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
+  print(q1)
+  
+}
+
+dump_to_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
+pg_dump_table('pspl_intersected',dump_to_folder)
+
+
 
 dbDisconnect(con)
 

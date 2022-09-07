@@ -1,6 +1,6 @@
 # PSPL Method 2022
 
-Requires: psql\_raw
+Requires: pspl\_intersected
 
 Creates:
 
@@ -15,7 +15,8 @@ These are the mean values tables (grouped)
 -   Set all 0 values to NULL
 -   Join PSPL to VRI opening\_id
 
-Note on BEC. Although BEC values are in the VRI data, they are NOT used.
+Note on BEC. Although BEC values are in the VRI data, they are NOT
+used.  
 Instead, the PSPL BEC is used throughout the MSYT process.
 
 ## Treatment of NULL values
@@ -27,9 +28,11 @@ calculation. It is also important to check that 0 is not substituted for
 a NULL. This can happen inadvertently when using a DUCK Typed language
 such as R.
 
-Start: 2022-09-06 12:41:10
+Start: 2022-09-07 13:46:23
 
 ### Initialize PostgreSQL Connection
+
+    year <- '2022'
 
     library(RPostgreSQL)
 
@@ -56,9 +59,29 @@ Start: 2022-09-06 12:41:10
       
     }
 
+    pg_dump_table <- function(t_name,folder){
+      
+      # -O required to negate ownership
+      
+      f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
+      tbl <- paste0('msyt_',year,'.',t_name)
+      
+      q1 <- paste0("-d ",
+                   database,
+                   " -O",
+                    " -t ",
+                    tbl,
+                   " -f ",
+                   f_out )
+      
+      system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
+      #print(q1)
+      
+    }
+
 ### Create inital (temp) table
 
--   read: pspl\_raw
+-   read: pspl\_intersected
 -   crate: pspl\_init\_t
 
 This contains the entire Provincial set of PSPL points
@@ -107,7 +130,7 @@ This contains the entire Provincial set of PSPL points
         NULLIF(yc_si,0) as yc_si,
         trim(substring(bgc_label,1,4)) as bec_zone,
         trim(substring(bgc_label,5,3)) as bec_subzone
-    from pspl_raw 
+    from pspl_intersected 
     where feature_id is not NULL;
 
     select now() as "end init";
@@ -170,45 +193,6 @@ This contains the entire Provincial set of PSPL points
 
     create index idx_pspl1 on pspl_init(feature_id);
     create index idx_pspl2 on pspl_init(opening_id);
-
-# PSPL Method 2022
-
--   generate feature id based site index mean values
--   generate BEC mean values using feature\_id mean site index values
--   generate opening id based site index mean values
-
-requires table:
-
--   pspl\_init
-
-Create the following tables:
-
--   pspl\_fid\_bec (temp)
-
--   pspl\_op\_bec (temp)
-
--   pspl\_fid\_site\_index\_pre\_convert  
-
--   pspl\_op\_site\_index\_pre\_convert
-
--   pspl\_bec\_site\_index\_pre\_convert
-
-Note: no site index conversions have been applied
-
-Means are derived using SQL to avoid overtaxing limited Memory in R
-
-Start: Tue Sep 6 12:49:23 2022
-
-    library(RPostgreSQL)
-
-
-
-    # set up for schema and user
-    schema <- 'msyt_2022'
-    opt <- paste0("-c search_path=",schema)
-    user_name <- 'postgres'
-    database <- 'msyt'
-    con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 
 # create the feature largest BEC table
 
@@ -566,9 +550,53 @@ mean values.
 
     ## [1] 138
 
+    ## dump to sql
+
+    out_folder <- paste0(substr(getwd(),1,1),':/D:/data/data_projects/AR2022/PSPL/si_data/')
+
+    pg_dump_table('msyt_2022.pspl_bec_site_index_pre_convert',out_folder)
+
+    ## Warning in system2("pg_dump", args = q1, stderr = TRUE,
+    ## wait = TRUE): running command '"pg_dump" -d msyt -O -t
+    ## msyt_2022.msyt_2022.pspl_bec_site_index_pre_convert -f D:/D:/data/data_projects/
+    ## AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_bec_site_index_pre_convert.sql' had
+    ## status 1
+
+    ## [1] "unrecognized win32 error code: 123pg_dump: error: could not open output file \"D:/D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_bec_site_index_pre_convert.sql\": Invalid argument"
+    ## attr(,"status")
+    ## [1] 1
+
+    pg_dump_table('msyt_2022.pspl_fid_site_index_pre_convert',out_folder)
+
+    ## Warning in system2("pg_dump", args = q1, stderr = TRUE,
+    ## wait = TRUE): running command '"pg_dump" -d msyt -O -t
+    ## msyt_2022.msyt_2022.pspl_fid_site_index_pre_convert -f D:/D:/data/data_projects/
+    ## AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_fid_site_index_pre_convert.sql' had
+    ## status 1
+
+    ## [1] "unrecognized win32 error code: 123pg_dump: error: could not open output file \"D:/D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_fid_site_index_pre_convert.sql\": Invalid argument"
+    ## attr(,"status")
+    ## [1] 1
+
+    pg_dump_table('msyt_2022.pspl_op_site_index_pre_convert',out_folder)
+
+    ## Warning in system2("pg_dump", args = q1, stderr = TRUE,
+    ## wait = TRUE): running command '"pg_dump" -d msyt -O -t
+    ## msyt_2022.msyt_2022.pspl_op_site_index_pre_convert -f D:/D:/data/data_projects/
+    ## AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_op_site_index_pre_convert.sql' had
+    ## status 1
+
+    ## [1] "unrecognized win32 error code: 123pg_dump: error: could not open output file \"D:/D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_op_site_index_pre_convert.sql\": Invalid argument"
+    ## attr(,"status")
+    ## [1] 1
+
     tbl <- paste0(schema,'.pspl_init')
     db_vac(tbl)
 
     ## character(0)
 
-End: 2022-09-06 12:52:42
+    dbDisconnect(con)
+
+    ## [1] TRUE
+
+End: 2022-09-07 13:56:55

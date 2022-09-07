@@ -42,7 +42,7 @@ The intersect utilizes the terra::extract(cropped_raster,point_set) which serves
 
 The PSPL data takes the following form in the PostgreSLQ database:
 
-Table: msyt_2022.pspl_raw
+Table: msyt_2022.pspl_intersected
 
 |   Column   |       Type       |
 |------------|------------------|
