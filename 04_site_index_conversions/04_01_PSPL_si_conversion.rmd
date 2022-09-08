@@ -79,11 +79,11 @@ avg_fid_data <- si_convert(avg_fid_data)
 
 
 # write the data
-file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_fid_site_index_post_convert.csv')
+file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_site_index_fid.csv')
 fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
-tbl_name <- paste0('pspl_fid_site_index_post_convert')
+tbl_name <- paste0('pspl_site_index_fid')
 
 # pre delete table
 if(dbExistsTable(con,tbl_name)) {
@@ -117,11 +117,11 @@ avg_BEC_data <- si_convert(avg_BEC_data)
 
 
 # write the data
-file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_bec_site_index_post_convert.csv')
+file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_site_index_bec.csv')
 fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
-tbl_name <- paste0('pspl_bec_site_index_post_convert')
+tbl_name <- paste0('pspl_site_index_bec')
 
 
 # pre delete table
@@ -158,7 +158,7 @@ setDT(avg_op_data)
 avg_op_data <- si_convert(avg_op_data)
 
 # writeout the post conversion file
-file_name <-  paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_op_site_index_post_convert.csv')
+file_name <-  paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_site_index_op.csv')
 fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
@@ -166,7 +166,7 @@ fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, s
 
 avg_op_data$si_src <- 'PSPL'
 
-tbl_name <- paste0('pspl_op_site_index_post_convert')
+tbl_name <- paste0('pspl_site_index_op')
 
 # pre delete table
 if(dbExistsTable(con,tbl_name)) {
@@ -196,43 +196,17 @@ if(dbExistsTable(con,'pspl_bec_site_index_pre_convert')) {
   dbRemoveTable(con,'pspl_bec_site_index_pre_convert')
 }
 
-if(dbExistsTable(con,'pspl_init')) {
-  dbRemoveTable(con,'pspl_init')
-}
+#if(dbExistsTable(con,'pspl_init')) {
+#  dbRemoveTable(con,'pspl_init')
+#}
 
-if(dbExistsTable(con,'pspl_raw')) {
-  dbRemoveTable(con,'pspl_raw')
-}
-
-```
-
-
-Rename: 
-
-pspl_bec_site_index
-pspl_fid_site_index
-pspl_op_site_index
-
-```{r rename_tables}
-
-# pre-delete
-if(dbExistsTable(con,'pspl_site_index_bec')) {
-  dbRemoveTable(con,'pspl_site_index_bec')
-}
-if(dbExistsTable(con,'pspl_site_index_fid')) {
-  dbRemoveTable(con,'pspl_site_index_fid')
-}
-if(dbExistsTable(con,'pspl_site_index_op')) {
-  dbRemoveTable(con,'pspl_site_index_op')
-}
-
-dbExecute(con,'alter table pspl_bec_site_index_post_convert rename to pspl_site_index_bec')
-dbExecute(con,'alter table pspl_fid_site_index_post_convert rename to pspl_site_index_fid')
-dbExecute(con,'alter table pspl_op_site_index_post_convert rename to pspl_site_index_op')
-
-
+#if(dbExistsTable(con,'pspl_raw')) {
+#  dbRemoveTable(con,'pspl_raw')
+#}
 
 ```
+
+
 
 
 ```{r dump_table}
