@@ -572,7 +572,7 @@ si_convert <- function(dt){
   
   
   #dr Coastal only
-  #dt$dr_si[which(dt$dr_si==0 & dt$c_i == 'C')] <- convert_dr(dt[which(dt$dr_si==0 & dt$c_i == 'C')])
+  dt$dr_si[which(dt$dr_si==0 & dt$c_i == 'C')] <- convert_dr(dt[which(dt$dr_si==0 & dt$c_i == 'C')])
   
   # Interior cwi
   dt$cw_si[which(dt$cw_si==0 & dt$c_i == 'I')] <- convert_cwi(dt[which(dt$cw_si==0 & dt$c_i == 'I')])

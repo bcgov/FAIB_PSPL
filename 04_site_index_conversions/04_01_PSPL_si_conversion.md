@@ -8,11 +8,11 @@
 
 Create the following tables:
 
--   pspl\_bec\_site\_index
--   pspl\_fid\_site\_index
--   pspl\_op\_site\_index
+-   pspl\_site\_index\_bec
+-   pspl\_site\_index\_fid
+-   pspl\_site\_index\_op
 
-Start: Tue Sep 6 12:58:46 2022
+Start: Thu Sep 8 07:52:57 2022
 
     year <- '2022'
 
@@ -85,16 +85,18 @@ mean value data by feature
 
 
     # write the data
-    file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_fid_site_index_post_convert.csv')
+    file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_site_index_fid.csv')
     fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
-    tbl_name <- paste0('pspl_fid_site_index_post_convert')
+    tbl_name <- paste0('pspl_site_index_fid')
 
     # pre delete table
     if(dbExistsTable(con,tbl_name)) {
       dbRemoveTable(con,tbl_name)
     }
+
+    ## [1] TRUE
 
     # write to table
 
@@ -120,11 +122,11 @@ mean value data by feature
 
 
     # write the data
-    file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_bec_site_index_post_convert.csv')
+    file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_site_index_bec.csv')
     fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
-    tbl_name <- paste0('pspl_bec_site_index_post_convert')
+    tbl_name <- paste0('pspl_site_index_bec')
 
 
     # pre delete table
@@ -132,6 +134,7 @@ mean value data by feature
       dbRemoveTable(con,tbl_name)
     }
 
+    ## [1] TRUE
 
     # write to table
     dbWriteTable(con,tbl_name,avg_BEC_data,row.names = FALSE)
@@ -153,7 +156,7 @@ mean value data by feature
     avg_op_data <- si_convert(avg_op_data)
 
     # writeout the post conversion file
-    file_name <-  paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_op_site_index_post_convert.csv')
+    file_name <-  paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data/pspl_site_index_op.csv')
     fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
@@ -161,14 +164,14 @@ mean value data by feature
 
     avg_op_data$si_src <- 'PSPL'
 
-    tbl_name <- paste0('pspl_op_site_index_post_convert')
+    tbl_name <- paste0('pspl_site_index_op')
 
     # pre delete table
     if(dbExistsTable(con,tbl_name)) {
       dbRemoveTable(con,tbl_name)
     }
 
-
+    ## [1] TRUE
 
     dbWriteTable(con,tbl_name,avg_op_data,row.names = FALSE)
 
@@ -186,48 +189,13 @@ mean value data by feature
       dbRemoveTable(con,'pspl_bec_site_index_pre_convert')
     }
 
-    if(dbExistsTable(con,'pspl_init')) {
-      dbRemoveTable(con,'pspl_init')
-    }
+    #if(dbExistsTable(con,'pspl_init')) {
+    #  dbRemoveTable(con,'pspl_init')
+    #}
 
-    if(dbExistsTable(con,'pspl_raw')) {
-      dbRemoveTable(con,'pspl_raw')
-    }
-
-Rename:
-
-pspl\_bec\_site\_index pspl\_fid\_site\_index pspl\_op\_site\_index
-
-    # pre-delete
-    if(dbExistsTable(con,'pspl_bec_site_index')) {
-      dbRemoveTable(con,'pspl_bec_site_index')
-    }
-
-    ## [1] TRUE
-
-    if(dbExistsTable(con,'pspl_fid_site_index')) {
-      dbRemoveTable(con,'pspl_fid_site_index')
-    }
-
-    ## [1] TRUE
-
-    if(dbExistsTable(con,'pspl_op_site_index')) {
-      dbRemoveTable(con,'pspl_op_site_index')
-    }
-
-    ## [1] TRUE
-
-    dbExecute(con,'alter table pspl_bec_site_index_post_convert rename to pspl_bec_site_index')
-
-    ## [1] 0
-
-    dbExecute(con,'alter table pspl_fid_site_index_post_convert rename to pspl_fid_site_index')
-
-    ## [1] 0
-
-    dbExecute(con,'alter table pspl_op_site_index_post_convert rename to pspl_op_site_index')
-
-    ## [1] 0
+    #if(dbExistsTable(con,'pspl_raw')) {
+    #  dbRemoveTable(con,'pspl_raw')
+    #}
 
     pg_dump <- function(t_name,folder){
       
@@ -258,4 +226,4 @@ pspl\_bec\_site\_index pspl\_fid\_site\_index pspl\_op\_site\_index
 
     ## [1] TRUE
 
-End: Tue Sep 6 13:01:00 2022
+End: Thu Sep 8 07:55:14 2022

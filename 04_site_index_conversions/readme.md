@@ -19,6 +19,26 @@ Assume that missing values in the Se Sw and Sx can all be interchanged
 
 Where Py is in the SBS, can substitute Fd site index.
 
+## Alder (Coast)
+
+Use fdc site index as the alder site index seems to be generally missing from PSPL.
+
+### Alternative
+
+George Harper has proposed that using the Fir site index may be giving a siteindex that is too high.  
+
+He suggested using:  
+
+For Coastal BEC and subzones: ds, db, xm  
+
+dr_si = fd_si \* 0.55   
+
+For all other subzones:  
+
+dr_si = fd_si \* 0.73
+
+
+
 ## Conversions based on Sindex
 
 The following table documents the conversions coefficients.
