@@ -12,9 +12,9 @@ Requires: pspl_intersected
 
 Creates:
 
-- pspl_bec_site_index_pre_convert
-- pspl_fid_site_index_pre_convert
-- pspl_op_site_index_pre_convert
+- pspl_site_index_pre_convert_bec
+- pspl_site_index_pre_convert_fid
+- pspl_site_index_pre_convert_op
 
 These are the mean values tables (grouped)
 
@@ -45,11 +45,9 @@ year <- '2022'
 library(RPostgreSQL)
 
 # set up for schema and user
-schema <- 'msyt_2022'
+schema <- paste0('msyt_',year)
 opt <- paste0("-c search_path=",schema)
-
-
-user_name <- 'postgres'
+user_name <- 'results'
 database <- 'msyt'
 con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 #con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name)
@@ -69,19 +67,19 @@ pg_dump_table <- function(t_name,folder){
   
   # -O required to negate ownership
   
-  f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
-  tbl <- paste0('msyt_',year,'.',t_name)
+  f_out <- paste0(folder,t_name,'.sql')
+
   
   q1 <- paste0("-d ",
                database,
                " -O",
                 " -t ",
-                tbl,
+                t_name,
                " -f ",
                f_out )
   
   system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
-  #print(q1)
+  print(q1)
   
 }
 
@@ -233,9 +231,9 @@ BEC is assigned based on the largest feature_id contribution
 drop table if exists pspl_fid_bec;
 drop table if exists pspl_op_bec;
 
-drop table if exists pspl_fid_site_index_pre_convert;
-drop table if exists pspl_bec_site_index_pre_convert;
-drop table if exists pspl_op_site_index_pre_convert;
+drop table if exists pspl_site_index_pre_convert_fid;
+drop table if exists pspl_site_index_pre_convert_bec;
+drop table if exists pspl_site_index_pre_convert_op;
 
 drop table if exists pspl_fid_site_index;
 drop table if exists pspl_bec_site_index;
@@ -328,8 +326,8 @@ Cast final values to Numeric(5,1)
 ```{sql fid_avg, connection=con,output.var="fid"}
 
 
-drop table if exists pspl_fid_site_index_pre_convert;
-create table pspl_fid_site_index_pre_convert as
+drop table if exists pspl_site_index_pre_convert_fid;
+create table pspl_site_index_pre_convert_fid as
 select
 	feature_id,
 	cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -359,11 +357,11 @@ group by feature_id
 order by 1
 ;
 
-create index idx_pspl_fid_si on pspl_fid_site_index_pre_convert(feature_id);
+create index idx_pspl_fid_si on pspl_site_index_pre_convert_fid(feature_id);
 
 
 
-select count (*) as n from pspl_fid_site_index_pre_convert;
+select count (*) as n from pspl_site_index_pre_convert_fid;
 
 ```
 
@@ -383,8 +381,8 @@ NOT the feature_id assigned BEC based on largest number of points
 ```{sql mean_bec,connection=con,output.var="bec"}
 
 
-drop table if exists pspl_bec_site_index_pre_convert;
-create table pspl_bec_site_index_pre_convert as
+drop table if exists pspl_site_index_pre_convert_bec;
+create table pspl_site_index_pre_convert_bec as
 select
 	bec_zone,bec_subzone,
 	cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -414,7 +412,7 @@ group by bec_zone,bec_subzone
 order by 1
 ;
 
-select count(*) as n from pspl_bec_site_index_pre_convert;
+select count(*) as n from pspl_site_index_pre_convert_bec;
 
 
 
@@ -436,8 +434,8 @@ Take the original PSPL data by pid and generate the opening_id based mean values
 
 ```{sql op_avg,connection=con,output.var="op"}
 
-drop table if exists pspl_op_site_index_pre_convert;
-create table pspl_op_site_index_pre_convert as
+drop table if exists pspl_site_index_pre_convert_op;
+create table pspl_site_index_pre_convert_op as
 select
 	opening_id,
 	cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -480,9 +478,9 @@ order by 1
 ```{sql op_join_bec,connection=con}
 
 drop table if exists t1;
-alter table pspl_op_site_index_pre_convert rename to t1;
+alter table pspl_site_index_pre_convert_op rename to t1;
 
-create table pspl_op_site_index_pre_convert as
+create table pspl_site_index_pre_convert_op as
 select 
  a.opening_id,
  a.at_si,
@@ -520,9 +518,9 @@ select now();
 ```{sql fid_join_bec,connection=con}
 
 drop table if exists t1;
-alter table pspl_fid_site_index_pre_convert rename to t1;
+alter table pspl_site_index_pre_convert_fid rename to t1;
 
-create table pspl_fid_site_index_pre_convert as
+create table pspl_site_index_pre_convert_fid as
 select 
  a.feature_id,
  a.at_si,
@@ -560,7 +558,7 @@ drop table pspl_op_bec;
 
 
 
-select count(*) as n from pspl_fid_site_index_pre_convert;
+select count(*) as n from pspl_site_index_pre_convert_fid;
 
 ```
 
@@ -572,32 +570,44 @@ select count(*) as n from pspl_fid_site_index_pre_convert;
 
 ```{r export_data , eval=TRUE}
 
-# pspl_fid_site_index_pre_convert
-# pspl_op_site_index_pre_convert
-# pspl_bec_site_index_pre_convert
+dbDisconnect(con)
 
-base <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data')
+# copy can only be run as superuser
+# re-establish connection
+schema <- paste0('msyt_',year)
+opt <- paste0("-c search_path=",schema)
+user_name <- 'postgres'
+database <- 'msyt'
+con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 
-f1 <- paste0(base,'/pspl_fid_site_index_pre_convert.csv')
-q1 <- paste0("copy msyt_2022.pspl_fid_site_index_pre_convert to \'",f1, "\' csv header;")
+
+
+# pspl_site_index_pre_convert_fid
+# pspl_site_index_pre_convert_op
+# pspl_site_index_pre_convert_bec
+
+base <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data')
+
+f1 <- paste0(base,'/pspl_site_index_pre_convert_fid.csv')
+q1 <- paste0("copy pspl_site_index_pre_convert_fid to \'",f1, "\' csv header;")
 dbExecute(con,q1)
 
-f2 <- paste0(base,'/pspl_op_site_index_pre_convert.csv')
-q2 <- paste0("copy msyt_2022.pspl_op_site_index_pre_convert to \'",f2, "\' csv header;")
+f2 <- paste0(base,'/pspl_site_index_pre_convert_op.csv')
+q2 <- paste0("copy pspl_site_index_pre_convert_op to \'",f2, "\' csv header;")
 dbExecute(con,q2)
 
-f3 <- paste0(base,'/pspl_bec_site_index_pre_convert.csv')
-q3 <- paste0("copy msyt_2022.pspl_bec_site_index_pre_convert to \'",f3, "\' csv header;")
+f3 <- paste0(base,'/pspl_site_index_pre_convert_bec.csv')
+q3 <- paste0("copy pspl_site_index_pre_convert_bec to \'",f3, "\' csv header;")
 dbExecute(con,q3)
 
 
 ## dump to sql
 
-out_folder <- paste0(substr(getwd(),1,1),':/D:/data/data_projects/AR2022/PSPL/si_data/')
+out_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
 
-pg_dump_table('msyt_2022.pspl_bec_site_index_pre_convert',out_folder)
-pg_dump_table('msyt_2022.pspl_fid_site_index_pre_convert',out_folder)
-pg_dump_table('msyt_2022.pspl_op_site_index_pre_convert',out_folder)
+pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_bec'),out_folder)
+pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_fid'),out_folder)
+pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_op'),out_folder)
 
 
 

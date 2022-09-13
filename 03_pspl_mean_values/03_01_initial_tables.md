@@ -4,9 +4,9 @@ Requires: pspl\_intersected
 
 Creates:
 
--   pspl\_bec\_site\_index\_pre\_convert
--   pspl\_fid\_site\_index\_pre\_convert
--   pspl\_op\_site\_index\_pre\_convert
+-   pspl\_site\_index\_pre\_convert\_bec
+-   pspl\_site\_index\_pre\_convert\_fid
+-   pspl\_site\_index\_pre\_convert\_op
 
 These are the mean values tables (grouped)
 
@@ -28,7 +28,7 @@ calculation. It is also important to check that 0 is not substituted for
 a NULL. This can happen inadvertently when using a DUCK Typed language
 such as R.
 
-Start: 2022-09-07 13:46:23
+Start: 2022-09-13 14:36:26
 
 ### Initialize PostgreSQL Connection
 
@@ -39,11 +39,9 @@ Start: 2022-09-07 13:46:23
     ## Loading required package: DBI
 
     # set up for schema and user
-    schema <- 'msyt_2022'
+    schema <- paste0('msyt_',year)
     opt <- paste0("-c search_path=",schema)
-
-
-    user_name <- 'postgres'
+    user_name <- 'results'
     database <- 'msyt'
     con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
     #con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name)
@@ -63,14 +61,14 @@ Start: 2022-09-07 13:46:23
       
       # -O required to negate ownership
       
-      f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
-      tbl <- paste0('msyt_',year,'.',t_name)
+      f_out <- paste0(folder,t_name,'.sql')
+
       
       q1 <- paste0("-d ",
                    database,
                    " -O",
                     " -t ",
-                    tbl,
+                    t_name,
                    " -f ",
                    f_out )
       
@@ -206,9 +204,9 @@ BEC is assigned based on the largest feature\_id contribution
     drop table if exists pspl_fid_bec;
     drop table if exists pspl_op_bec;
 
-    drop table if exists pspl_fid_site_index_pre_convert;
-    drop table if exists pspl_bec_site_index_pre_convert;
-    drop table if exists pspl_op_site_index_pre_convert;
+    drop table if exists pspl_site_index_pre_convert_fid;
+    drop table if exists pspl_site_index_pre_convert_bec;
+    drop table if exists pspl_site_index_pre_convert_op;
 
     drop table if exists pspl_fid_site_index;
     drop table if exists pspl_bec_site_index;
@@ -320,8 +318,8 @@ Cast final values to Numeric(5,1)
 
 
 
-    drop table if exists pspl_fid_site_index_pre_convert;
-    create table pspl_fid_site_index_pre_convert as
+    drop table if exists pspl_site_index_pre_convert_fid;
+    create table pspl_site_index_pre_convert_fid as
     select
         feature_id,
         cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -351,11 +349,11 @@ Cast final values to Numeric(5,1)
     order by 1
     ;
 
-    create index idx_pspl_fid_si on pspl_fid_site_index_pre_convert(feature_id);
+    create index idx_pspl_fid_si on pspl_site_index_pre_convert_fid(feature_id);
 
 
 
-    select count (*) as n from pspl_fid_site_index_pre_convert;
+    select count (*) as n from pspl_site_index_pre_convert_fid;
 
 ### generate BEC mean values
 
@@ -367,8 +365,8 @@ NOT the feature\_id assigned BEC based on largest number of points
 
 
 
-    drop table if exists pspl_bec_site_index_pre_convert;
-    create table pspl_bec_site_index_pre_convert as
+    drop table if exists pspl_site_index_pre_convert_bec;
+    create table pspl_site_index_pre_convert_bec as
     select
         bec_zone,bec_subzone,
         cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -398,7 +396,7 @@ NOT the feature\_id assigned BEC based on largest number of points
     order by 1
     ;
 
-    select count(*) as n from pspl_bec_site_index_pre_convert;
+    select count(*) as n from pspl_site_index_pre_convert_bec;
 
 ### generate opening\_id averages
 
@@ -408,8 +406,8 @@ Take the original PSPL data by pid and generate the opening\_id based
 mean values.
 
 
-    drop table if exists pspl_op_site_index_pre_convert;
-    create table pspl_op_site_index_pre_convert as
+    drop table if exists pspl_site_index_pre_convert_op;
+    create table pspl_site_index_pre_convert_op as
     select
         opening_id,
         cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -446,9 +444,9 @@ mean values.
 
 
     drop table if exists t1;
-    alter table pspl_op_site_index_pre_convert rename to t1;
+    alter table pspl_site_index_pre_convert_op rename to t1;
 
-    create table pspl_op_site_index_pre_convert as
+    create table pspl_site_index_pre_convert_op as
     select 
      a.opening_id,
      a.at_si,
@@ -482,9 +480,9 @@ mean values.
 
 
     drop table if exists t1;
-    alter table pspl_fid_site_index_pre_convert rename to t1;
+    alter table pspl_site_index_pre_convert_fid rename to t1;
 
-    create table pspl_fid_site_index_pre_convert as
+    create table pspl_site_index_pre_convert_fid as
     select 
      a.feature_id,
      a.at_si,
@@ -522,73 +520,63 @@ mean values.
 
 
 
-    select count(*) as n from pspl_fid_site_index_pre_convert;
+    select count(*) as n from pspl_site_index_pre_convert_fid;
 
 ### Export to CSV
 
-    # pspl_fid_site_index_pre_convert
-    # pspl_op_site_index_pre_convert
-    # pspl_bec_site_index_pre_convert
+    dbDisconnect(con)
 
-    base <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/si_data')
+    ## [1] TRUE
 
-    f1 <- paste0(base,'/pspl_fid_site_index_pre_convert.csv')
-    q1 <- paste0("copy msyt_2022.pspl_fid_site_index_pre_convert to \'",f1, "\' csv header;")
+    # copy can only be run as superuser
+    # re-establish connection
+    schema <- paste0('msyt_',year)
+    opt <- paste0("-c search_path=",schema)
+    user_name <- 'postgres'
+    database <- 'msyt'
+    con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
+
+
+
+    # pspl_site_index_pre_convert_fid
+    # pspl_site_index_pre_convert_op
+    # pspl_site_index_pre_convert_bec
+
+    base <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data')
+
+    f1 <- paste0(base,'/pspl_site_index_pre_convert_fid.csv')
+    q1 <- paste0("copy pspl_site_index_pre_convert_fid to \'",f1, "\' csv header;")
     dbExecute(con,q1)
 
     ## [1] 5321242
 
-    f2 <- paste0(base,'/pspl_op_site_index_pre_convert.csv')
-    q2 <- paste0("copy msyt_2022.pspl_op_site_index_pre_convert to \'",f2, "\' csv header;")
+    f2 <- paste0(base,'/pspl_site_index_pre_convert_op.csv')
+    q2 <- paste0("copy pspl_site_index_pre_convert_op to \'",f2, "\' csv header;")
     dbExecute(con,q2)
 
     ## [1] 256600
 
-    f3 <- paste0(base,'/pspl_bec_site_index_pre_convert.csv')
-    q3 <- paste0("copy msyt_2022.pspl_bec_site_index_pre_convert to \'",f3, "\' csv header;")
+    f3 <- paste0(base,'/pspl_site_index_pre_convert_bec.csv')
+    q3 <- paste0("copy pspl_site_index_pre_convert_bec to \'",f3, "\' csv header;")
     dbExecute(con,q3)
 
     ## [1] 138
 
     ## dump to sql
 
-    out_folder <- paste0(substr(getwd(),1,1),':/D:/data/data_projects/AR2022/PSPL/si_data/')
+    out_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
 
-    pg_dump_table('msyt_2022.pspl_bec_site_index_pre_convert',out_folder)
+    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_bec'),out_folder)
 
-    ## Warning in system2("pg_dump", args = q1, stderr = TRUE,
-    ## wait = TRUE): running command '"pg_dump" -d msyt -O -t
-    ## msyt_2022.msyt_2022.pspl_bec_site_index_pre_convert -f D:/D:/data/data_projects/
-    ## AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_bec_site_index_pre_convert.sql' had
-    ## status 1
+    ## character(0)
 
-    ## [1] "unrecognized win32 error code: 123pg_dump: error: could not open output file \"D:/D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_bec_site_index_pre_convert.sql\": Invalid argument"
-    ## attr(,"status")
-    ## [1] 1
+    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_fid'),out_folder)
 
-    pg_dump_table('msyt_2022.pspl_fid_site_index_pre_convert',out_folder)
+    ## character(0)
 
-    ## Warning in system2("pg_dump", args = q1, stderr = TRUE,
-    ## wait = TRUE): running command '"pg_dump" -d msyt -O -t
-    ## msyt_2022.msyt_2022.pspl_fid_site_index_pre_convert -f D:/D:/data/data_projects/
-    ## AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_fid_site_index_pre_convert.sql' had
-    ## status 1
+    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_op'),out_folder)
 
-    ## [1] "unrecognized win32 error code: 123pg_dump: error: could not open output file \"D:/D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_fid_site_index_pre_convert.sql\": Invalid argument"
-    ## attr(,"status")
-    ## [1] 1
-
-    pg_dump_table('msyt_2022.pspl_op_site_index_pre_convert',out_folder)
-
-    ## Warning in system2("pg_dump", args = q1, stderr = TRUE,
-    ## wait = TRUE): running command '"pg_dump" -d msyt -O -t
-    ## msyt_2022.msyt_2022.pspl_op_site_index_pre_convert -f D:/D:/data/data_projects/
-    ## AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_op_site_index_pre_convert.sql' had
-    ## status 1
-
-    ## [1] "unrecognized win32 error code: 123pg_dump: error: could not open output file \"D:/D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_msyt_2022.pspl_op_site_index_pre_convert.sql\": Invalid argument"
-    ## attr(,"status")
-    ## [1] 1
+    ## character(0)
 
     tbl <- paste0(schema,'.pspl_init')
     db_vac(tbl)
@@ -599,4 +587,4 @@ mean values.
 
     ## [1] TRUE
 
-End: 2022-09-07 13:56:55
+End: 2022-09-13 14:47:06
