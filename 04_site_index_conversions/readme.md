@@ -3,6 +3,13 @@
 After the mean site index values have been assigned, there can be species that have missing site index values.  This will be discussed in more formal documentation.  But for processing requirements we need to fill in missing values where possible using a formalized set of site index conversions.  
 
 
+Create the following tables:   
+
+- pspl_site_index_bec
+- pspl_site_index_fid
+- pspl_site_index_op
+
+
 ## One to one conversions 
 
 Ba / Bg / Bl interchangeable  
@@ -17,7 +24,9 @@ Assume that missing values in the Se Sw and Sx can all be interchanged
 
 ## Py
 
-Where Py is in the SBS, can substitute Fd site index.
+Where Py is in the SBS, can substitute Fd site index.  
+
+Augmented this to substitute Fd site index anywhere Py site index is missing.
 
 ## Alder (Coast)
 
@@ -37,7 +46,9 @@ For all other subzones:
 
 dr_si = fd_si \* 0.73
 
+Sharad Baral produced the following height comparison:
 
+![](DR_FD_ht.png)  
 
 ## Conversions based on Sindex
 

@@ -450,12 +450,17 @@ convert_pl <- function(x){
 }  
 
 ###########################################################
-# not doing alder conversion
+# alder conversion
 # dr is special
 convert_dr <- function(x){
   #if (inp$dr_si == 0 & inp$fd_si != 0 & c_i == 'C')
   inp <- x
-  inp$dr_si = inp$fd_si 
+  #inp$dr_si = inp$fd_si 
+  si <- case_when(
+    inp$bec_zone %in% c('CWH','CDF','MH') & inp$bec_subzone %in% c('ds','db','xm') ~ inp$fd_si * 0.55,
+    inp$bec_zone %in% c('CWH','CDF','MH') ~ inp$fd_si * 0.73,
+    TRUE ~ inp$fd_si *0.73
+  )
 }
 
 ####################################################################
@@ -580,7 +585,8 @@ si_convert <- function(dt){
   
   # Py in SBS dk 
   # use fd_si
-  dt$py_si[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")] <- convert_py(dt[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")])
+  #dt$py_si[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")] <- convert_py(dt[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")])
+  dt$py_si[which(dt$py_si==0) ] <- convert_py(dt[which(dt$py_si==0)])
   
   # One to One conversions
   # these should be applied also at the end
