@@ -289,6 +289,18 @@ convert_sw_from_sx <- function(x) {
   
 }
 
+convert_ss_from_sx <- function(x) {
+  # use sx
+  # if (inp$sw_si == 0)
+  inp <- x
+  si <- case_when(
+    inp$sx_si != 0 ~ inp$sx_si , 
+    TRUE ~ inp$ss_si)
+  
+  return(si)
+  
+}
+
 convert_se_from_sw <- function(x) {
   #if (inp$se_si == 0 & 
   inp <- x
@@ -576,8 +588,8 @@ si_convert <- function(dt){
   
   
   
-  #dr Coastal only
-  dt$dr_si[which(dt$dr_si==0 & dt$c_i == 'C')] <- convert_dr(dt[which(dt$dr_si==0 & dt$c_i == 'C')])
+  #dr Coast/Interior
+  dt$dr_si[which(dt$dr_si==0)] <- convert_dr(dt[which(dt$dr_si==0)])
   
   # Interior cwi
   dt$cw_si[which(dt$cw_si==0 & dt$c_i == 'I')] <- convert_cwi(dt[which(dt$cw_si==0 & dt$c_i == 'I')])
@@ -613,6 +625,9 @@ si_convert <- function(dt){
   
   # set se = sw
   dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)]) 
+  
+  # set ss = sx when still missing
+  dt$ss_si[which(dt$ss_si==0)] <- convert_ss_from_sx(dt[which(dt$ss_si==0)]) 
   
   
   # if si < 0 then return 0
