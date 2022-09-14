@@ -83,6 +83,7 @@ SWB mk, mks, un substitute BWBS dk
 
 ## Substitute for MHmmp
 mm <- avg_BEC_data %>% subset(bec_zone == 'MH' & bec_subzone == 'mm')
+avg_BEC_data <- avg_BEC_data %>% subset(paste0(bec_zone,bec_subzone) != 'MHmmp' )
 mm$bec_subzone <- 'mmp'
 
 avg_BEC_data <- rbind(avg_BEC_data,mm)
@@ -196,7 +197,8 @@ avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sw_si := ifelse(sw_si
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
 
-
+# where BEC in fid differs fro BEC in op data
+# need to use the alternative if available
 
 # add src
 

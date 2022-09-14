@@ -12,7 +12,7 @@ Create the following tables:
 -   pspl\_site\_index\_fid
 -   pspl\_site\_index\_op
 
-Start: Tue Sep 13 15:24:43 2022
+Start: Wed Sep 14 14:45:56 2022
 
     year <- '2022'
 
@@ -88,6 +88,7 @@ SWB mk, mks, un substitute BWBS dk
 
     ## Substitute for MHmmp
     mm <- avg_BEC_data %>% subset(bec_zone == 'MH' & bec_subzone == 'mm')
+    avg_BEC_data <- avg_BEC_data %>% subset(paste0(bec_zone,bec_subzone) != 'MHmmp' )
     mm$bec_subzone <- 'mmp'
 
     avg_BEC_data <- rbind(avg_BEC_data,mm)
@@ -335,4 +336,4 @@ mean value data by feature
 
     ## [1] TRUE
 
-End: Tue Sep 13 15:27:19 2022
+End: Wed Sep 14 14:48:34 2022
