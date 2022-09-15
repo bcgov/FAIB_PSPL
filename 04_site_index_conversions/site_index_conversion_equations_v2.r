@@ -1,6 +1,6 @@
 # translate if_else cascades to case_when for readability
 
-# converted to case_When
+# converted to case_When 
 
 # Aspen At
 convert_at_si <- function(x){
