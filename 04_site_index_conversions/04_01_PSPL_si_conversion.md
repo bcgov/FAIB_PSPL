@@ -12,7 +12,7 @@ Create the following tables:
 -   pspl\_site\_index\_fid
 -   pspl\_site\_index\_op
 
-Start: Wed Sep 14 14:45:56 2022
+Start: Thu Sep 15 07:14:00 2022
 
     year <- '2022'
 
@@ -133,7 +133,6 @@ SWB mk, mks, un substitute BWBS dk
       dbRemoveTable(con,tbl_name)
     }
 
-    ## [1] TRUE
 
     # write to table
     dbWriteTable(con,tbl_name,avg_BEC_data,row.names = FALSE)
@@ -191,7 +190,8 @@ mean value data by feature
     avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
     avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
 
-
+    # where BEC in fid differs from BEC in op data
+    # need to use the alternative if available
 
     # add src
 
@@ -208,8 +208,6 @@ mean value data by feature
     if(dbExistsTable(con,tbl_name)) {
       dbRemoveTable(con,tbl_name)
     }
-
-    ## [1] TRUE
 
     # write to table
 
@@ -281,7 +279,7 @@ mean value data by feature
       dbRemoveTable(con,tbl_name)
     }
 
-    ## [1] TRUE
+
 
     dbWriteTable(con,tbl_name,avg_op_data,row.names = FALSE)
 
@@ -336,4 +334,4 @@ mean value data by feature
 
     ## [1] TRUE
 
-End: Wed Sep 14 14:48:34 2022
+End: Thu Sep 15 07:16:38 2022

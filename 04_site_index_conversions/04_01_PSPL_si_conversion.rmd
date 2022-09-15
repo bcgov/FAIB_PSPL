@@ -4,7 +4,7 @@ output: md_document
 ---
 
 
-# PSPL Method 2022  
+# PSPL Method 2022   
 
 ## Feature_id processing 
 
@@ -197,7 +197,7 @@ avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sw_si := ifelse(sw_si
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
 
-# where BEC in fid differs fro BEC in op data
+# where BEC in fid differs from BEC in op data
 # need to use the alternative if available
 
 # add src
