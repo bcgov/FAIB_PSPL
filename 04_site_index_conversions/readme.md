@@ -159,10 +159,16 @@ s1<sub>si</sub> = b<sub>0</sub> + b<sub>1</sub> \* s2<sub>si</sub>
 - cleaner code
 - yield exactly the same result over 4.7M rows when comapred to v0
 
-### v2
+### v2a
+
+- applied spruce site index conversion as first step
+	- Sw_si = Sx_si where Sw_si = 0 and Sx_si > 0
+- this only impacts Sw
+
+### v2b
 
 - applied the one to one conversions first
-- applied spruce site index conversion as first step
+- applied spruce site index conversion as second step
 	- Sw_si = Sx_si where Sw_si = 0 and Sx_si > 0
 - this only impacts Sw
 	
