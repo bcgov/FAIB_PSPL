@@ -1,5 +1,9 @@
 # PSPL Method 2022
 
+## Version testing
+
+Using version 2.a
+
 ## Feature\_id processing
 
 -   run SI conversion on feature\_id based si
@@ -12,7 +16,7 @@ Create the following tables:
 -   pspl\_site\_index\_fid
 -   pspl\_site\_index\_op
 
-Start: Thu Sep 15 10:59:02 2022
+Start: Fri Sep 16 15:08:02 2022
 
     year <- '2022'
 
@@ -58,7 +62,10 @@ Start: Thu Sep 15 10:59:02 2022
 
     #load the R code for site index conversions
 
-    si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2.r')
+    #  Versions to test
+    si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2a.r')
+    #si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2b.r')
+
     source(si_convert, local = knitr::knit_global())
 
 ### run SI conversion on the bec means values
@@ -375,4 +382,4 @@ mean value data by feature
 
     ## [1] TRUE
 
-End: Thu Sep 15 11:01:43 2022
+End: Fri Sep 16 15:10:28 2022

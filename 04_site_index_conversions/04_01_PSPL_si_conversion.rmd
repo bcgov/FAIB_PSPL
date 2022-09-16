@@ -6,6 +6,10 @@ output: md_document
 
 # PSPL Method 2022   
 
+## Version testing
+
+Using version 2.a
+
 ## Feature_id processing 
 
 - run SI conversion on feature_id based si
@@ -42,7 +46,10 @@ con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 
 #load the R code for site index conversions
 
-si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2.r')
+#  Versions to test
+si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2a.r')
+#si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2b.r')
+
 source(si_convert, local = knitr::knit_global())
 
 

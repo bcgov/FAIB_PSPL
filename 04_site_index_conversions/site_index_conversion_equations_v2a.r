@@ -1,5 +1,9 @@
 # translate if_else cascades to case_when for readability
 
+# Version 2a
+# 1:1 conversion applied at end
+
+
 # converted to case_When 
 
 # Aspen At
@@ -259,7 +263,7 @@ convert_sx_si <- function(x){
 }
 
 ###########################################################################
-# do some direct 1:1 assignments
+# direct 1:1 assignments
 
 
 # Spruce : Se & Sw
@@ -487,6 +491,20 @@ convert_py <- function(x){
   return(si)
 }  
 
+##########################################################
+# Pw seems to be missing a lot
+
+convert_pw_from_fd <- function(x){
+  # pw/fd interchangeable (checking on this)
+  #if (inp$pw_si == 0 & inp$fd_si != 0)
+  inp <- x
+  si <- case_when(
+    inp$fd_si != 0 ~ inp$fd_si, 
+    TRUE ~ inp$pw_si)
+  
+  return(si)
+}
+
 ########################################################################################################
 
 # END individual functions
@@ -525,32 +543,48 @@ si_convert <- function(dt){
 # make sure that data type is set to table
   setDT(dt)
 
+# *******************************************************************************************
 # One to One conversions
 # these should be applied first so that we are starting with a better filled matrix of conversions
   
-# one to one conversion
-  dt$ba_si[which(dt$ba_si==0)] <- convert_ba(dt[which(dt$ba_si==0)]) # Ba / Bg / Bl interchangeable
-  dt$bl_si[which(dt$bl_si==0)] <- convert_bl(dt[which(dt$bl_si==0)]) # Ba / Bg / Bl interchangeable
-  dt$bg_si[which(dt$bg_si==0)] <- convert_bg(dt[which(dt$bg_si==0)]) # Ba / Bg / Bl interchangeable
-  dt$pw_si[which(dt$pw_si==0)] <- convert_pw(dt[which(dt$pw_si==0)]) # Pw / Ss interchangeable
-  dt$ss_si[which(dt$ss_si==0)] <- convert_ss(dt[which(dt$ss_si==0)]) # Pw / Ss interchangeable
-  dt$lt_si[which(dt$lt_si==0)] <- convert_lt(dt[which(dt$lt_si==0)]) # Lt / Lw interchangeable
-  dt$lw_si[which(dt$lw_si==0)] <- convert_lw(dt[which(dt$lw_si==0)]) # Lt / Lw interchangeable
-  dt$hm_si[which(dt$hm_si==0)] <- convert_hm(dt[which(dt$hm_si==0)]) # Hm /Hw interchangeable
-  dt$hw_si[which(dt$hw_si==0)] <- convert_hw(dt[which(dt$hw_si==0)]) # Hm /Hw interchangeable
-  dt$pa_si[which(dt$pa_si==0)] <- convert_pa(dt[which(dt$pa_si==0)]) # Pa / Pl interchangeable
-  dt$pl_si[which(dt$pl_si==0)] <- convert_pl(dt[which(dt$pl_si==0)]) # Pa / Pl interchangeable
+  # only doing the sw from sx
+  
+# one to one conversions not done
+#  dt$ba_si[which(dt$ba_si==0)] <- convert_ba(dt[which(dt$ba_si==0)]) # Ba / Bg / Bl interchangeable
+#  dt$bl_si[which(dt$bl_si==0)] <- convert_bl(dt[which(dt$bl_si==0)]) # Ba / Bg / Bl interchangeable
+#  dt$bg_si[which(dt$bg_si==0)] <- convert_bg(dt[which(dt$bg_si==0)]) # Ba / Bg / Bl interchangeable
+#  dt$pw_si[which(dt$pw_si==0)] <- convert_pw(dt[which(dt$pw_si==0)]) # Pw / Ss interchangeable
+#  dt$ss_si[which(dt$ss_si==0)] <- convert_ss(dt[which(dt$ss_si==0)]) # Pw / Ss interchangeable
+#  dt$lt_si[which(dt$lt_si==0)] <- convert_lt(dt[which(dt$lt_si==0)]) # Lt / Lw interchangeable
+#  dt$lw_si[which(dt$lw_si==0)] <- convert_lw(dt[which(dt$lw_si==0)]) # Lt / Lw interchangeable
+#  dt$hm_si[which(dt$hm_si==0)] <- convert_hm(dt[which(dt$hm_si==0)]) # Hm /Hw interchangeable
+#  dt$hw_si[which(dt$hw_si==0)] <- convert_hw(dt[which(dt$hw_si==0)]) # Hm /Hw interchangeable
+#  dt$pa_si[which(dt$pa_si==0)] <- convert_pa(dt[which(dt$pa_si==0)]) # Pa / Pl interchangeable
+#  dt$pl_si[which(dt$pl_si==0)] <- convert_pl(dt[which(dt$pl_si==0)]) # Pa / Pl interchangeable
+  
 
+# ********************************************************************
 # Spruce   Se Sw Sx all interchange
 # set sw = sx
   dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_sx(dt[which(dt$sw_si==0)]) 
+# ***********************************************************************
+  
+# ********************************************************************
+# Pine Pw   interchange for Pl
+# set Pw = Pl
+dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)]) 
+# ***********************************************************************  
+  
 
 # set sw = se 
-  dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
+#  dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
   
 # set se = sw
-  dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)]) 
+#  dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)]) 
   
+
+# ***************************************************************************
+# Sindex Site Index Conversions
   
 # Now start regular si conversions based on Sindex conversions
 
@@ -599,9 +633,10 @@ si_convert <- function(dt){
   # use fd_si
   #dt$py_si[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")] <- convert_py(dt[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")])
   dt$py_si[which(dt$py_si==0) ] <- convert_py(dt[which(dt$py_si==0)])
+
+# **************************************************  
+# Final One to One conversions
   
-  # One to One conversions
-  # these should be applied also at the end
   
   # one to one conversion
   dt$ba_si[which(dt$ba_si==0)] <- convert_ba(dt[which(dt$ba_si==0)]) # Ba / Bg / Bl interchangeable
