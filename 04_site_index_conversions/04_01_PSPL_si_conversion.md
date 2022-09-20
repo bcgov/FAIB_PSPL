@@ -16,7 +16,7 @@ Create the following tables:
 -   pspl\_site\_index\_fid
 -   pspl\_site\_index\_op
 
-Start: Tue Sep 20 07:32:54 2022
+Start: Tue Sep 20 10:52:18 2022
 
     year <- '2022'
 
@@ -103,11 +103,13 @@ SWB mk, mks, un substitute BWBS dk
     ## substitute for SWB mk,mks,un
     avg_BEC_data <- avg_BEC_data %>% subset(bec_zone != 'SWB')
     swb1 <- avg_BEC_data %>% subset(bec_zone == 'BWBS' & bec_subzone == 'dk')
+
     swb1$bec_zone <- 'SWB'
     swb1$bec_subzone <- 'mk'
 
     swb2 <- swb1
     swb3 <- swb1
+    swb4 <- swb1
 
     swb2$bec_zone <- 'SWB'
     swb2$bec_subzone <- 'mks'
@@ -115,7 +117,10 @@ SWB mk, mks, un substitute BWBS dk
     swb3$bec_zone <- 'SWB'
     swb3$bec_subzone <- 'un'
 
-    avg_BEC_data <- rbind(avg_BEC_data,swb1,swb2,swb3)
+    swb4$bec_zone <- 'SWB'
+    swb4$bec_subzone <- 'vk'
+
+    avg_BEC_data <- rbind(avg_BEC_data,swb1,swb2,swb3,swb4)
 
 
 
@@ -381,4 +386,4 @@ mean value data by feature
 
     ## [1] TRUE
 
-End: Tue Sep 20 07:35:17 2022
+End: Tue Sep 20 10:54:46 2022
