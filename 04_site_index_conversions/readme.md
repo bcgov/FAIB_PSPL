@@ -10,47 +10,16 @@ Create the following tables:
 - pspl_site_index_op
 
 
-## One to one conversions 
+## Step 1 all tables: Initial One to one conversions before running formal conversions equations
 
-Ba / Bg / Bl interchangeable  
-Pw / Ss interchangeable  
-Lt / Lw interchangeable  
-Hm /Hw interchangeable  
-Pa / Pl interchangeable  
+| Species with missing si | Substitute from |
+|:-----|:----|
+| Sw | Sx|
+| Pw | Fd |
+| Sw | Se |
+| Se | Sw |
 
-## Spruce Se Sw Sx
-
-Assume that missing values in the Se Sw and Sx can all be interchanged
-
-## Py
-
-Where Py is in the SBS, can substitute Fd site index.  
-
-Augmented this to substitute Fd site index anywhere Py site index is missing.
-
-## Alder (Coast)
-
-Use fdc site index as the alder site index seems to be generally missing from PSPL.
-
-### Alternative
-
-George Harper has proposed that using the Fir site index may be giving a siteindex that is too high.  
-
-He suggested using:  
-
-For Coastal BEC and subzones: ds, db, xm  
-
-dr_si = fd_si \* 0.55   
-
-For all other subzones:  
-
-dr_si = fd_si \* 0.73
-
-Sharad Baral produced the following height comparison:
-
-![](DR_FD_ht.png)  
-
-## Conversions based on Sindex
+## Step 2: Conversions based on Sindex
 
 The following table documents the conversions coefficients.
 
@@ -141,34 +110,90 @@ s1<sub>si</sub> = b<sub>0</sub> + b<sub>1</sub> \* s2<sub>si</sub>
 |sw|sb|-6.846739125|1.702173910|
 
 
+## Step 3: Additional one to one conversions
+
+### Alder
+
+George Harper has proposed that using the Fir site index may be giving a siteindex that is too high.  
+
+He suggested using:  
+
+For Coastal BEC and subzones: ds, db, xm  
+
+dr_si = fd_si \* 0.55   
+
+For all other subzones:  
+
+dr_si = fd_si \* 0.73
+
+Sharad Baral produced the following height comparison:
+
+![](DR_FD_ht.png)  
+
+___
+
+### Interior Cwi
+
+For missing values, substitute: Sw
+
+___
+
+### Py
+
+Where Py is in the SBS, can substitute Fd site index.  
+Augmented this to substitute Fd site index anywhere Py site index is missing.
+
+___
+
+### Balsam
+Ba / Bg / Bl interchangeable  
+
+___
+
+### Ss
+
+For missing values, substitute: Pw
+
+___
+
+### Larch
+
+Lt / Lw interchangeable  
+___
+
+### Hemlock
+
+Hm /Hw interchangeable  
+___
+
+### Pa
+Pa / Pl interchangeable  
+
+### Spruce again
+
+| Species with missing si | Substitute from |
+|:-----|:----|
+| Sw | Sx|
+| Sw | Se |
+| Se | Sw |
+| Ss | Sx |
+| Ss | Pw |
+| Ss | Fd |
+
+## Step4: BEC based site index
+
+For all SWB mk.mks,un,vk substitute BWBSdk site index values
 
 
+## Step5: Opening level site index
 
-## Changes to Site Index Converion Methods
+Apply BEC aggregate substitutions for missing values
 
+## Step6: Feature id based site index
 
-### v0
+Apply opening site index values where missing.
 
-- Direct translation of C code to R
-- used cascade type if then else
-- augmented site conversions for those not in the original C code
+## Step 6: Feature id based site index
 
-### v1
+Apply BEC aggregate substitutions for missing values
 
-- transform form if then else to case_when
-- cleaner code
-- yield exactly the same result over 4.7M rows when comapred to v0
-
-### v2a
-
-- applied spruce site index conversion as first step
-	- Sw_si = Sx_si where Sw_si = 0 and Sx_si > 0
-- this only impacts Sw
-
-### v2b
-
-- applied the one to one conversions first
-- applied spruce site index conversion as second step
-	- Sw_si = Sx_si where Sw_si = 0 and Sx_si > 0
-- this only impacts Sw
-	

@@ -506,22 +506,6 @@ convert_pw_from_fd <- function(x){
   return(si)
 }
 
-##########################################################
-# Ss in CWH sometimes missing
-# since Ss can use Pw and Pw can use Fd
-# if Pw is missing, use Fd
-
-convert_ss_from_fd <- function(x){
-  # ss/fd interchangeable (checking on this)
-  #if (inp$ss_si == 0 & inp$fd_si != 0)
-  inp <- x
-  si <- case_when(
-    inp$fd_si != 0 ~ inp$fd_si, 
-    TRUE ~ inp$ss_si)
-  
-  return(si)
-}
-
 ########################################################################################################
 
 # END individual functions
@@ -570,7 +554,7 @@ si_convert <- function(dt){
 #  dt$ba_si[which(dt$ba_si==0)] <- convert_ba(dt[which(dt$ba_si==0)]) # Ba / Bg / Bl interchangeable
 #  dt$bl_si[which(dt$bl_si==0)] <- convert_bl(dt[which(dt$bl_si==0)]) # Ba / Bg / Bl interchangeable
 #  dt$bg_si[which(dt$bg_si==0)] <- convert_bg(dt[which(dt$bg_si==0)]) # Ba / Bg / Bl interchangeable
-#  dt$pw_si[which(dt$pw_si==0)] <- convert_pw(dt[which(dt$pw_si==0)]) # Pw / Fd interchangeable
+#  dt$pw_si[which(dt$pw_si==0)] <- convert_pw(dt[which(dt$pw_si==0)]) # Pw / Ss interchangeable
 #  dt$ss_si[which(dt$ss_si==0)] <- convert_ss(dt[which(dt$ss_si==0)]) # Pw / Ss interchangeable
 #  dt$lt_si[which(dt$lt_si==0)] <- convert_lt(dt[which(dt$lt_si==0)]) # Lt / Lw interchangeable
 #  dt$lw_si[which(dt$lw_si==0)] <- convert_lw(dt[which(dt$lw_si==0)]) # Lt / Lw interchangeable
@@ -659,7 +643,7 @@ dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)])
   dt$ba_si[which(dt$ba_si==0)] <- convert_ba(dt[which(dt$ba_si==0)]) # Ba / Bg / Bl interchangeable
   dt$bl_si[which(dt$bl_si==0)] <- convert_bl(dt[which(dt$bl_si==0)]) # Ba / Bg / Bl interchangeable
   dt$bg_si[which(dt$bg_si==0)] <- convert_bg(dt[which(dt$bg_si==0)]) # Ba / Bg / Bl interchangeable
-  #dt$pw_si[which(dt$pw_si==0)] <- convert_pw(dt[which(dt$pw_si==0)]) # Pw / Ss interchangeable
+  dt$pw_si[which(dt$pw_si==0)] <- convert_pw(dt[which(dt$pw_si==0)]) # Pw / Ss interchangeable
   dt$ss_si[which(dt$ss_si==0)] <- convert_ss(dt[which(dt$ss_si==0)]) # Pw / Ss interchangeable
   dt$lt_si[which(dt$lt_si==0)] <- convert_lt(dt[which(dt$lt_si==0)]) # Lt / Lw interchangeable
   dt$lw_si[which(dt$lw_si==0)] <- convert_lw(dt[which(dt$lw_si==0)]) # Lt / Lw interchangeable
@@ -667,8 +651,6 @@ dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)])
   dt$hw_si[which(dt$hw_si==0)] <- convert_hw(dt[which(dt$hw_si==0)]) # Hm /Hw interchangeable
   dt$pa_si[which(dt$pa_si==0)] <- convert_pa(dt[which(dt$pa_si==0)]) # Pa / Pl interchangeable
   dt$pl_si[which(dt$pl_si==0)] <- convert_pl(dt[which(dt$pl_si==0)]) # Pa / Pl interchangeable
-  
-  
   
   # Spruce   Se Sw Sx all interchange
   # set sw = sx
@@ -682,9 +664,6 @@ dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)])
   
   # set ss = sx when still missing
   dt$ss_si[which(dt$ss_si==0)] <- convert_ss_from_sx(dt[which(dt$ss_si==0)]) 
-  
-  # set ss = fd when still missing
-  dt$ss_si[which(dt$ss_si==0)] <- convert_ss_from_fd(dt[which(dt$ss_si==0)]) 
   
   
   # if si < 0 then return 0
