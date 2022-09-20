@@ -4,7 +4,7 @@
 # 1:1 conversion applied at end
 
 
-# converted to case_When 
+# Translated from C code used for SIndex
 
 # Aspen At
 convert_at_si <- function(x){
@@ -263,7 +263,8 @@ convert_sx_si <- function(x){
 }
 
 ###########################################################################
-# direct 1:1 assignments
+# one to one conversions
+# vetted by Gord Nigh
 
 
 # Spruce : Se & Sw
@@ -570,17 +571,17 @@ si_convert <- function(dt){
 # ***********************************************************************
   
 # ********************************************************************
-# Pine Pw   interchange for Pl
-# set Pw = Pl
+# Pine Pw   interchange for Fd
+# set Pw = Fd
 dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)]) 
 # ***********************************************************************  
   
 
 # set sw = se 
-#  dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
+  dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
   
 # set se = sw
-#  dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)]) 
+  dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)]) 
   
 
 # ***************************************************************************
