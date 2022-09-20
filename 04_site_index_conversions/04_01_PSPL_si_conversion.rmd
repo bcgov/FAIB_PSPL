@@ -119,7 +119,7 @@ avg_BEC_data <- rbind(avg_BEC_data,swb1,swb2,swb3)
 
 # write the data
 file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_bec.csv')
-fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+#fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
 tbl_name <- paste0('pspl_site_index_bec')
@@ -164,7 +164,7 @@ avg_op_data <- si_convert(avg_op_data)
 - update opening_id_id si using BEc avg
 
 
-```{r}
+```{r bec_op_update}
 
 
 
@@ -200,7 +200,7 @@ avg_op_data$si_src <- 'PSPL'
 
 # writeout the post conversion file
 file_name <-  paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_op.csv')
-fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+#fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
 
@@ -301,7 +301,7 @@ avg_fid_data[avg_op_data, on=c("opening_id"), yc_si := ifelse(yc_si==0, i.yc_si,
 - update feature_id si using BEC avg
 
 
-```{r update1,echo=TRUE,message=TRUE,warning=TRUE}
+```{r update_fid_using_bec,echo=TRUE,message=TRUE,warning=TRUE}
 
 
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), at_si := ifelse(at_si==0, i.at_si,at_si)]
@@ -327,8 +327,7 @@ avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sw_si := ifelse(sw_si
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
 
-# where BEC in fid differs from BEC in op data
-# need to use the alternative if available
+
 
 # add src
 
@@ -336,7 +335,7 @@ avg_fid_data$si_src <- 'PSPL'
 
 # write the data
 file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_fid.csv')
-fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+#fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
 tbl_name <- paste0('pspl_site_index_fid')

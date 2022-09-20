@@ -16,7 +16,7 @@ Create the following tables:
 -   pspl\_site\_index\_fid
 -   pspl\_site\_index\_op
 
-Start: Fri Sep 16 15:08:02 2022
+Start: Tue Sep 20 07:32:54 2022
 
     year <- '2022'
 
@@ -124,7 +124,7 @@ SWB mk, mks, un substitute BWBS dk
 
     # write the data
     file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_bec.csv')
-    fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+    #fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
     tbl_name <- paste0('pspl_site_index_bec')
@@ -194,7 +194,7 @@ SWB mk, mks, un substitute BWBS dk
 
     # writeout the post conversion file
     file_name <-  paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_op.csv')
-    fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+    #fwrite(avg_op_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
 
@@ -306,8 +306,7 @@ mean value data by feature
     avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
     avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
 
-    # where BEC in fid differs from BEC in op data
-    # need to use the alternative if available
+
 
     # add src
 
@@ -315,7 +314,7 @@ mean value data by feature
 
     # write the data
     file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_fid.csv')
-    fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
+    #fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
     tbl_name <- paste0('pspl_site_index_fid')
@@ -382,4 +381,4 @@ mean value data by feature
 
     ## [1] TRUE
 
-End: Fri Sep 16 15:10:28 2022
+End: Tue Sep 20 07:35:17 2022
