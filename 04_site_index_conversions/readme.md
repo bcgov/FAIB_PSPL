@@ -144,7 +144,7 @@ dr_si = fd_si \* 0.73
 
 Sharad Baral produced the following height comparison:
 
-![](Top_ht_FD_and_DR.png)  
+![](DR_FD_ht.png)  
 
 ___
 
