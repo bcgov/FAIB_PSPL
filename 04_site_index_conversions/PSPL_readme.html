@@ -999,6 +999,10 @@ ___</p>
 </tr>
 </tbody>
 </table>
+<p>These spruce conversions are complicated by the use of Sx in
+identifying hybrid spruce. A simple use Se if ESSF and otheriwse Sw for
+the interior doesn’t work as I sometimes get Se planted outside the
+ESSF. Then everything gets confused.</p>
 </div>
 <div id="discussion" class="section level3">
 <h3>Discussion</h3>
@@ -1008,23 +1012,46 @@ check for broad level impacts. In particular, the use of Sx as a species
 is causing problems in general. To tune this conversion, I should
 probably add the appropriate BEC zones for application. Then do a cross
 check to see how this affects performance of the conversions.</p>
+<p>I can easily add Coast Interior splits for these conversions. For
+Coast Interior definition I use:</p>
+<ul>
+<li>Coast = CDF, CWH, MH</li>
+<li>Interior = everything else</li>
+</ul>
 </div>
 </div>
 <div id="step-4-derive-bec-based-site-index" class="section level2">
 <h2>Step 4: Derive BEC based site index</h2>
-<div id="bec-substitution" class="section level3">
-<h3>BEC substitution</h3>
+<div id="bec-crosswalk-substitution" class="section level3">
+<h3>BEC CrossWalk substitution</h3>
 <p>The table of mean bec based site index values has all the above
 conversions applied to it. In addition, since SWB has no PEM/TEM nor a
 biophysical model there will be no site index values. Instead, the SWB
-will use a BEC substitution from BWBS dk.</p>
-<p>For all SWB mk.mks,un,vk substitute BWBS dk site index values</p>
+will use a BEC CrossWalk substitution from BWBS dk.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Bec with missing si</th>
+<th align="left">CrossWalk from</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">SWB mk,mks,un,vk</td>
+<td align="left">BWBS dk</td>
+</tr>
+</tbody>
+</table>
+<p>This was suggested via conversations with either Will Will MacKenzie
+or Deb MacKillop. (I will confirm)</p>
+<p>This gives us a table of BEC aggregates for each BEC zone and
+subzone.</p>
 </div>
 </div>
 <div id="step-5-derive-opening-level-site-index" class="section level2">
 <h2>Step 5: Derive Opening level site index</h2>
 <p>The table of mean opening based site index values has all the base
-site index conversion applied.</p>
+site index conversions applied.</p>
 <div id="use-bec-aggregates" class="section level3">
 <h3>Use BEC aggregates</h3>
 <p>In addition, the BEC aggregate site index values are used where there

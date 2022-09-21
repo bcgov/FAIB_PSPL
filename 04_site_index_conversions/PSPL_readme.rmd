@@ -196,22 +196,37 @@ Pa / Pl interchangeable
 | Ss | Pw |
 | Ss | Fd | 
 
+These spruce conversions are complicated by the use of Sx in identifying hybrid spruce.  A simple use Se if ESSF and otheriwse Sw for the interior doesn't work as I sometimes get Se planted outside the ESSF.  Then everything gets confused.  
+
 ### Discussion
 
-At this point, I am NOT using BEC breakdowns to subset areas of application of the one to one conversions.  I am bluntly forcing, to check for broad level impacts.  In particular, the use of Sx as a species is causing problems in general.  To tune this conversion, I should probably add the appropriate BEC zones for application.  Then do a cross check to see how this affects performance of the conversions. 
+At this point, I am NOT using BEC breakdowns to subset areas of application of the one to one conversions.  I am bluntly forcing, to check for broad level impacts.  In particular, the use of Sx as a species is causing problems in general.  To tune this conversion, I should probably add the appropriate BEC zones for application.  Then do a cross check to see how this affects performance of the conversions.  
+
+I can easily add Coast Interior splits for these conversions.  For Coast Interior definition I use:
+
+- Coast = CDF, CWH, MH
+- Interior = everything else
 
 ## Step 4: Derive BEC based site index
 
-### BEC substitution
+### BEC CrossWalk substitution
 
-The table of mean bec based site index values has all the above conversions applied to it.  In addition, since SWB has no PEM/TEM nor a biophysical model there will be no site index values.  Instead, the SWB will use a BEC substitution from BWBS dk.   
+The table of mean bec based site index values has all the above conversions applied to it.  In addition, since SWB has no PEM/TEM nor a biophysical model there will be no site index values.  Instead, the SWB will use a BEC CrossWalk substitution from BWBS dk.   
 
-For all SWB mk.mks,un,vk substitute BWBS dk site index values
 
+
+| Bec with missing si | CrossWalk from |
+|:-----|:----|
+| SWB mk,mks,un,vk | BWBS dk|
+
+
+This was suggested via conversations with either Will Will MacKenzie or Deb MacKillop.  (I will confirm)  
+
+This gives us a table of BEC aggregates for each BEC zone and subzone.
 
 ## Step 5: Derive Opening level site index
 
-The table of mean opening based site index values has all the base site index conversion applied.  
+The table of mean opening based site index values has all the base site index conversions applied.  
 
 ### Use BEC aggregates
 
