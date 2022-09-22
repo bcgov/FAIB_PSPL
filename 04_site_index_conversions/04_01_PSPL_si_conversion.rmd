@@ -8,7 +8,7 @@ output: md_document
 
 ## Version testing
 
-Using version 2.a
+Using version 2.c
 
 ## Feature_id processing 
 
@@ -47,8 +47,9 @@ con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 #load the R code for site index conversions
 
 #  Versions to test
-si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2a.r')
+#si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2a.r')
 #si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2b.r')
+si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2c.r')
 
 source(si_convert, local = knitr::knit_global())
 
