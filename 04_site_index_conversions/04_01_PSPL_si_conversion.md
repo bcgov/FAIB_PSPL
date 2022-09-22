@@ -2,7 +2,7 @@
 
 ## Version testing
 
-Using version 2.a
+Using version 2.c
 
 ## Feature\_id processing
 
@@ -16,7 +16,7 @@ Create the following tables:
 -   pspl\_site\_index\_fid
 -   pspl\_site\_index\_op
 
-Start: Tue Sep 20 10:52:18 2022
+Start: Thu Sep 22 13:05:46 2022
 
     year <- '2022'
 
@@ -63,8 +63,9 @@ Start: Tue Sep 20 10:52:18 2022
     #load the R code for site index conversions
 
     #  Versions to test
-    si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2a.r')
+    #si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2a.r')
     #si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2b.r')
+    si_convert <- paste0(getwd(),'/site_index_conversion_equations_v2c.r')
 
     source(si_convert, local = knitr::knit_global())
 
@@ -140,7 +141,6 @@ SWB mk, mks, un substitute BWBS dk
       dbRemoveTable(con,tbl_name)
     }
 
-    ## [1] TRUE
 
     # write to table
     dbWriteTable(con,tbl_name,avg_BEC_data,row.names = FALSE)
@@ -211,7 +211,7 @@ SWB mk, mks, un substitute BWBS dk
       dbRemoveTable(con,tbl_name)
     }
 
-    ## [1] TRUE
+
 
     dbWriteTable(con,tbl_name,avg_op_data,row.names = FALSE)
 
@@ -241,8 +241,7 @@ mean value data by feature
 
 ## update features using opening data
 
--   fill in missing si values
--   update the bec to the opening values
+-   fill in missing si values using openign data
 
 <!-- -->
 
@@ -329,8 +328,6 @@ mean value data by feature
       dbRemoveTable(con,tbl_name)
     }
 
-    ## [1] TRUE
-
     # write to table
 
     dbWriteTable(con,tbl_name,avg_fid_data,row.names = FALSE)
@@ -376,14 +373,20 @@ mean value data by feature
       #print(q1)
     }
 
-    ## character(0)
+    ## [1] "pg_dump: error: could not open output file \"C:/data/data_projects/AR2022/pg_dump/msyt_2022_pspl_site_index_bec.sql\": No such file or directory"
+    ## attr(,"status")
+    ## [1] 1
 
-    ## character(0)
+    ## [1] "pg_dump: error: could not open output file \"C:/data/data_projects/AR2022/pg_dump/msyt_2022_pspl_site_index_fid.sql\": No such file or directory"
+    ## attr(,"status")
+    ## [1] 1
 
-    ## character(0)
+    ## [1] "pg_dump: error: could not open output file \"C:/data/data_projects/AR2022/pg_dump/msyt_2022_pspl_site_index_op.sql\": No such file or directory"
+    ## attr(,"status")
+    ## [1] 1
 
     dbDisconnect(con)
 
     ## [1] TRUE
 
-End: Tue Sep 20 10:54:46 2022
+End: Thu Sep 22 13:09:21 2022
