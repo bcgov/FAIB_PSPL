@@ -299,7 +299,7 @@ convert_ss_from_sx <- function(x) {
   # if (inp$sw_si == 0)
   inp <- x
   si <- case_when(
-    inp$sx_si != 0 ~ inp$sx_si , 
+    inp$c_i =='C' &  inp$sx_si != 0 ~ inp$sx_si ,  # only convert for Coastal
     TRUE ~ inp$ss_si)
   
   return(si)
@@ -344,8 +344,8 @@ convert_ba <- function(x){
   # if (inp$ba_si == 0)
   inp <- x
   si <- case_when(
-    inp$bl_si != 0 ~ inp$bl_si , 
-    inp$bg_si != 0 ~ inp$bg_si , 
+    inp$bg_si != 0 ~ inp$bg_si ,   # use BG first as Ba = Bg
+    #inp$bl_si != 0 ~ inp$bl_si ,   # use BL , but it will be much lower
     TRUE ~ inp$ba_si)
   
   return(si)
@@ -612,7 +612,7 @@ dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)])
   
   dt$at_si[which(dt$at_si==0)] <- convert_at_si(dt[which(dt$at_si==0)])
   dt$ba_si[which(dt$ba_si==0)] <- convert_ba_si(dt[which(dt$ba_si==0)])
-  dt$bl_si[which(dt$bl_si==0)] <- convert_bl_si(dt[which(dt$bl_si==0)])
+  #dt$bl_si[which(dt$bl_si==0)] <- convert_bl_si(dt[which(dt$bl_si==0)])
   dt$cw_si[which(dt$cw_si==0)] <- convert_cw_si(dt[which(dt$cw_si==0)])
   
   

@@ -10,6 +10,9 @@ output: md_document
 
 Using version 2.c
 
+revised BA/BG  
+revised SS
+
 ## Feature_id processing 
 
 - run SI conversion on feature_id based si
@@ -63,7 +66,7 @@ source(si_convert, local = knitr::knit_global())
 
 This has to be run first as any missing values in fid or opening use this table
 
-```{r bec_si_convert}
+```{r bec_si_convert} 
 
 # read avg_BEC_data: table = psql_bec_site_index_pre_convert
 q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_pre_convert_bec')

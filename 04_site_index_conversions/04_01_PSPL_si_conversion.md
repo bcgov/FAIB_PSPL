@@ -4,6 +4,9 @@
 
 Using version 2.c
 
+revised BA/BG  
+revised SS
+
 ## Feature\_id processing
 
 -   run SI conversion on feature\_id based si
@@ -16,7 +19,7 @@ Create the following tables:
 -   pspl\_site\_index\_fid
 -   pspl\_site\_index\_op
 
-Start: Thu Sep 22 13:05:46 2022
+Start: Mon Sep 26 14:15:20 2022
 
     year <- '2022'
 
@@ -85,6 +88,14 @@ this table
 
 
     avg_BEC_data <- si_convert(avg_BEC_data)
+
+    ## Warning in dt$ss_si[which(dt$ss_si == 0)] <-
+    ## convert_ss_from_sx(dt[which(dt$se_si == : number of items to replace is not a
+    ## multiple of replacement length
+
+    ## Warning in dt$ss_si[which(dt$ss_si == 0)] <-
+    ## convert_ss_from_sx(dt[which(dt$se_si == : number of items to replace is not a
+    ## multiple of replacement length
 
 ## BEC substitution
 
@@ -160,6 +171,14 @@ SWB mk, mks, un substitute BWBS dk
     # run the conversion
 
     avg_op_data <- si_convert(avg_op_data)
+
+    ## Warning in dt$ss_si[which(dt$ss_si == 0)] <-
+    ## convert_ss_from_sx(dt[which(dt$se_si == : number of items to replace is not a
+    ## multiple of replacement length
+
+    ## Warning in dt$ss_si[which(dt$ss_si == 0)] <-
+    ## convert_ss_from_sx(dt[which(dt$se_si == : number of items to replace is not a
+    ## multiple of replacement length
 
 ## update converted using BEC converted
 
@@ -238,6 +257,14 @@ mean value data by feature
 
     # run the SI conversions
     avg_fid_data <- si_convert(avg_fid_data)
+
+    ## Warning in dt$ss_si[which(dt$ss_si == 0)] <-
+    ## convert_ss_from_sx(dt[which(dt$se_si == : number of items to replace is not a
+    ## multiple of replacement length
+
+    ## Warning in dt$ss_si[which(dt$ss_si == 0)] <-
+    ## convert_ss_from_sx(dt[which(dt$se_si == : number of items to replace is not a
+    ## multiple of replacement length
 
 ## update features using opening data
 
@@ -373,20 +400,14 @@ mean value data by feature
       #print(q1)
     }
 
-    ## [1] "pg_dump: error: could not open output file \"C:/data/data_projects/AR2022/pg_dump/msyt_2022_pspl_site_index_bec.sql\": No such file or directory"
-    ## attr(,"status")
-    ## [1] 1
+    ## character(0)
 
-    ## [1] "pg_dump: error: could not open output file \"C:/data/data_projects/AR2022/pg_dump/msyt_2022_pspl_site_index_fid.sql\": No such file or directory"
-    ## attr(,"status")
-    ## [1] 1
+    ## character(0)
 
-    ## [1] "pg_dump: error: could not open output file \"C:/data/data_projects/AR2022/pg_dump/msyt_2022_pspl_site_index_op.sql\": No such file or directory"
-    ## attr(,"status")
-    ## [1] 1
+    ## character(0)
 
     dbDisconnect(con)
 
     ## [1] TRUE
 
-End: Thu Sep 22 13:09:21 2022
+End: Mon Sep 26 14:17:29 2022
