@@ -398,7 +398,7 @@ convert_ss <- function(x){
 ##########################################
 
 # Lt /  Lw
-convert_lt <- function(x){
+convert_lt_from_lw <- function(x){
   ## lt/lw interchangeable
   #if (inp$lt_si == 0 & inp$lw_si != 0)  
   inp <- x
@@ -611,8 +611,7 @@ dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)])
 # update individual species site index using which to subset the table
   
   dt$at_si[which(dt$at_si==0)] <- convert_at_si(dt[which(dt$at_si==0)])
-  dt$ba_si[which(dt$ba_si==0)] <- convert_ba_si(dt[which(dt$ba_si==0)])
-  #dt$bl_si[which(dt$bl_si==0)] <- convert_bl_si(dt[which(dt$bl_si==0)])
+  
   dt$cw_si[which(dt$cw_si==0)] <- convert_cw_si(dt[which(dt$cw_si==0)])
   
   
@@ -653,6 +652,11 @@ dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)])
   # use fd_si
   #dt$py_si[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")] <- convert_py(dt[which(dt$py_si==0 & dt$bec=="SBS" & dt$subzone == "dk")])
   dt$py_si[which(dt$py_si==0) ] <- convert_py(dt[which(dt$py_si==0)])
+  
+  dt$ba_si[which(dt$ba_si==0)] <- convert_ba_si(dt[which(dt$ba_si==0)])
+  dt$bl_si[which(dt$bl_si==0)] <- convert_bl_si(dt[which(dt$bl_si==0)])
+  
+  dt$bg_si[which(dt$bg_si==0)] <- convert_bg(dt[which(dt$bg_si==0)])
 
 # **************************************************  
 # Final One to One conversions
@@ -676,7 +680,12 @@ dt$pw_si[which(dt$pw_si==0)] <- convert_pw_from_fd(dt[which(dt$pw_si==0)])
   dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)]) 
   
   # set ss = sx
-  dt$ss_si[which(dt$ss_si==0)] <- convert_ss_from_sx(dt[which(dt$se_si==0)]) 
+  dt$ss_si[which(dt$ss_si==0)] <- convert_ss_from_sx(dt[which(dt$se_si==0)])
+  
+  # set lt = lw
+  dt$lt_si[which(dt$lt_si==0)] <- convert_lt_from_lw(dt[which(dt$lt_si==0)]) 
+  
+  dt$pa_si[which(dt$pa_si==0)] <- convert_pa(dt[which(dt$pa_si==0)]) # Pa / Pl interchangeable
   
   
   # ***************************************************************************

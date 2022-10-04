@@ -19,7 +19,13 @@ Create the following tables:
 -   pspl\_site\_index\_fid
 -   pspl\_site\_index\_op
 
-Start: Mon Sep 26 14:15:20 2022
+Requires the following tables:
+
+-   pspl\_site\_index\_pre\_convert\_bec
+-   pspl\_site\_index\_pre\_convert\_fid
+-   pspl\_site\_index\_pre\_convert\_op
+
+Start: Tue Oct 4 14:51:05 2022
 
     year <- '2022'
 
@@ -106,10 +112,11 @@ mm.
 SWB mk, mks, un substitute BWBS dk
 
     ## Substitute for MHmmp
-    #avg_BEC_data <- avg_BEC_data %>% subset(paste0(bec_zone,bec_subzone) != 'MHmmp' )
-    #mm <- avg_BEC_data %>% subset(bec_zone == 'MH' & bec_subzone == 'mm')
-    #mm$bec_subzone <- 'mmp'
-    #avg_BEC_data <- rbind(avg_BEC_data,mm)
+    avg_BEC_data <- avg_BEC_data %>% subset(paste0(bec_zone,bec_subzone) != 'MHmmp' )
+    mm <- avg_BEC_data %>% subset(bec_zone == 'MH' & bec_subzone == 'mm')
+    mm$bec_subzone <- 'mmp'
+
+    avg_BEC_data <- rbind(avg_BEC_data,mm)
 
 
     ## substitute for SWB mk,mks,un
@@ -152,6 +159,7 @@ SWB mk, mks, un substitute BWBS dk
       dbRemoveTable(con,tbl_name)
     }
 
+    ## [1] TRUE
 
     # write to table
     dbWriteTable(con,tbl_name,avg_BEC_data,row.names = FALSE)
@@ -230,7 +238,7 @@ SWB mk, mks, un substitute BWBS dk
       dbRemoveTable(con,tbl_name)
     }
 
-
+    ## [1] TRUE
 
     dbWriteTable(con,tbl_name,avg_op_data,row.names = FALSE)
 
@@ -247,6 +255,13 @@ mean value data by feature
 
     q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_pre_convert_fid')
     avg_fid_data <- dbGetQuery(con,q1)
+
+    # added to set bec to bec11 based on vri feature
+    avg_fid_data <-  avg_fid_data %>% select(-bec_zone,-bec_subzone)
+
+    bec_fid <- dbGetQuery(con,'select feature_id,bec_zone,bec_subzone from bec11')
+
+    avg_fid_data <- left_join(avg_fid_data,bec_fid,by='feature_id')
      
 
     setDT(avg_fid_data)
@@ -283,6 +298,7 @@ mean value data by feature
 
     avg_fid_data <- left_join(avg_fid_data,fid_op)
 
+    ## Joining, by = "feature_id"
 
     # replace 
     avg_fid_data[avg_op_data, on=c("opening_id"), at_si := ifelse(at_si==0, i.at_si,at_si)]
@@ -355,6 +371,8 @@ mean value data by feature
       dbRemoveTable(con,tbl_name)
     }
 
+    ## [1] TRUE
+
     # write to table
 
     dbWriteTable(con,tbl_name,avg_fid_data,row.names = FALSE)
@@ -410,4 +428,4 @@ mean value data by feature
 
     ## [1] TRUE
 
-End: Mon Sep 26 14:17:29 2022
+End: Tue Oct 4 14:53:42 2022
