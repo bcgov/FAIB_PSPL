@@ -27,6 +27,13 @@ Create the following tables:
 - pspl_site_index_fid
 - pspl_site_index_op
 
+Requires the following tables:
+
+- pspl_site_index_pre_convert_bec
+- pspl_site_index_pre_convert_fid
+- pspl_site_index_pre_convert_op
+
+
 
 Start: `r format(Sys.time(),"%c")`
 
@@ -90,13 +97,14 @@ SWB mk, mks, un substitute BWBS dk
 
 
 
-```{r}
+```{r} 
 
 ## Substitute for MHmmp
-#avg_BEC_data <- avg_BEC_data %>% subset(paste0(bec_zone,bec_subzone) != 'MHmmp' )
-#mm <- avg_BEC_data %>% subset(bec_zone == 'MH' & bec_subzone == 'mm')
-#mm$bec_subzone <- 'mmp'
-#avg_BEC_data <- rbind(avg_BEC_data,mm)
+avg_BEC_data <- avg_BEC_data %>% subset(paste0(bec_zone,bec_subzone) != 'MHmmp' )
+mm <- avg_BEC_data %>% subset(bec_zone == 'MH' & bec_subzone == 'mm')
+mm$bec_subzone <- 'mmp'
+
+avg_BEC_data <- rbind(avg_BEC_data,mm)
 
 
 ## substitute for SWB mk,mks,un
@@ -244,6 +252,13 @@ mean value data by feature
 
 q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_pre_convert_fid')
 avg_fid_data <- dbGetQuery(con,q1)
+
+# added to set bec to bec11 based on vri feature
+avg_fid_data <-  avg_fid_data %>% select(-bec_zone,-bec_subzone)
+
+bec_fid <- dbGetQuery(con,'select feature_id,bec_zone,bec_subzone from bec11')
+
+avg_fid_data <- left_join(avg_fid_data,bec_fid,by='feature_id')
  
 
 setDT(avg_fid_data)
@@ -262,7 +277,7 @@ avg_fid_data <- si_convert(avg_fid_data)
 - fill in missing si values using openign data
 
 
-```{r update_fid_from_op,eval=FALSE}
+```{r update_fid_from_op,eval=TRUE}
 
 #x1 <- avg_fid_data %>% subset(feature_id %in% c(6171867, 6171929, 6171742, 6171657, 6171983, 6171632, 6171837, 6171666,6171824, 6171792))
 #x1 <- x1 %>% select(feature_id, ba_si,fd_si,pl_si,se_si, bec_zone, bec_subzone) %>% arrange(bec_zone,bec_subzone)
