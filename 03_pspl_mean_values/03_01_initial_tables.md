@@ -4,9 +4,9 @@ Requires: pspl\_intersected
 
 Creates:
 
--   pspl\_site\_index\_pre\_convert\_bec
--   pspl\_site\_index\_pre\_convert\_fid
--   pspl\_site\_index\_pre\_convert\_op
+-   pspl\_site\_index\_mean\_bec
+-   pspl\_site\_index\_mean\_fid
+-   pspl\_site\_index\_mean\_op
 
 These are the mean values tables (grouped)
 
@@ -204,9 +204,9 @@ BEC is assigned based on the largest feature\_id contribution
     drop table if exists pspl_fid_bec;
     drop table if exists pspl_op_bec;
 
-    drop table if exists pspl_site_index_pre_convert_fid;
-    drop table if exists pspl_site_index_pre_convert_bec;
-    drop table if exists pspl_site_index_pre_convert_op;
+    drop table if exists pspl_site_index_mean_fid;
+    drop table if exists pspl_site_index_mean_bec;
+    drop table if exists pspl_site_index_mean_op;
 
     drop table if exists pspl_fid_site_index;
     drop table if exists pspl_bec_site_index;
@@ -318,8 +318,8 @@ Cast final values to Numeric(5,1)
 
 
 
-    drop table if exists pspl_site_index_pre_convert_fid;
-    create table pspl_site_index_pre_convert_fid as
+    drop table if exists pspl_site_index_mean_fid;
+    create table pspl_site_index_mean_fid as
     select
         feature_id,
         cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -349,11 +349,11 @@ Cast final values to Numeric(5,1)
     order by 1
     ;
 
-    create index idx_pspl_fid_si on pspl_site_index_pre_convert_fid(feature_id);
+    create index idx_pspl_fid_si on pspl_site_index_mean_fid(feature_id);
 
 
 
-    select count (*) as n from pspl_site_index_pre_convert_fid;
+    select count (*) as n from pspl_site_index_mean_fid;
 
 ### generate BEC mean values
 
@@ -365,8 +365,8 @@ NOT the feature\_id assigned BEC based on largest number of points
 
 
 
-    drop table if exists pspl_site_index_pre_convert_bec;
-    create table pspl_site_index_pre_convert_bec as
+    drop table if exists pspl_site_index_mean_bec;
+    create table pspl_site_index_mean_bec as
     select
         bec_zone,bec_subzone,
         cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -396,7 +396,7 @@ NOT the feature\_id assigned BEC based on largest number of points
     order by 1
     ;
 
-    select count(*) as n from pspl_site_index_pre_convert_bec;
+    select count(*) as n from pspl_site_index_mean_bec;
 
 ### generate opening\_id averages
 
@@ -406,8 +406,8 @@ Take the original PSPL data by pid and generate the opening\_id based
 mean values.
 
 
-    drop table if exists pspl_site_index_pre_convert_op;
-    create table pspl_site_index_pre_convert_op as
+    drop table if exists pspl_site_index_mean_op;
+    create table pspl_site_index_mean_op as
     select
         opening_id,
         cast(avg(at_si) as numeric(5,1)) as at_si,
@@ -444,9 +444,9 @@ mean values.
 
 
     drop table if exists t1;
-    alter table pspl_site_index_pre_convert_op rename to t1;
+    alter table pspl_site_index_mean_op rename to t1;
 
-    create table pspl_site_index_pre_convert_op as
+    create table pspl_site_index_mean_op as
     select 
      a.opening_id,
      a.at_si,
@@ -480,9 +480,9 @@ mean values.
 
 
     drop table if exists t1;
-    alter table pspl_site_index_pre_convert_fid rename to t1;
+    alter table pspl_site_index_mean_fid rename to t1;
 
-    create table pspl_site_index_pre_convert_fid as
+    create table pspl_site_index_mean_fid as
     select 
      a.feature_id,
      a.at_si,
@@ -520,7 +520,7 @@ mean values.
 
 
 
-    select count(*) as n from pspl_site_index_pre_convert_fid;
+    select count(*) as n from pspl_site_index_mean_fid;
 
 ### Export to CSV
 
@@ -538,26 +538,26 @@ mean values.
 
 
 
-    # pspl_site_index_pre_convert_fid
-    # pspl_site_index_pre_convert_op
-    # pspl_site_index_pre_convert_bec
+    # pspl_site_index_mean_fid
+    # pspl_site_index_mean_op
+    # pspl_site_index_mean_bec
 
     base <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data')
 
-    f1 <- paste0(base,'/pspl_site_index_pre_convert_fid.csv')
-    q1 <- paste0("copy pspl_site_index_pre_convert_fid to \'",f1, "\' csv header;")
+    f1 <- paste0(base,'/pspl_site_index_mean_fid.csv')
+    q1 <- paste0("copy pspl_site_index_mean_fid to \'",f1, "\' csv header;")
     dbExecute(con,q1)
 
     ## [1] 5321242
 
-    f2 <- paste0(base,'/pspl_site_index_pre_convert_op.csv')
-    q2 <- paste0("copy pspl_site_index_pre_convert_op to \'",f2, "\' csv header;")
+    f2 <- paste0(base,'/pspl_site_index_mean_op.csv')
+    q2 <- paste0("copy pspl_site_index_mean_op to \'",f2, "\' csv header;")
     dbExecute(con,q2)
 
     ## [1] 256600
 
-    f3 <- paste0(base,'/pspl_site_index_pre_convert_bec.csv')
-    q3 <- paste0("copy pspl_site_index_pre_convert_bec to \'",f3, "\' csv header;")
+    f3 <- paste0(base,'/pspl_site_index_mean_bec.csv')
+    q3 <- paste0("copy pspl_site_index_mean_bec to \'",f3, "\' csv header;")
     dbExecute(con,q3)
 
     ## [1] 138
@@ -566,15 +566,15 @@ mean values.
 
     out_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
 
-    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_bec'),out_folder)
+    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_bec'),out_folder)
 
     ## character(0)
 
-    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_fid'),out_folder)
+    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_fid'),out_folder)
 
     ## character(0)
 
-    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_pre_convert_op'),out_folder)
+    pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_op'),out_folder)
 
     ## character(0)
 

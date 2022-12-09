@@ -1,0 +1,115 @@
+---
+title: "BEC Version Comparison"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+
+## Compare BEC 11 to BEC zones found in PSPL
+
+
+```{r}
+
+library(RPostgreSQL)
+library(tidyverse)
+library(kableExtra)
+
+library(magick)
+library(webshot)
+
+
+
+year <- 2022
+
+# connect using schema
+
+# set up for schema and user
+schema <- paste0('msyt_',year)
+opt <- paste0("-c search_path=",schema)
+user_name <- 'results'
+database <- 'msyt'
+#con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
+
+image_file <- paste0(getwd(),'/table.png')
+
+kablep <- function (x) {
+  kable(x) %>%
+  kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left') %>%
+  as_image(file = image_file)
+}
+
+kablep_html <- function (x) {
+  kable(x) %>%
+  kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+}
+
+SQLQuery <- function(query){
+  #con <- dbConnect('PostgreSQL',dbname='msyt')
+  con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
+  data <- dbGetQuery(con,query)
+  dbDisconnect(con)
+  return(data)
+  
+}
+
+
+
+# note that using dbi type connectionns, the schema has been set to msyt_2021
+
+# the psql command is:
+#   psql -d "dbname=msyt options=--search_path=msyt_2021" -f 101_test_schema.sql
+
+# and with user
+# psql -d "dbname=msyt options=--search_path=msyt_2021" -U results -f 101_test_schema.sql
+
+# the call to the psql interactive needs the schema assigned
+  # define the schema via options
+  db <- paste0('dbname=',database,' options=--search_path=',schema)
+  # force the quoted string
+  db <- shQuote(db)
+  
+# the systems call will then be:
+# system2("psql",args=c('-d',db,'-U',userName,'-h',hostName,'-f','101_test_schema.sql'),stderr=TRUE)
+  
+# set this up as a function
+
+run_sql <- function(fn){
+  
+  system2("psql",args=c('-d',db,'-U',userName,'-h',hostName,'-f',fn),stderr=TRUE)
+  
+}
+
+```
+
+```{r}
+
+pspl_bec <- SQLQuery("select bec_zone||coalesce(bec_subzone,'') as pspl_bec from pspl_site_index_mean_fid group by 1 order by 1")
+bec11 <- SQLQuery("select bec_zone||bec_subzone as bec11 from bec11 where bec_zone != 'NULL' group by 1 order by 1")
+bec12 <- SQLQuery("select bec_zone||bec_subzone as bec12 from bec12 where bec_zone != 'NULL' group by 1 order by 1")
+
+bec <- SQLQuery("select bec_zone||coalesce(bec_subzone,'') as bec from pspl_site_index_mean_fid group by 1
+                union select bec_zone||bec_subzone as bec from bec11 where bec_zone != 'NULL'  group by 1
+                union select bec_zone||bec_subzone as bec from bec12 where bec_zone != 'NULL' group by 1")
+
+pspl_bec$bec = pspl_bec$pspl_bec
+bec11$bec <- bec11$bec11
+bec12$bec <- bec12$bec12
+
+becj <- left_join(bec,pspl_bec)
+becj <- left_join(becj,bec11)
+becj <- left_join(becj,bec12)
+
+becsub <- becj %>% subset((bec == pspl_bec & bec == bec11 & bec == bec12))
+becf <- becj %>% subset(!bec %in% becsub$bec) %>% arrange(bec)
+
+kablep(becf)
+
+```
+
+Table 1.  Comparison of BEC from different sources.  
+
+This table appears to show that the PSPL has bec values from both BEC 11 and BEC 12.  
+However, it also shows that there are BEC values that don't appear in either BEC 11 or BEC 12. 
+
+

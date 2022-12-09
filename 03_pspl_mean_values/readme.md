@@ -63,15 +63,15 @@ group by feature_id
 
 Create the pre-convert tables:  
 
-- pspl_op_site_index_pre_convert
-- pspl_fid_site_index_pre_convert
-- pspl_bec_site_index_pre_convert
+- pspl_site_index_mean_op
+- pspl_site_index_mean_fid
+- pspl_site_index_mean_bec
 
 ## Export these to csv
 
-- pspl_fid_site_index_pre_convert.csv
-- pspl_op_site_index_pre_convert.csv
-- pspl_bec_site_index_pre_convert.csv
+- pspl_site_index_mean_op.csv
+- pspl_site_index_mean_fid.csv
+- pspl_site_index_mean_bec.csv
 
 NOTE:  CSVs created for transitional testing against older site index conversion C program.  
 Can probably re-write this to just have R read the PostgreSQl tables.
