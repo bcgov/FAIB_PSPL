@@ -148,6 +148,17 @@ Sharad Baral produced the following height comparison:
 
 ___
 
+## First pass si conversions yield the following missing species:
+
+| missing   |    n |
+|:-----|:-----|
+|   none        | 188760 |
+|   Pl    |   659 |
+| Bg  |  198 |
+| Cw   | 138 |
+
+___
+
 ### Interior Cwi
 
 For missing values, substitute: Sw

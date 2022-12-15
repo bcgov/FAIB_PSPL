@@ -6,7 +6,7 @@ output: html_document
 
 # PSPL 2022   
 
-2022.dec.13
+2022.dec.15
 
 
 
@@ -102,11 +102,10 @@ assign_missing <- function(d){
 ```
 
 
-## Opening id 
 
+# Feature id
 
-
-```{r  si_convert_op,echo=TRUE,message=TRUE,warning=TRUE}
+```{r  si_convert_fid,echo=TRUE,message=TRUE,warning=TRUE}
 
 
 # read avg_op_data: table = pspl_site_index_mean_op
@@ -117,48 +116,11 @@ si_data <- dbGetQuery(con,q1)
 
 
 
-species <- dbGetQuery(con,"select opening_id,array_to_string(species,',') as species from species_list_op")
-species <- unique(species)
+species <- dbGetQuery(con,"select opening_id,array_to_string(species,',') as species ,b.bec_zone,b.bec_subzone from species_list_op a left join veg_bec_op b using (opening_id)")
+
+#species <- unique(species)
 
 si_data <- left_join(species,si_data,by='opening_id')
-
-#avg_data <- avg_data %>% subset(!is.na(species))
-
-
-si_data <- assign_missing(si_data)
-
-
-
-miss_si <- si_data %>% subset(missing != '')
-
-
-a <- count(miss_si,missing)
-b <- count(miss_si,bec_zone)
-
-
-
-
-
-```
-
-
-# Feature id
-
-```{r  si_convert_fid,echo=TRUE,message=TRUE,warning=TRUE}
-
-
-# read avg_op_data: table = pspl_site_index_mean_op
-# this is the mean value feature_id data
-
-q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_mean_fid')
-si_data <- dbGetQuery(con,q1)
-
-
-
-species <- dbGetQuery(con,"select feature_id,array_to_string(species,',') as species from species_list_current_fid")
-species <- unique(species)
-
-si_data <- left_join(species,si_data,by='feature_id')
 
 
 # tag the missing species

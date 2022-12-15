@@ -1,6 +1,6 @@
 ---
 title: "PSPL Site Index Conversion"
-output: md_document
+output: html_document
 ---
 
 
@@ -10,7 +10,7 @@ output: md_document
 
 2022.dec.13
 
-Version 3
+Version 3.0
 
 
 ## Opening_id processing 
@@ -32,6 +32,7 @@ library(RPostgreSQL)
 library(tidyverse)
 library(data.table)
 library(ggplot2)
+library(kableExtra)
 
 # set up for schema and user
 schema <- 'msyt_2022'
@@ -47,6 +48,11 @@ con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 si_convert <- paste0(getwd(),'/site_index_conversion_equations_v3.r')
 
 source(si_convert, local = knitr::knit_global())
+
+kablep <- function (x) {
+  kable(x) %>%
+  kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+}
 
 
 ```
@@ -110,6 +116,24 @@ call_si_conversion <- function(inp) {
   
 	# cast to table
   dt <- setDT(inp)
+  
+  # ************************************
+  # Fix Sx: Sw, Se and Ss from Sx based on BEC
+  
+  inp$sw_si <- case_when(
+    !inp$bec_zone %in% c('CDF','CWH','MH') & inp$bec_zone != 'ESSF' & inp$sx_si != 0 ~ inp$sx_si,
+    TRUE ~ inp$sw_si
+  )
+
+  inp$se_si <- case_when(
+    inp$bec_zone == 'ESSF' & inp$sx_si != 0 ~ inp$sx_si,
+    TRUE ~ inp$se_si
+  )
+
+  inp$ss_si <- case_when(
+    inp$bec_zone %in% c('CDF','CWH','MH') & inp$sx_si != 0 ~ inp$sx_si,
+    TRUE ~ inp$ss_si
+  )
 
 	
 	#### Spruce
@@ -259,7 +283,7 @@ This has to be run first as any missing values in fid or opening use this table
 ```{r bec_si_convert,eval=TRUE} 
 
 # read avg_BEC_data: table = psql_bec_site_index_pre_convert
-q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_pre_convert_bec')
+q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_mean_bec')
 avg_BEC_data <- dbGetQuery(con,q1)
 
 # get species that are assigned from RESULTS
@@ -269,6 +293,8 @@ species <- dbGetQuery(con,"select bec_zone,bec_subzone,array_to_string(species,'
 # join species to BEC
 avg_BEC_data <- left_join(avg_BEC_data,species)
 
+# there will be Zones where there are NO RESULTS data.  
+# species will be null
 avg_BEC_data <- avg_BEC_data %>% subset(!is.na(species))
 
 
@@ -284,7 +310,7 @@ SWB mk, mks, un substitute BWBS dk
 
 
 
-```{r bec_sub, eval=TRUE} 
+```{r bec_sub, eval=FALSE} 
 
 ## Substitute for MHmmp
 mmp <- avg_BEC_data %>% subset(bec_zone == 'MH' & bec_subzone == 'mmp')
@@ -410,32 +436,96 @@ si_data <- dbGetQuery(con,q1)
 
 
 
-species <- dbGetQuery(con,"select opening_id,array_to_string(species,',') as species from species_list_op")
-species <- unique(species)
+species <- dbGetQuery(con,"select opening_id,array_to_string(species,',') as species ,b.bec_zone,b.bec_subzone from species_list_op a left join veg_bec_op b using (opening_id)")
+
+
+#species <- unique(species)
 
 si_data <- left_join(species,si_data,by='opening_id')
 
 #avg_data <- avg_data %>% subset(!is.na(species))
 
+# required to assing the missing
+# si conversion only applis where there are missing values
+si_data <- assign_missing(si_data)
+
+#t1 <- si_data %>% select(opening_id,species,missing)
+
+
+
+
+#avg_data <- avg_data %>% subset(missing != '')  # %>% subset(bec_zone != 'IMA')
+
+si_data <- call_si_conversion(si_data)
 
 si_data <- assign_missing(si_data)
 
-t1 <- si_data %>% select(opening_id,species,missing)
+c1 <- count(si_data,missing) %>% arrange(desc(n))
+c1 <- head(c1,4)
+
+pine <- si_data[si_data$missing==':Pl',]
+
+pine_missing <- count(pine,bec_zone) %>% arrange(desc(n))
+
+balsam <- si_data[si_data$missing==':Bg',]
+balsam_missing <- count(balsam,bec_zone) %>% arrange(desc(n))
+balsam_missing <- head(balsam_missing,3)
+
+cedar <- si_data[si_data$missing==':Cw',]
+cedar_missing <- count(cedar,bec_zone) %>% arrange(desc(n))
+cedar_missing <- head(cedar_missing,3)
+
+
+kablep(c1)
+kablep(pine)
+kablep(balsam)
+kablep(cedar)
+
+
+
+```
+
+
+use bec substitutions
+
+```{r}
+
+setDT(si_data)
+
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), at_si := ifelse(at_si==0, i.at_si,at_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ba_si := ifelse(ba_si==0, i.ba_si,ba_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), bg_si := ifelse(bg_si==0, i.bg_si,bg_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), bl_si := ifelse(bl_si==0, i.bl_si,bl_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), cw_si := ifelse(cw_si==0, i.cw_si,cw_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), dr_si := ifelse(dr_si==0, i.dr_si,dr_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ep_si := ifelse(ep_si==0, i.ep_si,ep_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), fd_si := ifelse(fd_si==0, i.fd_si,fd_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), hm_si := ifelse(hm_si==0, i.hm_si,hm_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), hw_si := ifelse(hw_si==0, i.hw_si,hw_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), lt_si := ifelse(lt_si==0, i.lt_si,lt_si)]  
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), lw_si := ifelse(lw_si==0, i.lw_si,lw_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pa_si := ifelse(pa_si==0, i.pa_si,pa_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pl_si := ifelse(pl_si==0, i.pl_si,pl_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), pw_si := ifelse(pw_si==0, i.pw_si,pw_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), py_si := ifelse(py_si==0, i.py_si,py_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sb_si := ifelse(sb_si==0, i.sb_si,sb_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), se_si := ifelse(se_si==0, i.se_si,se_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), ss_si := ifelse(ss_si==0, i.ss_si,ss_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sw_si := ifelse(sw_si==0, i.sw_si,sw_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
+si_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
 
 
 
 
-avg_data <- avg_data %>% subset(missing != '')  # %>% subset(bec_zone != 'IMA')
+si_data <- assign_missing(si_data)
 
-avg_data <- call_si_conversion(avg_data)
+c1 <- count(si_data,missing) %>% arrange(desc(n))
 
-avg_data <- assign_missing(avg_data)
-avg_data <- avg_data %>% subset(missing != '') 
 
-# do bec updates
-# blunt fill
-setDT(avg_fid_data)
-setDT(avg_BEC_data)
+```
+
+```{r eval=FALSE}
 
   
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), at_si := ifelse(at_si==0, i.at_si,at_si)]
@@ -461,18 +551,6 @@ avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sw_si := ifelse(sw_si
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
 avg_fid_data[avg_BEC_data, on=c("bec_zone","bec_subzone"), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]
 
-
-
-
-avg_fid_data <- assign_missing(avg_fid_data) 
-avg_fid_data <- avg_fid_data %>% subset(missing != '')
-
-
-a <- count(avg_fid_data,missing)
-b <- count(avg_fid_data,bec_zone)
-
-a
-b
 
 
 

@@ -11,7 +11,7 @@
 
 
 
-<title>PSPL Site Index Conversion: Missing SI Assessment</title>
+<title>PSPL Site Index Conversion</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -578,16 +578,25 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">PSPL Site Index Conversion: Missing SI
-Assessment</h1>
+<h1 class="title toc-ignore">PSPL Site Index Conversion</h1>
 
 </div>
 
 
-<div id="pspl-2022" class="section level1">
-<h1>PSPL 2022</h1>
-<p>2022.dec.15</p>
-<p>Start: Thu Dec 15 08:21:50 2022</p>
+<div id="pspl-method-2022" class="section level1">
+<h1>PSPL Method 2022</h1>
+<div id="version-testing" class="section level2">
+<h2>Version testing</h2>
+<p>2022.dec.13</p>
+<p>Version 3.0</p>
+</div>
+<div id="opening_id-processing" class="section level2">
+<h2>Opening_id processing</h2>
+<p>Requires the following tables:</p>
+<ul>
+<li>pspl_site_index_mean_op</li>
+</ul>
+<p>Start: Thu Dec 15 09:26:29 2022</p>
 <pre class="r"><code>year &lt;- &#39;2022&#39;
 
 library(RPostgreSQL)</code></pre>
@@ -625,16 +634,12 @@ database &lt;- &#39;msyt&#39;
 con &lt;- dbConnect(&#39;PostgreSQL&#39;,dbname=&#39;msyt&#39;,user=user_name,options=opt)
 
 
-
-
-
 #load the R code for site index conversions
 
 
 si_convert &lt;- paste0(getwd(),&#39;/site_index_conversion_equations_v3.r&#39;)
 
 source(si_convert, local = knitr::knit_global())
-
 
 kablep &lt;- function (x) {
   kable(x) %&gt;%
@@ -683,9 +688,273 @@ assign_missing &lt;- function(d){
   return(d)
   
 }</code></pre>
+<pre class="r"><code>call_si_conversion &lt;- function(inp) {
+  
+    # cast to table
+  dt &lt;- setDT(inp)
+  
+  # ************************************
+  # Fix Sx: Sw, Se and Ss from Sx based on BEC
+  
+  inp$sw_si &lt;- case_when(
+    !inp$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) &amp; inp$bec_zone != &#39;ESSF&#39; &amp; inp$sx_si != 0 ~ inp$sx_si,
+    TRUE ~ inp$sw_si
+  )
+
+  inp$se_si &lt;- case_when(
+    inp$bec_zone == &#39;ESSF&#39; &amp; inp$sx_si != 0 ~ inp$sx_si,
+    TRUE ~ inp$se_si
+  )
+
+  inp$ss_si &lt;- case_when(
+    inp$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) &amp; inp$sx_si != 0 ~ inp$sx_si,
+    TRUE ~ inp$ss_si
+  )
+
+    
+    #### Spruce
+    # ********************************************************************
+    # Spruce   Se Sw Sx all interchange
+    # set sw = sx
+    dt$sw_si[which(dt$sw_si==0)] &lt;- convert_sw_from_sx(dt[which(dt$sw_si==0)]) 
+    
+    # set sw = se 
+    dt$sw_si[which(dt$sw_si==0)] &lt;- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
+    
+    # set se = sw
+    dt$se_si[which(dt$se_si==0)] &lt;- convert_se_from_sw(dt[which(dt$se_si==0)])
+    
+    # set ss = sx
+    dt$ss_si[which(dt$ss_si==0)] &lt;- convert_ss_from_sx(dt[which(dt$ss_si==0)]) 
+    
+    #### Spruce
+    # **************************************************************************
+    
+    
+    # sp &lt;- At &#39;Ba&#39;,&#39;Bg&#39;,&#39;Bl&#39;,&#39;Cw&#39;,&#39;Dr&#39;,&#39;Ep&#39;,&#39;Fd&#39;,&#39;Hm&#39;,&#39;Hw&#39;,&#39;Lt&#39;,&#39;Lw&#39;,&#39;Pa&#39;,&#39;Pl&#39;,&#39;Pw&#39;,&#39;Py&#39;,&#39;Sb&#39;,&#39;Se&#39;,&#39;Ss&#39;,&#39;Sw&#39;,&#39;Yc&#39;)
+    
+    # At  
+    dt$at_si[which(dt$at_si==0 &amp; grepl(&#39;At&#39;,dt$missing))] &lt;- convert_at_si(dt[which(dt$at_si==0 &amp; grepl(&#39;At&#39;,dt$missing))])
+    
+    # Ba 
+    dt$ba_si[which(dt$ba_si==0 &amp; grepl(&#39;Ba&#39;,dt$missing))] &lt;- convert_ba_si(dt[which(dt$ba_si==0 &amp; grepl(&#39;Ba&#39;,dt$missing))])
+    
+    
+    # Bl
+    dt$bl_si[which(dt$bl_si==0 &amp; grepl(&#39;Bl&#39;,dt$missing))] &lt;- convert_bl_si(dt[which(dt$bl_si==0 &amp; grepl(&#39;Bl&#39;,dt$missing))])
+    
+    # Cwc
+    dt$cw_si[which(dt$cw_si==0 &amp; grepl(&#39;Cw&#39;,dt$missing))] &lt;- convert_cw_si(dt[which(dt$cw_si==0 &amp; grepl(&#39;Cw&#39;,dt$missing))])
+    
+    # Fdc
+    dt$fd_si[which(dt$fd_si==0 &amp; grepl(&#39;Fd&#39;,dt$missing) &amp; dt$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) )] &lt;- convert_fdc_si(dt[which(dt$fd_si==0 &amp; grepl(&#39;Fd&#39;,dt$missing) &amp; dt$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) )])
+    
+    # Fdi
+    dt$fd_si[which(dt$fd_si==0 &amp; grepl(&#39;Fd&#39;,dt$missing) &amp; !dt$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) )] &lt;- convert_fdi_si(dt[which(dt$fd_si==0 &amp; grepl(&#39;Fd&#39;,dt$missing) &amp; !dt$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) )])
+    
+    # hw coast
+    dt$hw_si[which(dt$hw_si==0 &amp; grepl(&#39;Hw&#39;,dt$missing) &amp; dt$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) )] &lt;- convert_hwc_si(dt[which(dt$hw_si==0 &amp; grepl(&#39;Hw&#39;,dt$missing) &amp; dt$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) )])
+    
+    # hw interior
+    dt$hw_si[which(dt$hw_si==0 &amp; grepl(&#39;Hw&#39;,dt$missing) &amp; !dt$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) )] &lt;- convert_hwi_si(dt[which(dt$hw_si==0 &amp; grepl(&#39;Hw&#39;,dt$missing) &amp; !dt$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) )])
+    
+    
+    # Lw
+    dt$lw_si[which(dt$lw_si==0)] &lt;- convert_lw_si(dt[which(dt$lw_si==0)])
+    
+    # Pl
+    dt$pl_si[which(dt$pl_si==0)] &lt;- convert_pl_si(dt[which(dt$pl_si==0)])
+    
+    # Sb
+    dt$sb_si[which(dt$sb_si==0)] &lt;- convert_sb_si(dt[which(dt$sb_si==0)])
+    
+    # Ss (coastal)
+    dt$ss_si[which(dt$ss_si==0)] &lt;- convert_ss_si(dt[which(dt$ss_si==0)])
+    
+    # Sw
+    dt$sw_si[which(dt$sw_si==0)] &lt;- convert_sw_si(dt[which(dt$sw_si==0)])
+    
+    # Pw
+    dt$pw_si[which(dt$pw_si==0 &amp; grepl(&#39;Pw&#39;,dt$missing))] &lt;- convert_pw(dt[which(dt$pw_si==0 &amp; grepl(&#39;Pw&#39;,dt$missing))])
+    
+    # Pa
+    dt$pa_si[which(dt$pa_si==0 &amp; grepl(&#39;Pa&#39;,dt$missing))] &lt;- convert_pa(dt[which(dt$pa_si==0 &amp; grepl(&#39;Pa&#39;,dt$missing))])
+    
+    # Py
+    dt$py_si[which(dt$py_si==0 &amp; grepl(&#39;Py&#39;,dt$missing))] &lt;- convert_py(dt[which(dt$py_si==0 &amp; grepl(&#39;Py&#39;,dt$missing))]) 
+    
+    
+    # Dr Coast/Interior
+    dt$dr_si[which(dt$dr_si==0 &amp; grepl(&#39;Dr&#39;,dt$missing))] &lt;- convert_dr(dt[which(dt$dr_si==0 &amp; grepl(&#39;Dr&#39;,dt$missing))])  
+    
+    # 1-1
+    
+    # Bg 1-1
+    dt$bg_si[which(dt$bg_si==0 &amp; grepl(&#39;Bg&#39;,dt$missing))] &lt;- convert_bg(dt[which(dt$bg_si==0 &amp; grepl(&#39;Bg&#39;,dt$missing))])
+    dt$bl_si[which(dt$bl_si==0 &amp; grepl(&#39;Bl&#39;,dt$missing))] &lt;- convert_bl(dt[which(dt$bl_si==0 &amp; grepl(&#39;Bl&#39;,dt$missing))])
+    dt$ba_si[which(dt$ba_si==0 &amp; grepl(&#39;Ba&#39;,dt$missing))] &lt;- convert_ba(dt[which(dt$ba_si==0 &amp; grepl(&#39;Ba&#39;,dt$missing))])
+    
+    # Lw Lt 
+    dt$lt_si[which(dt$lt_si==0 &amp; grepl(&#39;Lt&#39;,dt$missing))] &lt;- convert_lt_from_lw(dt[which(dt$lt_si==0 &amp; grepl(&#39;Lt&#39;,dt$missing))])
+    
+    # ********************************************************************
+    # Spruce   Se Sw Sx all interchange
+    # set sw = sx
+    
+    dt$sw_si[which(dt$sw_si==0)] &lt;- convert_sw_from_sx(dt[which(dt$sw_si==0)]) 
+    
+    # set sw = se 
+    dt$sw_si[which(dt$sw_si==0)] &lt;- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
+    
+    # set se = sw
+    dt$se_si[which(dt$se_si==0)] &lt;- convert_se_from_sw(dt[which(dt$se_si==0)])
+    
+    # set ss = sx
+    dt$ss_si[which(dt$ss_si==0)] &lt;- convert_ss_from_sx(dt[which(dt$ss_si==0)]) 
+    
+    # can not do this because opening id can be negative
+  #dt[dt &lt;0 ] &lt;- 0.0
+  
+  dt$at_si[dt$at_si &lt; 0 ] &lt;- 0.0
+  dt$ba_si[dt$ba_si &lt; 0 ] &lt;- 0.0
+  dt$bg_si[dt$bg_si &lt; 0 ] &lt;- 0.0
+  dt$bl_si[dt$bl_si &lt; 0 ] &lt;- 0.0
+  dt$cw_si[dt$cw_si &lt; 0 ] &lt;- 0.0
+  dt$dr_si[dt$dr_si &lt; 0 ] &lt;- 0.0
+  dt$ep_si[dt$ep_si &lt; 0 ] &lt;- 0.0
+  dt$fd_si[dt$fd_si &lt; 0 ] &lt;- 0.0
+  dt$hm_si[dt$hm_si &lt; 0 ] &lt;- 0.0
+  dt$hw_si[dt$hw_si &lt; 0 ] &lt;- 0.0
+  dt$lt_si[dt$lt_si &lt; 0 ] &lt;- 0.0
+  dt$lw_si[dt$lw_si &lt; 0 ] &lt;- 0.0
+  dt$pa_si[dt$pa_si &lt; 0 ] &lt;- 0.0
+  dt$pl_si[dt$pl_si &lt; 0 ] &lt;- 0.0
+  dt$pw_si[dt$pw_si &lt; 0 ] &lt;- 0.0
+  dt$py_si[dt$py_si &lt; 0 ] &lt;- 0.0
+  dt$sb_si[dt$sb_si &lt; 0 ] &lt;- 0.0
+  dt$se_si[dt$se_si &lt; 0 ] &lt;- 0.0
+  dt$ss_si[dt$ss_si &lt; 0 ] &lt;- 0.0
+  dt$sw_si[dt$sw_si &lt; 0 ] &lt;- 0.0
+  dt$sx_si[dt$sx_si &lt; 0 ] &lt;- 0.0
+  dt$yc_si[dt$yc_si &lt; 0 ] &lt;- 0.0
+  
+
+  
+  #convert to numeric 1
+  dt &lt;- dt %&gt;% mutate_if(is.numeric, round, digits=1)
+    
+    return(dt)
+}</code></pre>
+<div id="run-si-conversion" class="section level3">
+<h3>run SI conversion</h3>
+<ul>
+<li>run SI conversion on BEC based si</li>
+</ul>
+<p>This has to be run first as any missing values in fid or opening use
+this table</p>
+<pre class="r"><code># read avg_BEC_data: table = psql_bec_site_index_pre_convert
+q1 &lt;- paste0(&#39;select *  from msyt_&#39;,year,&#39;.pspl_site_index_mean_bec&#39;)
+avg_BEC_data &lt;- dbGetQuery(con,q1)
+
+# get species that are assigned from RESULTS
+# can be a combination of Planted and Natural
+species &lt;- dbGetQuery(con,&quot;select bec_zone,bec_subzone,array_to_string(species,&#39;,&#39;) as species from species_list_bec_agg&quot;)
+
+# join species to BEC
+avg_BEC_data &lt;- left_join(avg_BEC_data,species)</code></pre>
+<pre><code>## Joining, by = c(&quot;bec_zone&quot;, &quot;bec_subzone&quot;)</code></pre>
+<pre class="r"><code># there will be Zones where there are NO RESULTS data.  
+# species will be null
+avg_BEC_data &lt;- avg_BEC_data %&gt;% subset(!is.na(species))</code></pre>
 </div>
-<div id="feature-id" class="section level1">
-<h1>Feature id</h1>
+</div>
+<div id="bec-substitution" class="section level2">
+<h2>BEC substitution</h2>
+<p>mmp is missing all site index values.<br />
+Assume that this is actually mm (since it is one of) and may be next to
+mm.</p>
+<p>SWB mk, mks, un substitute BWBS dk</p>
+<pre class="r"><code>## Substitute for MHmmp
+mmp &lt;- avg_BEC_data %&gt;% subset(bec_zone == &#39;MH&#39; &amp; bec_subzone == &#39;mmp&#39;)
+avg_BEC_data &lt;- avg_BEC_data %&gt;% subset(paste0(bec_zone,bec_subzone) != &#39;MHmmp&#39; )
+mm &lt;- avg_BEC_data %&gt;% subset(bec_zone == &#39;MH&#39; &amp; bec_subzone == &#39;mm&#39;)
+mm$bec_subzone &lt;- &#39;mmp&#39;
+mm$species &lt;- mmp$species
+
+avg_BEC_data &lt;- rbind(avg_BEC_data,mm)
+
+
+## substitute for SWB mk,mks,un
+avg_BEC_data &lt;- avg_BEC_data %&gt;% subset(bec_zone != &#39;SWB&#39;)
+swb1 &lt;- avg_BEC_data %&gt;% subset(bec_zone == &#39;BWBS&#39; &amp; bec_subzone == &#39;dk&#39;)
+
+swb1$bec_zone &lt;- &#39;SWB&#39;
+swb1$bec_subzone &lt;- &#39;mk&#39;
+
+swb2 &lt;- swb1
+swb3 &lt;- swb1
+swb4 &lt;- swb1
+
+swb2$bec_zone &lt;- &#39;SWB&#39;
+swb2$bec_subzone &lt;- &#39;mks&#39;
+
+swb3$bec_zone &lt;- &#39;SWB&#39;
+swb3$bec_subzone &lt;- &#39;un&#39;
+
+swb4$bec_zone &lt;- &#39;SWB&#39;
+swb4$bec_subzone &lt;- &#39;vk&#39;
+
+avg_BEC_data &lt;- rbind(avg_BEC_data,swb1,swb2,swb3,swb4)</code></pre>
+<pre class="r"><code>df_base &lt;- avg_BEC_data #%&gt;% subset(bec_zone == &#39;ESSF&#39;)
+
+#df &lt;- avg_BEC_data
+
+df_base$id &lt;- 1:nrow(df_base)
+
+df_base &lt;- assign_missing(df_base)
+
+# split into those with missing and thos without
+df &lt;- df_base %&gt;% subset(missing != &#39;&#39;) 
+df_base &lt;- df_base %&gt;% subset(!id %in% df$id)</code></pre>
+<pre class="r"><code>df &lt;- call_si_conversion(df)</code></pre>
+<pre class="r"><code>### cross check
+
+df &lt;- assign_missing(df)
+x1 &lt;- df %&gt;% subset(missing != &#39;&#39;)
+
+# Force balsam BA Bg swap
+# Lw Lt swap
+
+df$missing &lt;- &#39;:Ba:Bg:Bl:Lt&#39;
+df &lt;- call_si_conversion(df)
+
+# back together
+avg_BEC_data &lt;- rbind(df_base,df)
+avg_BEC_data$missing &lt;- &#39;:Ba:Bg:Bl:Lt&#39;
+avg_BEC_data &lt;- call_si_conversion(avg_BEC_data)
+avg_BEC_data$missing &lt;- &#39;&#39;
+
+x &lt;- assign_missing(avg_BEC_data)
+x &lt;- x %&gt;% subset(missing != &#39;&#39;)
+# write the data
+#file_name &lt;- paste0(substr(getwd(),1,1),&#39;:/data/data_projects/AR&#39;,year,&#39;/PSPL/si_data/pspl_site_index_bec.csv&#39;)
+#fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=&quot;,&quot;)
+
+
+#tbl_name &lt;- paste0(&#39;pspl_site_index_bec&#39;)
+
+
+# pre delete table
+#if(dbExistsTable(con,tbl_name)) {
+#  dbRemoveTable(con,tbl_name)
+#}
+
+
+# write to table
+#dbWriteTable(con,tbl_name,avg_BEC_data,row.names = FALSE)</code></pre>
+<div id="site-index-conversions" class="section level3">
+<h3>Site Index Conversions</h3>
+<p>mean value data</p>
 <pre class="r"><code># read avg_op_data: table = pspl_site_index_mean_op
 # this is the mean value feature_id data
 
@@ -696,156 +965,283 @@ si_data &lt;- dbGetQuery(con,q1)
 
 species &lt;- dbGetQuery(con,&quot;select opening_id,array_to_string(species,&#39;,&#39;) as species ,b.bec_zone,b.bec_subzone from species_list_op a left join veg_bec_op b using (opening_id)&quot;)
 
+
 #species &lt;- unique(species)
 
 si_data &lt;- left_join(species,si_data,by=&#39;opening_id&#39;)
 
+#avg_data &lt;- avg_data %&gt;% subset(!is.na(species))
 
-# tag the missing species
+# required to assing the missing
+# si conversion only applis where there are missing values
 si_data &lt;- assign_missing(si_data)
 
-tot_row &lt;- nrow(si_data)
-tot_valid &lt;- nrow(si_data[si_data$missing ==&#39;&#39;,])
-tot_sw &lt;- nrow(si_data[si_data$missing ==&#39;:Sw&#39;,])
-tot_se &lt;- nrow(si_data[si_data$missing ==&#39;:Se&#39;,])
+#t1 &lt;- si_data %&gt;% select(opening_id,species,missing)
 
-df1 &lt;- data.frame(&#39;src&#39; = c(&#39;Total Valid&#39;,&#39;Missing Sw&#39;,&#39;Total&#39;),&#39;n&#39; = c(tot_valid,tot_sw,tot_row),&#39;Percent&#39; = c(as.integer(tot_valid/tot_row*100),as.integer(tot_sw/tot_row*100),100))
 
-kablep(df1)</code></pre>
+
+
+#avg_data &lt;- avg_data %&gt;% subset(missing != &#39;&#39;)  # %&gt;% subset(bec_zone != &#39;IMA&#39;)
+
+si_data &lt;- call_si_conversion(si_data)
+
+si_data &lt;- assign_missing(si_data)
+
+c1 &lt;- count(si_data,missing) %&gt;% arrange(desc(n))
+c1 &lt;- head(c1,4)
+
+pine &lt;- count(si_data[si_data$missing==&#39;:Pl&#39;,],bec_zone) %&gt;% arrange(desc(n))
+
+balsam &lt;- count(si_data[si_data$missing==&#39;:Bg&#39;,],bec_zone) %&gt;% arrange(desc(n))
+balsam &lt;- head(balsam,3)
+
+cedar &lt;- count(si_data[si_data$missing==&#39;:Cw&#39;,],bec_zone) %&gt;% arrange(desc(n))
+cedar &lt;- head(cedar,3)
+
+
+kablep(c1)</code></pre>
 <table class="table table-striped" style="font-size: 13px; width: auto !important; ">
 <thead>
 <tr>
 <th style="text-align:left;">
-src
+missing
 </th>
 <th style="text-align:right;">
 n
-</th>
-<th style="text-align:right;">
-Percent
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-Total Valid
 </td>
 <td style="text-align:right;">
-94345
-</td>
-<td style="text-align:right;">
-49
+188760
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Missing Sw
+:Pl
 </td>
 <td style="text-align:right;">
-67749
-</td>
-<td style="text-align:right;">
-35
+659
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Total
+:Bg
 </td>
 <td style="text-align:right;">
-190254
+198
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+:Cw
 </td>
 <td style="text-align:right;">
-100
+138
 </td>
 </tr>
 </tbody>
 </table>
-<p>Table 1. Initial missing site index assessment</p>
-<pre class="r"><code># fix Sw and Se from Sx
-si_data$sw_si &lt;- case_when(
-    !si_data$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) &amp; si_data$bec_zone != &#39;ESSF&#39; &amp; si_data$sx_si != 0 ~ si_data$sx_si,
-    TRUE ~ si_data$sw_si
-)
-
-si_data$se_si &lt;- case_when(
-    si_data$bec_zone == &#39;ESSF&#39; &amp; si_data$sx_si != 0 ~ si_data$sx_si,
-    TRUE ~ si_data$se_si
-)
-
-si_data$ss_si &lt;- case_when(
-    si_data$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;) &amp; si_data$sx_si != 0 ~ si_data$sx_si,
-    TRUE ~ si_data$ss_si
-)
-
-# tag the missing species
-si_data &lt;- assign_missing(si_data)
-
-
-tot_row &lt;- nrow(si_data)
-tot_valid &lt;- nrow(si_data[si_data$missing ==&#39;&#39;,])
-tot_sw &lt;- nrow(si_data[si_data$missing ==&#39;:Sw&#39;,])
-tot_se &lt;- nrow(si_data[si_data$missing ==&#39;:Se&#39;,])
-
-df1 &lt;- data.frame(&#39;src&#39; = c(&#39;Total Valid&#39;,&#39;Missing Sw&#39;,&#39;Total&#39;),&#39;n&#39; = c(tot_valid,tot_sw,tot_row),&#39;Percent&#39; = c(as.integer(tot_valid/tot_row*100),as.integer(tot_sw/tot_row*100),100))
-
-
-kablep(df1)</code></pre>
+<pre class="r"><code>kablep(pine)</code></pre>
 <table class="table table-striped" style="font-size: 13px; width: auto !important; ">
 <thead>
 <tr>
 <th style="text-align:left;">
-src
+bec_zone
 </th>
 <th style="text-align:right;">
 n
-</th>
-<th style="text-align:right;">
-Percent
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left;">
-Total Valid
+CWH
 </td>
 <td style="text-align:right;">
-162400
-</td>
-<td style="text-align:right;">
-85
+653
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Missing Sw
+BWBS
 </td>
 <td style="text-align:right;">
-592
-</td>
-<td style="text-align:right;">
-0
+2
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-Total
+CDF
 </td>
 <td style="text-align:right;">
-190254
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MH
 </td>
 <td style="text-align:right;">
-100
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SWB
+</td>
+<td style="text-align:right;">
+1
 </td>
 </tr>
 </tbody>
 </table>
-<p>Table 2. Correction applied to Sw, Se and Ss</p>
+<pre class="r"><code>kablep(balsam)</code></pre>
+<table class="table table-striped" style="font-size: 13px; width: auto !important; ">
+<thead>
+<tr>
+<th style="text-align:left;">
+bec_zone
+</th>
+<th style="text-align:right;">
+n
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+CWH
+</td>
+<td style="text-align:right;">
+104
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ICH
+</td>
+<td style="text-align:right;">
+58
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IDF
+</td>
+<td style="text-align:right;">
+26
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>kablep(cedar)</code></pre>
+<table class="table table-striped" style="font-size: 13px; width: auto !important; ">
+<thead>
+<tr>
+<th style="text-align:left;">
+bec_zone
+</th>
+<th style="text-align:right;">
+n
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+IDF
+</td>
+<td style="text-align:right;">
+73
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ICH
+</td>
+<td style="text-align:right;">
+44
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ESSF
+</td>
+<td style="text-align:right;">
+11
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), at_si := ifelse(at_si==0, i.at_si,at_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), ba_si := ifelse(ba_si==0, i.ba_si,ba_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), bg_si := ifelse(bg_si==0, i.bg_si,bg_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), bl_si := ifelse(bl_si==0, i.bl_si,bl_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), cw_si := ifelse(cw_si==0, i.cw_si,cw_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), dr_si := ifelse(dr_si==0, i.dr_si,dr_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), ep_si := ifelse(ep_si==0, i.ep_si,ep_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), fd_si := ifelse(fd_si==0, i.fd_si,fd_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), hm_si := ifelse(hm_si==0, i.hm_si,hm_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), hw_si := ifelse(hw_si==0, i.hw_si,hw_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), lt_si := ifelse(lt_si==0, i.lt_si,lt_si)]  
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), lw_si := ifelse(lw_si==0, i.lw_si,lw_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), pa_si := ifelse(pa_si==0, i.pa_si,pa_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), pl_si := ifelse(pl_si==0, i.pl_si,pl_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), pw_si := ifelse(pw_si==0, i.pw_si,pw_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), py_si := ifelse(py_si==0, i.py_si,py_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), sb_si := ifelse(sb_si==0, i.sb_si,sb_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), se_si := ifelse(se_si==0, i.se_si,se_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), ss_si := ifelse(ss_si==0, i.ss_si,ss_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), sw_si := ifelse(sw_si==0, i.sw_si,sw_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), sx_si := ifelse(sx_si==0, i.sx_si,sx_si)]
+avg_fid_data[avg_BEC_data, on=c(&quot;bec_zone&quot;,&quot;bec_subzone&quot;), yc_si := ifelse(yc_si==0, i.yc_si,yc_si)]</code></pre>
+<pre class="r"><code># add src
+
+avg_fid_data$si_src &lt;- &#39;PSPL&#39;
+
+# write the data
+file_name &lt;- paste0(substr(getwd(),1,1),&#39;:/data/data_projects/AR&#39;,year,&#39;/PSPL/si_data/pspl_site_index_fid.csv&#39;)
+#fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=&quot;,&quot;)
+
+
+tbl_name &lt;- paste0(&#39;pspl_site_index_fid&#39;)
+
+# pre delete table
+if(dbExistsTable(con,tbl_name)) {
+  dbRemoveTable(con,tbl_name)
+}
+
+# write to table
+
+dbWriteTable(con,tbl_name,avg_fid_data,row.names = FALSE)</code></pre>
+<pre class="r"><code>pg_dump &lt;- function(t_name,folder){
+  
+  # -O required to negate ownership
+  
+  f_out &lt;- paste0(folder,&#39;msyt_&#39;,year,&#39;_&#39;,t_name,&#39;.sql&#39;)
+  tbl &lt;- paste0(&#39;msyt_&#39;,year,&#39;.&#39;,t_name)
+  
+  q1 &lt;- paste0(&quot;-d &quot;,
+               database,
+               &quot; -O&quot;,
+                &quot; -t &quot;,
+                tbl,
+               &quot; -f &quot;,
+               f_out )
+  
+  system2(&quot;pg_dump&quot;,args=q1,stderr=TRUE,wait=TRUE)
+  #print(q1)
+}</code></pre>
 <pre class="r"><code>dbDisconnect(con)</code></pre>
 <pre><code>## [1] TRUE</code></pre>
-<p>End: Thu Dec 15 08:21:59 2022</p>
+<p>End: Thu Dec 15 09:26:39 2022</p>
+</div>
+</div>
 </div>
 
 
