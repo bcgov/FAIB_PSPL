@@ -15,9 +15,11 @@ These are the mean values tables (grouped)
 -   Set all 0 values to NULL
 -   Join PSPL to VRI opening\_id
 
-Note on BEC. Although BEC values are in the VRI data, they are NOT
-used.  
-Instead, the PSPL BEC is used throughout the MSYT process.
+Note on BEC. BEC must be consistent between the point set and VRI.
+
+In this case, BEC 12 has been added to the VRI.
+
+The BEC is based on the opening largest BEC contribution for
 
 ## Treatment of NULL values
 
@@ -28,7 +30,7 @@ calculation. It is also important to check that 0 is not substituted for
 a NULL. This can happen inadvertently when using a DUCK Typed language
 such as R.
 
-Start: 2022-09-13 14:36:26
+Start: 2022-12-15 07:34:43
 
 ### Initialize PostgreSQL Connection
 
@@ -73,7 +75,7 @@ Start: 2022-09-13 14:36:26
                    f_out )
       
       system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
-      #print(q1)
+      print(q1)
       
     }
 
@@ -125,9 +127,9 @@ This contains the entire Provincial set of PSPL points
         NULLIF(ss_si,0) as ss_si,
         NULLIF(sw_si,0) as sw_si,
         NULLIF(sx_si,0) as sx_si,
-        NULLIF(yc_si,0) as yc_si,
-        trim(substring(bgc_label,1,4)) as bec_zone,
-        trim(substring(bgc_label,5,3)) as bec_subzone
+        NULLIF(yc_si,0) as yc_si
+        --trim(substring(bgc_label,1,4)) as bec_zone,
+        --trim(substring(bgc_label,5,3)) as bec_subzone
     from pspl_intersected 
     where feature_id is not NULL;
 
@@ -147,7 +149,9 @@ This contains the entire Provincial set of PSPL points
 
 -   pspl\_init
 
-<!-- -->
+Note that BEC 12 from VRI is being used.
+
+The VRI has BEC assigned by largest BEC within opening.
 
 
     drop sequence t1_seq;
@@ -181,8 +185,8 @@ This contains the entire Provincial set of PSPL points
         a.sw_si,
         a.sx_si,
         a.yc_si,
-        a.bec_zone,
-        a.bec_subzone
+        b.bec_zone,
+        b.bec_subzone
     from pspl_init_t a
     left join veg_comp b using(feature_id)
     ;
@@ -191,107 +195,6 @@ This contains the entire Provincial set of PSPL points
 
     create index idx_pspl1 on pspl_init(feature_id);
     create index idx_pspl2 on pspl_init(opening_id);
-
-# create the feature largest BEC table
-
--   pspl\_fid\_bec
-
-BEC is assigned based on the largest feature\_id contribution
-
-
-    -- do some intial clean up
-
-    drop table if exists pspl_fid_bec;
-    drop table if exists pspl_op_bec;
-
-    drop table if exists pspl_site_index_mean_fid;
-    drop table if exists pspl_site_index_mean_bec;
-    drop table if exists pspl_site_index_mean_op;
-
-    drop table if exists pspl_fid_site_index;
-    drop table if exists pspl_bec_site_index;
-    drop table if exists pspl_op_site_index;
-
-
-    -- create temp table to update bec from pspl_init
-    -- uses the largest contributor
-
-    create table pspl_fid_bec as 
-    with
-        -- count the number of points
-        sum_bec as (select count(*) as num_bec,feature_id,bec_zone,bec_subzone 
-                                    from pspl_init 
-                                    group by 2,3,4
-                                    order by 2,3,4 desc),
-        -- assign rank 1 to the max
-        sum_bec2 as (select num_bec,feature_id,bec_zone,bec_subzone ,
-                                rank() over (partition by feature_id order by feature_id,num_bec desc) rn
-                                    from sum_bec),
-        -- select the first row from each feature_id
-        sum_bec3 as (select distinct on (feature_id) feature_id,bec_zone,bec_subzone from sum_bec2 order by feature_id)
-    select * from sum_bec3
-    ;
-
-    select count(*) from pspl_fid_bec;
-
-<table>
-<caption>1 records</caption>
-<thead>
-<tr class="header">
-<th style="text-align: right;">count</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">5321242</td>
-</tr>
-</tbody>
-</table>
-
-1 records
-
-# create the opening largest BEC table
-
--   pspl\_op\_bec
-
-<!-- -->
-
-
-    -- create the pspl_op_bec table
-
-    create table pspl_op_bec as
-    with
-        -- count the number of points
-        pspl_op as (select * from pspl_init where opening_id is NOT NULL),
-        sum_bec as (select count(*) as num_bec,opening_id,bec_zone,bec_subzone 
-                                    from pspl_op group by 2,3,4
-                                    order by 2,3,4 desc),
-        -- assign rank 1 to the max
-        sum_bec2 as (select num_bec,opening_id,bec_zone,bec_subzone ,
-                                rank() over (partition by opening_id order by opening_id,num_bec desc) rn
-                                    from sum_bec),
-        -- select the first row from each opening_id
-        sum_bec3 as (select distinct on (opening_id) opening_id,bec_zone,bec_subzone from sum_bec2 order by opening_id)
-    select * from sum_bec3
-    ;
-
-    select count (*) from pspl_op_bec;
-
-<table>
-<caption>1 records</caption>
-<thead>
-<tr class="header">
-<th style="text-align: right;">count</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">256602</td>
-</tr>
-</tbody>
-</table>
-
-1 records
 
 ### generate feature\_id mean values using SQL
 
@@ -360,8 +263,7 @@ Cast final values to Numeric(5,1)
 -   generate BEC mean values using pspl\_init
 -   use SQL
 
-Note that this uses the PSPL assigned BEC by point  
-NOT the feature\_id assigned BEC based on largest number of points
+Note that this uses the BEC 12 assigned BEC updated in VRI
 
 
 
@@ -440,88 +342,6 @@ mean values.
 -   original values from PSPL are numeric(n,1)
 -   values in PostreSQL are double
 
-<!-- -->
-
-
-    drop table if exists t1;
-    alter table pspl_site_index_mean_op rename to t1;
-
-    create table pspl_site_index_mean_op as
-    select 
-     a.opening_id,
-     a.at_si,
-     a.ba_si,
-     a.bg_si,
-     a.bl_si,
-     a.cw_si,
-     a.dr_si,
-     a.ep_si,
-     a.fd_si,
-     a.hm_si,
-     a.hw_si,
-     a.lt_si,
-     a.lw_si,
-     a.pa_si,
-     a.pl_si,
-     a.pw_si,
-     a.py_si,
-     a.sb_si,
-     a.se_si,
-     a.ss_si,
-     a.sw_si,
-     a.sx_si,
-     a.yc_si,
-     b.bec_zone,
-     b.bec_subzone
-    from t1 a
-    left join pspl_op_bec b using (opening_id);
-
-    select now();
-
-
-    drop table if exists t1;
-    alter table pspl_site_index_mean_fid rename to t1;
-
-    create table pspl_site_index_mean_fid as
-    select 
-     a.feature_id,
-     a.at_si,
-     a.ba_si,
-     a.bg_si,
-     a.bl_si,
-     a.cw_si,
-     a.dr_si,
-     a.ep_si,
-     a.fd_si,
-     a.hm_si,
-     a.hw_si,
-     a.lt_si,
-     a.lw_si,
-     a.pa_si,
-     a.pl_si,
-     a.pw_si,
-     a.py_si,
-     a.sb_si,
-     a.se_si,
-     a.ss_si,
-     a.sw_si,
-     a.sx_si,
-     a.yc_si,
-        b.bec_zone,
-        b.bec_subzone
-    from t1 a
-    left join pspl_fid_bec b using (feature_id);
-
-    drop table t1;
-
-
-    drop table pspl_fid_bec;
-    drop table pspl_op_bec;
-
-
-
-    select count(*) as n from pspl_site_index_mean_fid;
-
 ### Export to CSV
 
     dbDisconnect(con)
@@ -554,13 +374,13 @@ mean values.
     q2 <- paste0("copy pspl_site_index_mean_op to \'",f2, "\' csv header;")
     dbExecute(con,q2)
 
-    ## [1] 256600
+    ## [1] 256603
 
     f3 <- paste0(base,'/pspl_site_index_mean_bec.csv')
     q3 <- paste0("copy pspl_site_index_mean_bec to \'",f3, "\' csv header;")
     dbExecute(con,q3)
 
-    ## [1] 138
+    ## [1] 135
 
     ## dump to sql
 
@@ -568,15 +388,15 @@ mean values.
 
     pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_bec'),out_folder)
 
-    ## character(0)
+    ## [1] "-d msyt -O -t msyt_2022.pspl_site_index_mean_bec -f D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022.pspl_site_index_mean_bec.sql"
 
     pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_fid'),out_folder)
 
-    ## character(0)
+    ## [1] "-d msyt -O -t msyt_2022.pspl_site_index_mean_fid -f D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022.pspl_site_index_mean_fid.sql"
 
     pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_op'),out_folder)
 
-    ## character(0)
+    ## [1] "-d msyt -O -t msyt_2022.pspl_site_index_mean_op -f D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022.pspl_site_index_mean_op.sql"
 
     tbl <- paste0(schema,'.pspl_init')
     db_vac(tbl)
@@ -587,4 +407,4 @@ mean values.
 
     ## [1] TRUE
 
-End: 2022-09-13 14:47:06
+End: 2022-12-15 07:43:55

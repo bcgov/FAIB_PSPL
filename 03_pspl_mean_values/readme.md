@@ -1,5 +1,6 @@
 # PSPL Mean Values
 
+
 Once the PSPL data has been joined with the VRI, 3 sets of mean values can be derived:
 
 - feature_id mean values
@@ -8,9 +9,13 @@ Once the PSPL data has been joined with the VRI, 3 sets of mean values can be de
 
 These values are the RAW PSPL values.  No conversions or substitutions have been made. 
 
+## BEC Base
+
+For 2022, the BEC 12 is used.  It is joined to the VRI by feature id.  In addition, the largest BEC within an opening is derived.  The opening based BEC is then assigned back to the features within an opening so that each opening only has a singe BEC assignment.
+
 ## Pre-Processing
 
-Set any occurrences of a site index values being 0 to NULL.  This allows the SQL processor to ignore NULLs in calulating a mean value.  
+Set any occurrences of a site index values being 0 to NULL.  This allows the SQL processor to ignore NULLs in calculating a mean value.  
 
 Data type for individual values is kept are DOUBLE for processing mean values.  
 
