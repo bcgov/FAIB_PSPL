@@ -319,8 +319,7 @@ convert_bl <- function(inp) {
 convert_bg <- function(inp) { 
   
   si <- case_when(
-    inp$ba_si > 0 ~ inp$ba_si ,
-    inp$bl_si > 0 ~ inp$bl_si ,   # added as Bg was coming up missing after initial si and bec conversions (due to Ba being NULL)
+    inp$ba_si > 0 ~ inp$ba_si , 
     TRUE ~ inp$bg_si)
   
   return(si) 
