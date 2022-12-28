@@ -21,9 +21,7 @@ And is copied from:
 Load Date: `r Sys.Date()`
 Start:  `r format(Sys.time(),"%c")`
 
-
-
-Copy PSPL data from FTP site  
+- Copy PSPL data from FTP site  
 
 ```{r copy_pspl_data, eval = TRUE, echo=FALSE, message=FALSE,warning=FALSE}
 
