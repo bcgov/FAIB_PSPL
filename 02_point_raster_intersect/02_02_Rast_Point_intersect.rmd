@@ -1,11 +1,15 @@
 ---
-title: "Raster Point Intersect"
+title: "Raster Point Intersect 1.0"
 author: "D. Waddell"
 date: "`r Sys.Date()`"
 output: md_document
 ---
 
 ## VRI raster intersect with PSPL points 
+
+Requires 32GB RAM  
+
+- fails on Fort nelson with 8GB 
 
 Assumes that PSPL GDBs are already copied and unzipped
 
@@ -44,6 +48,22 @@ num_gdb = length(f_list)  #number of files to process
 
 ```
 
+
+```{r size_based, eval = FALSE}
+
+dir_size <- function(path, recursive = TRUE) {
+  stopifnot(is.character(path))
+  files <- list.files(path, full.names = T, recursive = recursive)
+  vect_size <- sapply(files, function(x) file.size(x))
+  size_files <- sum(vect_size)
+  size_files
+}
+
+f1 <- paste0(local_pspl_folder,'/Site_Prod_Cassiar.gdb')
+cat(dir_size(f1)/10**6, "MB")
+
+```
+
 ## process each gdb 
 
 - Read each GDB
@@ -60,12 +80,33 @@ rast_intersect <- function(r,pf,n){
   # pf = PSPL point set
   # n = counter
   
+  #rast_intersect(raster_fid,fname,n)
+  r <- raster_fid
+  pf <- f_list[7]
+  n = 7
+  
+  t_name <- tools::file_path_sans_ext(basename(pf))
+  
+  # select where there is at least one NOT NULL si value
+  sel_query1 <- paste0('select  at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si from ',t_name,' where (at_si is not null or ba_si is not null or bg_si is not null or bl_si is not null or cw_si is not null or dr_si is not null or ep_si is not null or fd_si is not null or hm_si is not null or hw_si is not null or lt_si is not null or lw_si is not null or pa_si is not null or pl_si is not null or pw_si is not null or py_si is not null or sb_si is not null or se_si is not null or ss_si is not null or sw_si is not null or sx_si is not null or yc_si is not null)')
+  
+  sel_query2 <- paste0('select at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si from ',t_name,' where (at_si > 0 or ba_si > 0 or bg_si > 0 or bl_si > 0 or cw_si > 0 or dr_si > 0 or ep_si > 0 or fd_si > 0 or hm_si > 0 or hw_si > 0 or lt_si > 0 or lw_si > 0 or pa_si > 0 or pl_si > 0 or pw_si > 0 or py_si > 0 or sb_si > 0 or se_si > 0 or ss_si > 0 or sw_si > 0 or sx_si > 0 or yc_si > 0)')
+  
+  # select only the si columns
+  sel_query3 <- paste0('select  at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si from ',t_name)
+  
   # read the point file
-  point_set <- vect(pf)
+  #point_set <- vect(pf)
+  
+  #point_set <- vect(pf,query = sel_query2)
+  
+  # Note that terre vect(pf) treats NULL values as zero 
+  # could possibly use si > 0 as query 
+  point_set <- vect(sf::st_read(pf,query = sel_query1 ))
   
   
   # lower case the names
-  names(point_set) <- c("id_tag","at_si","ba_si","bg_si","bl_si","cw_si","dr_si","ep_si","fd_si","hm_si","hw_si","lt_si","lw_si","pa_si","pl_si","pw_si","py_si","sb_si","se_si","ss_si","sw_si","sx_si","yc_si","bapid","pem_spp","bgc_label","tsa_number")
+  #names(point_set) <- c("id_tag","at_si","ba_si","bg_si","bl_si","cw_si","dr_si","ep_si","fd_si","hm_si","hw_si","lt_si","lw_si","pa_si","pl_si","pw_si","py_si","sb_si","se_si","ss_si","sw_si","sx_si","yc_si","bapid","pem_spp","bgc_label","tsa_number")
   
   # number points i pspl
   n_points <- nrow(point_set)
@@ -97,7 +138,7 @@ rast_intersect <- function(r,pf,n){
 
 
   # join raster data feature_id
-  point_set$feature_id <- x[,"feature_id"]
+  point_set$feature_id <- as.integer(x[,"feature_id"])
 
   
   
@@ -110,11 +151,11 @@ rast_intersect <- function(r,pf,n){
   # but this has to be a named vector
   # handle the conversion in SQL
   
-  point_set[, 2:23] <- round(point_set[, 2:23], digits = 1)
+  point_set[, 1:22] <- round(point_set[, 1:22], digits = 1)
 
   
   # add a table number to allow tracking
-  point_set$tab_no <- n
+  #point_set$tab_no <- n
   
   # at this point can drop anything with a NULL feature_id
   # or can do this as first step in SQL
@@ -144,6 +185,9 @@ rast_intersect <- function(r,pf,n){
 
 
 ```{r intersect_all_units}
+
+
+
 
 # creates unit1 .. unitxx depending on the number of GDBs
   # unit1 does NOT refer to tsa 01
