@@ -12,6 +12,13 @@ output: html_document
 
 Version 3.0
 
+Fixes:  
+
+- do spruce sx as seperate function
+- split the missing and not missing from fid convert
+
+
+
 
 ## feature_id processing 
 

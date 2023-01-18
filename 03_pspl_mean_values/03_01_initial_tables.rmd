@@ -14,6 +14,10 @@ Creates:
 
 - pspl_site_index_mean_bec
 - pspl_site_index_mean_fid
+
+
+no longer producing:
+
 - pspl_site_index_mean_op
 
 These are the mean values tables (grouped)
@@ -93,14 +97,14 @@ pg_dump_table <- function(t_name,folder){
 ### Create inital (temp) table
 
 - read: pspl_intersected
-- crate: pspl_init_t
+- create: pspl_init_t
 
 This contains the entire Provincial set of PSPL points
 
 ```{sql null_type , connection=con}
 
-drop sequence if exists t1_seq;
-create sequence t1_seq;
+--drop sequence if exists t1_seq;
+--create sequence t1_seq;
 
 drop table if exists pspl_init;
 drop table if exists pspl_init_t;
@@ -116,7 +120,7 @@ select now() as "start create pspl raw initialze";
 
 create table pspl_init_t as 
 select 
-	nextval('t1_seq') as id,	-- unique id,
+	--nextval('t1_seq') as id,	-- unique id,
 	feature_id,
 	NULLIF(at_si,0) as at_si,
 	NULLIF(ba_si,0) as ba_si,
@@ -151,6 +155,8 @@ select now() as "end init";
 ```
 
 
+Initial Table: `r Sys.time()`  
+
 ### Index the intial table
 
 ```{sql add_index,connection=con}
@@ -160,6 +166,8 @@ create index m_idx_sr2 on pspl_init_t(feature_id);
 
 ```
 
+Index: `r Sys.time()`  
+
 ```{r vacuum_table}
 
 tbl <- paste0(schema,'.pspl_init_t')
@@ -168,6 +176,10 @@ db_vac(tbl)
 
 
 ```
+
+
+Vacuum Analyze: `r Sys.time()`  
+
 
 ## Create pre convert table 
 
@@ -179,15 +191,15 @@ The VRI has BEC assigned by largest BEC within opening.
 
 ```{sql join_opening, connection = con}
 
-drop sequence t1_seq;
+--drop sequence t1_seq;
 
 -- add opening from veg_comp
 drop table if exists pspl_init;
 create table pspl_init as
 select
-	a.id,
+	--a.id,
 	a.feature_id,
-	b.opening_id,
+	--b.opening_id,
 	a.at_si,
 	a.ba_si,
 	a.bg_si,
@@ -216,15 +228,18 @@ from pspl_init_t a
 left join veg_comp b using(feature_id)
 ;
 
-drop table pspl_init_t;
+--drop table pspl_init_t;
 
 create index idx_pspl1 on pspl_init(feature_id);
-create index idx_pspl2 on pspl_init(opening_id);
+--create index idx_pspl2 on pspl_init(opening_id);
+
+select now();
 
 
 ```
 
 
+Pspl Init: `r Sys.time()`  
 
 
 ### generate feature_id mean values using SQL
@@ -246,7 +261,7 @@ ERROR:  out of memory
 DETAIL:  Failed on request of size 848 in memory context "Caller tuples".
 CONTEXT:  parallel worker
 
-if required can shut down parallell processing  
+if required can shut down parallel processing  
 set max_parallel_workers_per_gather = 2;  
 
 This process runs fine on a 32GB machine as is.  
@@ -297,12 +312,13 @@ select count (*) as n from pspl_site_index_mean_fid;
 ```
 
 
+Mean si FID: `r Sys.time()`  
 
 ### generate BEC mean values
 
 
 - generate BEC mean values using pspl_init
-- use SQL 
+
 
 Note that this uses the BEC 12 assigned BEC updated in  VRI   
 
@@ -350,122 +366,20 @@ select count(*) as n from pspl_site_index_mean_bec;
 ```
 
 
-
-
-
-
-### generate opening_id averages
-
-- these are the unconverted data
-
-
-Take the original PSPL data by pid and generate the opening_id based mean values.
-
-
-
-```{sql op_avg,connection=con,output.var="op"}
-
-drop table if exists pspl_site_index_mean_op;
-create table pspl_site_index_mean_op as
-select
-	opening_id,
-	cast(avg(at_si) as numeric(5,1)) as at_si,
-	cast(avg(ba_si) as numeric(5,1)) as ba_si,
-	cast(avg(bg_si) as numeric(5,1)) as bg_si,
-	cast(avg(bl_si) as numeric(5,1)) as bl_si,
-	cast(avg(cw_si) as numeric(5,1)) as cw_si,
-	cast(avg(dr_si) as numeric(5,1)) as dr_si,
-	cast(avg(ep_si) as numeric(5,1)) as ep_si,
-	cast(avg(fd_si) as numeric(5,1)) as fd_si,
-	cast(avg(hm_si) as numeric(5,1)) as hm_si,
-	cast(avg(hw_si) as numeric(5,1)) as hw_si,
-	cast(avg(lt_si) as numeric(5,1)) as lt_si,
-	cast(avg(lw_si) as numeric(5,1)) as lw_si,
-	cast(avg(pa_si) as numeric(5,1)) as pa_si,
-	cast(avg(pl_si) as numeric(5,1)) as pl_si,
-	cast(avg(pw_si) as numeric(5,1)) as pw_si,
-	cast(avg(py_si) as numeric(5,1)) as py_si,
-	cast(avg(sb_si) as numeric(5,1)) as sb_si,
-	cast(avg(se_si) as numeric(5,1)) as se_si,
-	cast(avg(ss_si) as numeric(5,1)) as ss_si,
-	cast(avg(sw_si) as numeric(5,1)) as sw_si,
-	cast(avg(sx_si) as numeric(5,1)) as sx_si,
-	cast(avg(yc_si) as numeric(5,1)) as yc_si
-from pspl_init where opening_id is not null and opening_id not in (0,-99)
-group by opening_id
-order by 1
-;
-
-```
-
-
-
+BEC Mean si: `r Sys.time()`  
 
 - original values from PSPL are numeric(n,1)
 - values in PostreSQL are double
 
 
 
-
-
-
-
-### Export to CSV
-
-```{r export_data , eval=TRUE}
+```{r export_data , eval=FALSE}
 
 dbDisconnect(con)
-
-# copy can only be run as superuser
-# re-establish connection
-schema <- paste0('msyt_',year)
-opt <- paste0("-c search_path=",schema)
-user_name <- 'postgres'
-database <- 'msyt'
-con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
-
-
-
-# pspl_site_index_mean_fid
-# pspl_site_index_mean_op
-# pspl_site_index_mean_bec
-
-base <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data')
-
-f1 <- paste0(base,'/pspl_site_index_mean_fid.csv')
-q1 <- paste0("copy pspl_site_index_mean_fid to \'",f1, "\' csv header;")
-dbExecute(con,q1)
-
-f2 <- paste0(base,'/pspl_site_index_mean_op.csv')
-q2 <- paste0("copy pspl_site_index_mean_op to \'",f2, "\' csv header;")
-dbExecute(con,q2)
-
-f3 <- paste0(base,'/pspl_site_index_mean_bec.csv')
-q3 <- paste0("copy pspl_site_index_mean_bec to \'",f3, "\' csv header;")
-dbExecute(con,q3)
-
-
-## dump to sql
-
-out_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
-
-pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_bec'),out_folder)
-pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_fid'),out_folder)
-pg_dump_table(paste0('msyt_',year,'.pspl_site_index_mean_op'),out_folder)
-
 
 
 ```
 
 
-```{r analyze}
-
-
-tbl <- paste0(schema,'.pspl_init')
-db_vac(tbl)
-
-dbDisconnect(con)
-
-```
 
 End: `r Sys.time()`

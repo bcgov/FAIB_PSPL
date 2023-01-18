@@ -6,6 +6,8 @@ output: md_document
 
 ---
 
+testing: 2023.01.13
+
 ## Load compressed PSPL gdb files to processing location 
 
 ## directory locations are fixed as follows:
@@ -21,7 +23,9 @@ And is copied from:
 Load Date: `r Sys.Date()`
 Start:  `r format(Sys.time(),"%c")`
 
-- Copy PSPL data from FTP site  
+
+
+Copy PSPL data from FTP site  
 
 ```{r copy_pspl_data, eval = TRUE, echo=FALSE, message=FALSE,warning=FALSE}
 
@@ -37,7 +41,7 @@ f_list <- list.files(ftp_pspl_folder, full.names = TRUE)
 # subset for testing
 #f_list <- f_list[1:4]
 
-file.copy(f_list, local_pspl_folder)
+file.copy(f_list, local_pspl_folder) 
 
 ```
 
