@@ -1,0 +1,162 @@
+---
+title: "PostgreSQL Point Intersect 1.0"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: md_document
+---
+
+## VRI spatial intersect with PSPL points 
+
+
+Assumes veg_comp_spatial exists.  
+assumes that the PSPL points have been loaded: unit 1.. unit n
+
+
+
+
+Start: `r Sys.time()`
+
+```{r read_data}
+
+
+year <- '2022'
+
+
+library(RPostgreSQL)
+
+# set up for load to PostgreSQL
+# schema must include public for geom functions to work.
+schema <- paste0('msyt_',year,',public')
+opt <- paste0("-c search_path=",schema)
+user_name <- 'results'
+database <- 'msyt'
+
+
+
+
+# this is where the unzipped files are placed locally
+local_pspl_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/gdb_data')
+
+# build list of the PSPL gdbs
+# list of gdb files to process
+f_list <- list.files(local_pspl_folder,full.names = TRUE)
+
+#number of files to process
+num_units = length(f_list)
+
+
+```
+
+```{r}
+
+con <- dbConnect('PostgreSQL',dbname=database,user=user_name,options=opt)
+
+# pre delete 
+q1 <- 'drop table if exists pspl_fid_merged'
+dbExecute(con,q1)
+
+
+q1 <- 'create table pspl_fid_merged 
+(
+ feature_id integer,
+ id_tag     text,
+ at_si      real,
+ ba_si      real,
+ bg_si      real,
+ bl_si      real,
+ cw_si      real,
+ dr_si      real,
+ ep_si      real,
+ fd_si      real,
+ hm_si      real,
+ hw_si      real,
+ lt_si      real,
+ lw_si      real,
+ pa_si      real,
+ pl_si      real,
+ pw_si      real,
+ py_si      real,
+ sb_si      real,
+ se_si      real,
+ ss_si      real,
+ sw_si      real,
+ sx_si      real,
+ yc_si      real,
+ unit_no    integer
+ )'
+ 
+ 
+dbExecute(con,q1)
+
+dbDisconnect(con)
+
+
+
+```
+
+
+
+
+## process each point table 
+
+Note that the intersection is using st_contains(vri,point).  
+
+This may fail in what is expected to be a very small subset it the point falls exactly on the vri polygon line.
+
+There are examples where the PSPL point is OUTSIDE the VRI boundary.  
+
+Arrow, Arrowsmith as examples.  
+
+Ignore these and move on.  
+
+id_tag = 01_082F_16203_04799
+
+
+
+
+```{r intersect,eval=TRUE, echo=FALSE, message=FALSE}
+
+# the call to the psql interactive needs the schema assigned
+  # define the schema via options
+  db <- paste0('dbname=',database,' options=--search_path=',schema)
+  # force a quoted string
+  db <- shQuote(db)
+  
+  
+# set this up as a function
+
+run_sql <- function(fn,unit_name,number){
+  
+  #system2("psql",args=c('-d',db,'-U',user_name,'-f',fn,'-v',x1,'-v',x2,'-v',no),stderr=TRUE)
+  system2("psql",args=c('-d',db,'-U',user_name,'-f',fn,'-v',unit_name,'-v',number),stderr=TRUE)
+  
+}
+
+
+for (i in 1:num_units){  
+  
+    # i <- 1
+      
+      # input unit name
+      name1 <- c("pspl_unit")
+      unit <- paste0("unit=",name1,i)
+      
+      # unit name after intersect
+      #name2 <- paste("pspl_fid_unit")
+      #table <- paste0("sp=",name2,i)
+      
+      # unit number
+      unit_no <- paste0("unit_no=",i)
+    
+      run_sql('2_02_intersect_fid.sql',unit,unit_no)
+      
+}
+
+
+
+```
+
+
+End: `r Sys.time()`
+
+

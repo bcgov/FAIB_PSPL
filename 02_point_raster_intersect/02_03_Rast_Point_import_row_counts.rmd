@@ -1,0 +1,197 @@
+---
+title: "Raster Point Load to PostgreSQL"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: md_document
+---
+
+## Import from GDB to PostgreSQL
+
+Check:
+
+- original rows in GDB
+- rows loaded to PostgreSQL
+- rows with at least one valid site index
+- rows intersected with VRI
+
+
+
+Start: `r Sys.time()`
+
+```{r read_data, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+year <- '2022'
+
+library(RPostgreSQL)
+library(tidyverse)
+library(kableExtra)
+
+
+# set up for load to PostgreSQL
+schema <- paste0('msyt_',year)
+opt <- paste0("-c search_path=",schema)
+user_name <- 'postgres'
+database <- 'msyt'
+con <- dbConnect('PostgreSQL',dbname=database,user=user_name,options=opt)
+
+
+# this is where the unzipped files are placed locally
+local_gdb_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/gdb_data')
+
+# build list of the PSPL gdbs
+# list of gdb files to process
+f_list <- list.files(local_gdb_folder,full.names = TRUE)
+num_gdb = length(f_list)  #number of files to process
+
+
+
+```
+
+
+
+
+## row count from source
+
+
+
+```{r row_counts, eval = TRUE,echo=FALSE, message=FALSE, warning=FALSE}
+
+# GDB
+ogrinfo_rows <- function(pf){
+
+  # pf <- f_list[1]
+  
+  layer <- tools::file_path_sans_ext(basename(pf))
+  
+  cmd <- paste0(pf,' -so ',layer)
+
+  a <- system2("ogrinfo", args=cmd, stdout=TRUE)
+
+  rc <- as.numeric(unlist(strsplit(a[grepl('Feature',a)],':'))[[2]])
+  
+  return(rc)
+  
+
+}
+
+# PostgreSQL
+
+psql_rows <- function(t){
+  
+  q1 <- paste0('select count(*) as n from ',t)
+  
+  rc <- dbGetQuery(con,q1)
+  
+  return(rc)
+  
+  
+}
+
+# NULL si values
+
+psql_si_null <- function(t){
+  
+  q1 <- paste0('select count(*) as n from ',t,' where (at_si >0 or ba_si >0 or bg_si >0 or bl_si >0 or cw_si >0 
+	or dr_si>0 or ep_si >0 or fd_si >0 or hm_si >0 or hw_si >0 
+	or lt_si >0 or lw_si >0 or pa_si >0 or pl_si >0 or pw_si >0 
+	or py_si >0 or sb_si >0 or se_si >0 or ss_si >0 or sw_si >0 
+	or sx_si >0 or yc_si > 0)')
+
+
+rc <- dbGetQuery(con,q1)
+
+return(rc)
+
+}
+
+
+psql_intersected_rows <- function(unit){
+  
+  q1 <- paste0('select count(*) as n from pspl_fid_merged where unit_no = ',unit)
+  rc <- dbGetQuery(con,q1)
+
+return(rc)
+  
+}
+
+
+```
+
+
+```{r load_all_units, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+z <- data.frame('Unit' = '', 'n' = '')
+z2 <- data.frame('Unit' = '', 'n' = '')
+z3 <- data.frame('Unit' = '', 'n' = '')
+z4 <- data.frame('Unit' = '', 'n' = '')
+
+n <- 1
+
+#process the file list
+for(f in f_list){
+
+  # f <- f_list[1] 
+  
+  # rows for ogrinfo
+  a <- ogrinfo_rows(f)
+  
+  layer <- tools::file_path_sans_ext(basename(f))
+  p_table <- paste0('pspl_unit',n)
+  
+  # rows loaded from GDB to PostgreSQL
+  pr <- psql_rows(p_table)
+  
+  # rows with valid site index values
+  valid_rows <- psql_si_null(p_table)
+  
+  # rows intersected with VRI
+  int_rows <- psql_intersected_rows(n)
+  
+  
+  z <- rbind(z,data.frame('Unit' = layer,'n' = as.numeric(a)))
+  z2 <- rbind(z2,data.frame('Unit' = layer, 'n' = as.numeric(pr$n)))
+  z3 <- rbind(z3,data.frame('Unit' = layer, 'n' = as.numeric(valid_rows$n)))
+  z4 <- rbind(z4,data.frame('Unit' = layer, 'n' = as.numeric(int_rows$n)))
+  
+  
+  
+  n <- n + 1  
+      
+}
+
+dbDisconnect(con)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+names(z) <- c('Unit','GDB n')
+names(z2) <- c('Unit','PostgreSQL n')
+names(z3) <- c('Unit','Site Index Valid n')
+names(z4) <- c('Unit','Intersected n')
+
+c <- left_join(z,z2)
+c <- left_join(c,z3)
+c <- left_join(c,z4)
+
+
+
+
+c$null_si <- as.integer(c[,3]) - as.integer(c[,4])
+
+c <- c %>% subset(Unit != '')
+
+rownames(c) <- 1:nrow(c)
+
+kable(c,format='markdown')
+
+```
+
+Table 1.  GDB to PostgreSQL compare 
+
+
+End: `r Sys.time()`
+
+
