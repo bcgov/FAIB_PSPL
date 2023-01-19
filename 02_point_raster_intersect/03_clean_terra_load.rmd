@@ -1,0 +1,43 @@
+---
+title:","Clean_PSPL_Intersected"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Start: `r Sys.time()`
+
+```{r read_data}
+
+
+year <- '2022'
+
+library(sf)
+library(terra)
+library(RPostgreSQL)
+
+# set up for load to PostgreSQL
+schema <- paste0('msyt_',year)
+opt <- paste0("-c search_path=",schema)
+user_name <- 'results'
+database <- 'msyt'
+con <- dbConnect('PostgreSQL',dbname=database,user=user_name,options=opt)
+
+
+```
+
+
+```{r}
+
+
+
+q1 <- 'create table pspl_intersected as select  "ID_TAG","AT_SI","BA_SI","BG_SI","BL_SI","CW_SI","DR_SI","EP_SI","FD_SI","HM_SI","HW_SI","LT_SI","LW_SI","PA_SI","PL_SI","PW_SI","PY_SI","SB_SI","SE_SI","SS_SI","SW_SI","SX_SI","YC_SI",unit_no from pspl_intersected2'
+
+ dbExecute(con,q1)
+ 
+ 
+ q1 <- 'delete from pspl_intersected2 where at_si is null and ba_si is null and bg_si is null and bl_si is null and cw_si is null and dr_si is null and ep_si is null and fd_si is null and hm_si is null and hw_si is null and lt_si is  null and lw_si is null and pa_si is null and pl_si is null and pw_si is null and py_si is null and sb_si is null and se_si is null and ss_si is null and sw_si is null and sx_si is null and yc_si is null'
+ 
+ dbExecute(con,q1)
+
+```
