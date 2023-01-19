@@ -7,6 +7,11 @@ output: md_document
 
 ## Import from GDB to PostgreSQL
 
+Compare 2 methods
+
+- gdal_utils.vectortranslate
+- use GDAL OGR2OGR (installed)
+
   
 
 Start: `r Sys.time()`
@@ -41,7 +46,6 @@ num_gdb = length(f_list)  #number of files to process
 ```
 
 
-ogr2ogr -f "PostgreSQL" PG:"dbname=msyt" Site_Prod_100_Mile_House.gdb Site_Prod_100_Mile_House --debug ON
 
 ## process each gdb 
 
@@ -49,7 +53,7 @@ ogr2ogr -f "PostgreSQL" PG:"dbname=msyt" Site_Prod_100_Mile_House.gdb Site_Prod_
 - export to PostgreSQL
 
 
-## Load using sf::gdal_utils
+## Load using sf::gdal_utils.gdaltranslate
 
 This will bring any NULL values in the GDB as actual NULL in PostgreSQL.
 
@@ -94,10 +98,43 @@ gdal_utils_gdb_load <- function(pf,n){
 ```
 
 
+# alternative load OGR2OGR
+
+ogr2ogr -f "PostgreSQL" PG:"dbname=msyt" Site_Prod_100_Mile_House.gdb Site_Prod_100_Mile_House --debug ON
+
+
+
+- ogr2ogr -a_srs EPSG:3005 -nln test1 -gt 200000 --config PG_USE_COPY YES -lco GEOMETRY_NAME=wkb_geometry -f PostgreSQL PG:"dbname=msyt user=results" Site_Prod_100_Mile_House.gdb Site_Prod_100_Mile_House
+
+Note: If you get the following message when doing a psql> \d table   
+ERROR:  column c.relhasoids does not exist  
+Your client is wrong.  
+Change to client that matches your PostreSQL version.
+
+```{r}
+
+ogr_load <- function(pf,n){
+  
+  
+  # pf = GDB full name
+  
+  # give new layer name the schema name 
+  new_layer <- paste0('msyt_',year,'.pspl_ogr2ogr_unit',n)
+  gdb_fc <- tools::file_path_sans_ext(basename(pf))  
+  
+  ogr1 <- paste0("-a_srs EPSG:3005 -gt 100000 ")
+  ogr2 <- paste0("-f PostgreSQL \"PG:dbname='msyt' user='results'\" -nln  ")
+  ogr_cmd <- paste0(ogr1,ogr2,new_layer,' ',pf,' ',gdb_fc,' -lco ', 'GEOMETRY_NAME=wkb_geometry',' -overwrite')
+
+  system2("ogr2ogr",args=ogr_cmd,wait=TRUE,stderr=TRUE)
+  
+}
+
+
+```
+
 
 ```{r load_all_units}
-
-
 
 
 # creates unit1 .. unitxx depending on the number of GDBs
@@ -113,6 +150,7 @@ n <- 1
 for(f in f_list){
       
   a <- gdal_utils_gdb_load(f,n)
+  #b <- ogr_load(f,n)
   
   n <- n + 1
       
@@ -124,6 +162,8 @@ for(f in f_list){
 
 
 ```{r ending}
+
+
 
 
 

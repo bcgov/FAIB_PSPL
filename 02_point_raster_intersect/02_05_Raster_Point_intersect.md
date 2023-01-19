@@ -6,7 +6,7 @@ Requires 32GB RAM
 
 Assumes that PSPL GDBs are already copied and unzipped
 
-Start: 2023-01-18 10:31:45
+Start: 2023-01-19 11:41:36
 
     year <- '2022'
 
@@ -149,16 +149,16 @@ Start: 2023-01-18 10:31:45
       names(point_set) <- tolower(names(point_set))
       
       # drop NULL rows
-      x <- point_set %>% subset(is.na(at_si) & is.na(ba_si) & is.na(bg_si) & is.na(bl_si) & is.na(cw_si) & is.na(dr_si) & is.na(ep_si) & is.na(fd_si) & is.na(hm_si) & is.na(hw_si) & is.na(lt_si) & is.na(lw_si) & is.na(pa_si) & is.na(pl_si) & is.na(pw_si) & is.na(py_si) & is.na(sb_si) & is.na(se_si) & is.na(ss_si) & is.na(sw_si) & is.na(sx_si) & is.na(yc_si)) %>% select(id_tag)
+      #x <- point_set %>% subset(is.na(at_si) & is.na(ba_si) & is.na(bg_si) & is.na(bl_si) & is.na(cw_si) & is.na(dr_si) & is.na(ep_si) & is.na(fd_si) & is.na(hm_si) & is.na(hw_si) & is.na(lt_si) & is.na(lw_si) & is.na(pa_si) & is.na(pl_si) & is.na(pw_si) & is.na(py_si) & is.na(sb_si) & is.na(se_si) & is.na(ss_si) & is.na(sw_si) & is.na(sx_si) & is.na(yc_si)) %>% select(id_tag)
       
-      point_set <- point_set %>% subset(!id_tag %in% x$id_tag)
+      #point_set <- point_set %>% subset(!id_tag %in% x$id_tag)
       
       
       # load to PostgreSQL
       if (n ==1) {
-        dbWriteTable(con,'pspl_intersected2',point_set,row.names=FALSE,overwrite=TRUE)
+        dbWriteTable(con,'pspl_terra_intersected',point_set,row.names=FALSE,overwrite=TRUE)
       } else {
-        dbWriteTable(con,'pspl_intersected2',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
+        dbWriteTable(con,'pspl_terra_intersected',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
       }
       
       
@@ -225,187 +225,187 @@ Start: 2023-01-18 10:31:45
 </tr>
 <tr class="even">
 <td style="text-align: left;">1181106</td>
-<td style="text-align: left;">1160754</td>
+<td style="text-align: left;">1181106</td>
 <td style="text-align: left;">1</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1158840</td>
-<td style="text-align: left;">1116480</td>
+<td style="text-align: left;">1158840</td>
 <td style="text-align: left;">2</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1397598</td>
-<td style="text-align: left;">1288985</td>
+<td style="text-align: left;">1397598</td>
 <td style="text-align: left;">3</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">627848</td>
-<td style="text-align: left;">620797</td>
+<td style="text-align: left;">627848</td>
 <td style="text-align: left;">4</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">706549</td>
-<td style="text-align: left;">659512</td>
+<td style="text-align: left;">706549</td>
 <td style="text-align: left;">5</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">235530</td>
-<td style="text-align: left;">199285</td>
+<td style="text-align: left;">235530</td>
 <td style="text-align: left;">6</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">11584979</td>
-<td style="text-align: left;">3698716</td>
+<td style="text-align: left;">11584979</td>
 <td style="text-align: left;">7</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1163296</td>
-<td style="text-align: left;">1111499</td>
+<td style="text-align: left;">1163296</td>
 <td style="text-align: left;">8</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2886578</td>
-<td style="text-align: left;">2781834</td>
+<td style="text-align: left;">2886578</td>
 <td style="text-align: left;">9</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">8137232</td>
-<td style="text-align: left;">6797838</td>
+<td style="text-align: left;">8137232</td>
 <td style="text-align: left;">10</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">4575950</td>
-<td style="text-align: left;">4083303</td>
+<td style="text-align: left;">4575950</td>
 <td style="text-align: left;">11</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1277207</td>
-<td style="text-align: left;">906451</td>
+<td style="text-align: left;">1277207</td>
 <td style="text-align: left;">12</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">897676</td>
-<td style="text-align: left;">719288</td>
+<td style="text-align: left;">897676</td>
 <td style="text-align: left;">13</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3915758</td>
-<td style="text-align: left;">3142989</td>
+<td style="text-align: left;">3915758</td>
 <td style="text-align: left;">14</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">974722</td>
-<td style="text-align: left;">781318</td>
+<td style="text-align: left;">974722</td>
 <td style="text-align: left;">15</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1018812</td>
-<td style="text-align: left;">949453</td>
+<td style="text-align: left;">1018812</td>
 <td style="text-align: left;">16</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">960109</td>
-<td style="text-align: left;">790370</td>
+<td style="text-align: left;">960109</td>
 <td style="text-align: left;">17</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">564902</td>
-<td style="text-align: left;">410945</td>
+<td style="text-align: left;">564902</td>
 <td style="text-align: left;">18</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2464966</td>
-<td style="text-align: left;">2289122</td>
+<td style="text-align: left;">2464966</td>
 <td style="text-align: left;">19</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">970338</td>
-<td style="text-align: left;">912794</td>
+<td style="text-align: left;">970338</td>
 <td style="text-align: left;">20</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1066597</td>
-<td style="text-align: left;">935854</td>
+<td style="text-align: left;">1066597</td>
 <td style="text-align: left;">21</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1377731</td>
-<td style="text-align: left;">1346762</td>
+<td style="text-align: left;">1377731</td>
 <td style="text-align: left;">22</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">836864</td>
-<td style="text-align: left;">719550</td>
+<td style="text-align: left;">836864</td>
 <td style="text-align: left;">23</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">5408180</td>
-<td style="text-align: left;">3233514</td>
+<td style="text-align: left;">5408180</td>
 <td style="text-align: left;">24</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1112873</td>
-<td style="text-align: left;">1067346</td>
+<td style="text-align: left;">1112873</td>
 <td style="text-align: left;">25</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1300445</td>
-<td style="text-align: left;">1235066</td>
+<td style="text-align: left;">1300445</td>
 <td style="text-align: left;">26</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">842986</td>
-<td style="text-align: left;">638000</td>
+<td style="text-align: left;">842986</td>
 <td style="text-align: left;">27</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1385525</td>
-<td style="text-align: left;">1265909</td>
+<td style="text-align: left;">1385525</td>
 <td style="text-align: left;">28</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2281523</td>
-<td style="text-align: left;">2153611</td>
+<td style="text-align: left;">2281523</td>
 <td style="text-align: left;">29</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">518560</td>
-<td style="text-align: left;">376936</td>
+<td style="text-align: left;">518560</td>
 <td style="text-align: left;">30</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">7507664</td>
-<td style="text-align: left;">7043866</td>
+<td style="text-align: left;">7507664</td>
 <td style="text-align: left;">31</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1964607</td>
-<td style="text-align: left;">1951201</td>
+<td style="text-align: left;">1964607</td>
 <td style="text-align: left;">32</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">506172</td>
-<td style="text-align: left;">470103</td>
+<td style="text-align: left;">506172</td>
 <td style="text-align: left;">33</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">756254</td>
-<td style="text-align: left;">717652</td>
+<td style="text-align: left;">756254</td>
 <td style="text-align: left;">34</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">585414</td>
-<td style="text-align: left;">439837</td>
+<td style="text-align: left;">585414</td>
 <td style="text-align: left;">35</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">849903</td>
-<td style="text-align: left;">699062</td>
+<td style="text-align: left;">849903</td>
 <td style="text-align: left;">36</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">4153662</td>
-<td style="text-align: left;">4048763</td>
+<td style="text-align: left;">4153662</td>
 <td style="text-align: left;">37</td>
 </tr>
 </tbody>
@@ -431,14 +431,10 @@ Start: 2023-01-18 10:31:45
       
     }
 
-    dump_to_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
-    pg_dump_table('pspl_intersected',dump_to_folder)
+    #dump_to_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
+    #pg_dump_table('pspl_intersected',dump_to_folder)
 
-    ## Warning in system2("pg_dump", args = q1, stderr = TRUE, wait = TRUE): running
-    ## command '"pg_dump" -d msyt -O -t msyt_2022.pspl_intersected -f D:/data/
-    ## data_projects/AR2022/PSPL/si_data/msyt_2022_pspl_intersected.sql' had status 1
 
-    ## [1] "-d msyt -O -t msyt_2022.pspl_intersected -f D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_pspl_intersected.sql"
 
     dbDisconnect(con)
 
@@ -446,4 +442,4 @@ Start: 2023-01-18 10:31:45
 
 Table 1. PSPL Summary
 
-End: 2023-01-18 11:29:47
+End: 2023-01-19 12:38:07

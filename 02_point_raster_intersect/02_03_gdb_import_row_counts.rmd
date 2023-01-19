@@ -12,7 +12,7 @@ Check:
 - original rows in GDB
 - rows loaded to PostgreSQL
 - rows with at least one valid site index
-- rows intersected with VRI
+
 
 
 
@@ -106,15 +106,6 @@ return(rc)
 }
 
 
-psql_intersected_rows <- function(unit){
-  
-  q1 <- paste0('select count(*) as n from pspl_fid_merged where unit_no = ',unit)
-  rc <- dbGetQuery(con,q1)
-
-return(rc)
-  
-}
-
 
 ```
 
@@ -126,34 +117,47 @@ z <- data.frame('Unit' = '', 'n' = '')
 z2 <- data.frame('Unit' = '', 'n' = '')
 z3 <- data.frame('Unit' = '', 'n' = '')
 z4 <- data.frame('Unit' = '', 'n' = '')
+z5 <- data.frame('Unit' = '', 'n' = '')
+
 
 n <- 1
 
 #process the file list
-for(f in f_list){
+for(f in f_list  ){
+#for(i in 1:3  ){
 
-  # f <- f_list[1] 
+  #f <- f_list[i] 
   
   # rows for ogrinfo
   a <- ogrinfo_rows(f)
   
   layer <- tools::file_path_sans_ext(basename(f))
+  
+  
+  # rows loaded from GDB to PostgreSQL using gdal_utils
+  # table name = pspl_unitn
   p_table <- paste0('pspl_unit',n)
+  gdal_rows <- psql_rows(p_table)
   
-  # rows loaded from GDB to PostgreSQL
-  pr <- psql_rows(p_table)
+  # null rows in gdal load
+  gdal_null_rows <- psql_si_null(p_table)
   
-  # rows with valid site index values
-  valid_rows <- psql_si_null(p_table)
+  # rows loaded from GDB to PostgreSQL using OGR2OGR
+  # table name = pspl_ogr2ogr_unitn
+  p_table <- paste0('pspl_ogr2ogr_unit',n)
+  ogr_rows <- psql_rows(p_table)
   
-  # rows intersected with VRI
-  int_rows <- psql_intersected_rows(n)
+  # null rows in OGR2OGR load
+  ogr_null_rows <- psql_si_null(p_table)
+  
   
   
   z <- rbind(z,data.frame('Unit' = layer,'n' = as.numeric(a)))
-  z2 <- rbind(z2,data.frame('Unit' = layer, 'n' = as.numeric(pr$n)))
-  z3 <- rbind(z3,data.frame('Unit' = layer, 'n' = as.numeric(valid_rows$n)))
-  z4 <- rbind(z4,data.frame('Unit' = layer, 'n' = as.numeric(int_rows$n)))
+  z2 <- rbind(z2,data.frame('Unit' = layer, 'n' = as.numeric(gdal_rows$n)))
+  z3 <- rbind(z3,data.frame('Unit' = layer, 'n' = as.numeric(ogr_rows$n)))
+  z4 <- rbind(z4,data.frame('Unit' = layer, 'n' = as.numeric(gdal_null_rows$n)))
+  z5 <- rbind(z5,data.frame('Unit' = layer, 'n' = as.numeric(ogr_null_rows$n)))
+  
   
   
   
@@ -168,18 +172,17 @@ dbDisconnect(con)
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 names(z) <- c('Unit','GDB n')
-names(z2) <- c('Unit','PostgreSQL n')
-names(z3) <- c('Unit','Site Index Valid n')
-names(z4) <- c('Unit','Intersected n')
+names(z2) <- c('Unit','gdal_utils n')
+names(z3) <- c('Unit','OGR2OGR n')
+names(z4) <- c('Unit','GDAL NULL n')
+names(z5) <- c('Unit','OGR NULL n')
+
 
 c <- left_join(z,z2)
 c <- left_join(c,z3)
 c <- left_join(c,z4)
+c <- left_join(c,z5)
 
-
-
-
-c$null_si <- as.integer(c[,3]) - as.integer(c[,4])
 
 c <- c %>% subset(Unit != '')
 

@@ -142,16 +142,16 @@ rast_intersect <- function(r,pf,n){
   names(point_set) <- tolower(names(point_set))
   
   # drop NULL rows
-  x <- point_set %>% subset(is.na(at_si) & is.na(ba_si) & is.na(bg_si) & is.na(bl_si) & is.na(cw_si) & is.na(dr_si) & is.na(ep_si) & is.na(fd_si) & is.na(hm_si) & is.na(hw_si) & is.na(lt_si) & is.na(lw_si) & is.na(pa_si) & is.na(pl_si) & is.na(pw_si) & is.na(py_si) & is.na(sb_si) & is.na(se_si) & is.na(ss_si) & is.na(sw_si) & is.na(sx_si) & is.na(yc_si)) %>% select(id_tag)
+  #x <- point_set %>% subset(is.na(at_si) & is.na(ba_si) & is.na(bg_si) & is.na(bl_si) & is.na(cw_si) & is.na(dr_si) & is.na(ep_si) & is.na(fd_si) & is.na(hm_si) & is.na(hw_si) & is.na(lt_si) & is.na(lw_si) & is.na(pa_si) & is.na(pl_si) & is.na(pw_si) & is.na(py_si) & is.na(sb_si) & is.na(se_si) & is.na(ss_si) & is.na(sw_si) & is.na(sx_si) & is.na(yc_si)) %>% select(id_tag)
   
-  point_set <- point_set %>% subset(!id_tag %in% x$id_tag)
+  #point_set <- point_set %>% subset(!id_tag %in% x$id_tag)
   
   
   # load to PostgreSQL
   if (n ==1) {
-    dbWriteTable(con,'pspl_intersected2',point_set,row.names=FALSE,overwrite=TRUE)
+    dbWriteTable(con,'pspl_terra_intersected',point_set,row.names=FALSE,overwrite=TRUE)
   } else {
-    dbWriteTable(con,'pspl_intersected2',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
+    dbWriteTable(con,'pspl_terra_intersected',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
   }
   
   
@@ -234,8 +234,8 @@ pg_dump_table <- function(t_name,folder){
   
 }
 
-dump_to_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
-pg_dump_table('pspl_intersected',dump_to_folder)
+#dump_to_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
+#pg_dump_table('pspl_intersected',dump_to_folder)
 
 
 

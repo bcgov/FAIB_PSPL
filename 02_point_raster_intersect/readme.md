@@ -1,10 +1,14 @@
 # Point Raster Intersect
 
+**DRAFT ONLY: waiting for comparison of methods**
+
 ## PSPL data
 PSPL data takes the form of a set of points that cover the province and are based on a regular grid.  This grid follows the HaBC extents.  Given the size of the data, it is broken into 37 units, each representing Timber Supply Area (TSA) boundaries.   
 
 
 VRI data (veg_comp_lyr_r1_poly) is in a vector spatial format and is rasterized for use in TSR.  The VRI data is rasterized to the same base as the PSPL point data.
+
+## Potential new methods
 
 The intersection of the VRI and PSPL data is a process that can take significant processing time.  Recent improvements in raster processing in R have led to a switch from a previously PostgreSQL based spatial intersect to an R based raster process.
 
@@ -14,7 +18,7 @@ Prior to using R raster processing, the PSPL point sets (TSA based) were importe
 
 Intersection: st_contains(VRI.wkb_geometry,PSPL.wkb_geometry)  
 
-This process took on the order of 1.25 hours on a 32GB machine.
+This process took on the order of 2 hours on a 32GB machine.
 
 ## Downloading PSPL data
 

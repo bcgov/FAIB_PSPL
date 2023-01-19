@@ -3,7 +3,18 @@
 Assumes veg\_comp\_spatial exists.  
 assumes that the PSPL points have been loaded: unit 1.. unit n
 
-Start: 2023-01-16 12:56:02
+### Technical Note:  
+ unit point files can be created by either:
+
+-  sf::gdal_utils,vectortranslate
+ OR
+ 
+- OGR2ogr
+
+The tables produced are the same.  
+
+
+Start: 2023-01-17 10:41:51
 
     year <- '2022'
 
@@ -19,7 +30,7 @@ Start: 2023-01-16 12:56:02
     user_name <- 'results'
     database <- 'msyt'
 
-    #con2 <- dbConnect('PostgreSQL',dbname=database,user=user_name,options=opt)
+
 
 
     # this is where the unzipped files are placed locally
@@ -31,6 +42,52 @@ Start: 2023-01-16 12:56:02
 
     #number of files to process
     num_units = length(f_list)
+
+    con <- dbConnect('PostgreSQL',dbname=database,user=user_name,options=opt)
+
+    # pre delete 
+    q1 <- 'drop table if exists pspl_fid_merged'
+    dbExecute(con,q1)
+
+    ## [1] 0
+
+    q1 <- 'create table pspl_fid_merged 
+    (
+     feature_id integer,
+     id_tag     text,
+     at_si      real,
+     ba_si      real,
+     bg_si      real,
+     bl_si      real,
+     cw_si      real,
+     dr_si      real,
+     ep_si      real,
+     fd_si      real,
+     hm_si      real,
+     hw_si      real,
+     lt_si      real,
+     lw_si      real,
+     pa_si      real,
+     pl_si      real,
+     pw_si      real,
+     py_si      real,
+     sb_si      real,
+     se_si      real,
+     ss_si      real,
+     sw_si      real,
+     sx_si      real,
+     yc_si      real,
+     unit_no    integer
+     )'
+     
+     
+    dbExecute(con,q1)
+
+    ## [1] 0
+
+    dbDisconnect(con)
+
+    ## [1] TRUE
 
 ## process each point table
 
@@ -47,4 +104,4 @@ Ignore these and move on.
 
 id\_tag = 01\_082F\_16203\_04799
 
-End: 2023-01-16 14:52:37
+End: 2023-01-17 12:42:08
