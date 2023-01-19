@@ -88,7 +88,7 @@ q1 <- 'create table pspl_fid_merged
  
 dbExecute(con,q1)
 
-dbDisconnect(con)
+
 
 
 
@@ -148,10 +148,18 @@ for (i in 1:num_units){
       # unit number
       unit_no <- paste0("unit_no=",i)
     
-      run_sql('2_02_intersect_fid.sql',unit,unit_no)
+      run_sql('02_04_intersect_fid.sql',unit,unit_no)
       
 }
 
+
+# rename table to pspl_intersected
+
+q1 <- 'alter table pspl_fid_merged rename to pspl_intersected'
+
+dbExecute(con,q1)
+
+dbDisconnect(con)
 
 
 ```
