@@ -1,0 +1,68 @@
+---
+title:","Dump PSPL_Intersected"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+Start: `r Sys.time()`
+
+```{r read_data}
+
+
+year <- '2022'
+
+library(RPostgreSQL)
+
+# set up for load to PostgreSQL
+#schema <- paste0('msyt_',year)
+#opt <- paste0("-c search_path=",schema)
+user_name <- 'postgres'
+database <- 'msyt'
+con <- dbConnect('PostgreSQL',dbname=database,user=user_name)
+
+
+```
+
+## Rename intersected table: pspl_raw
+
+```{r}
+
+
+
+
+pg_dump_table <- function(t_name,folder){
+  
+  # -O required to negate ownership
+  
+  f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
+  tbl <- paste0('msyt_',year,'.',t_name)
+  
+  q1 <- paste0("-d ",
+               database,
+               " -O",
+                " -t ",
+                tbl,
+               " -f ",
+               f_out )
+  
+  system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
+  print(q1)
+  
+}
+
+dump_to_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
+
+# pg_dump
+pg_dump_table('pspl_intersected',dump_to_folder)
+
+# CSV dump
+# required to e superuse to doa copy
+
+q1 <- "copy msyt_2022.pspl_intersected to 'D:/data/data_projects/AR2022/pspl_intersected.csv' csv header"
+
+dbExecute(con,q1)
+
+
+
+```
