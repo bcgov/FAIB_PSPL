@@ -24,6 +24,7 @@ year <- '2022'
 library(sf)
 library(terra)
 library(RPostgreSQL)
+library(tidyverse)
 
 # set up for load to PostgreSQL
 schema <- paste0('msyt_',year)
@@ -35,7 +36,7 @@ con <- dbConnect('PostgreSQL',dbname=database,user=user_name,options=opt)
 
 # read Provincial fid tif
 fn1 <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/vri_raster.tif')
-raster_fid <- rast(fn1)
+raster_fid <- terra::rast(fn1)
 
 
 # this is where the unzipped files are placed locally
@@ -49,20 +50,7 @@ num_gdb = length(f_list)  #number of files to process
 ```
 
 
-```{r size_based, eval = FALSE}
 
-dir_size <- function(path, recursive = TRUE) {
-  stopifnot(is.character(path))
-  files <- list.files(path, full.names = T, recursive = recursive)
-  vect_size <- sapply(files, function(x) file.size(x))
-  size_files <- sum(vect_size)
-  size_files
-}
-
-f1 <- paste0(local_pspl_folder,'/Site_Prod_Cassiar.gdb')
-cat(dir_size(f1)/10**6, "MB")
-
-```
 
 ## process each gdb 
 
@@ -80,21 +68,13 @@ rast_intersect <- function(r,pf,n){
   # pf = PSPL point set
   # n = counter
   
-  #rast_intersect(raster_fid,fname,n)
-  r <- raster_fid
-  pf <- f_list[7]
-  n = 7
+  #r <- raster_fid
+  #pf <- f_list[1]
+  #n = 1
   
   t_name <- tools::file_path_sans_ext(basename(pf))
   
-  # select where there is at least one NOT NULL si value
-  sel_query1 <- paste0('select  at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si from ',t_name,' where (at_si is not null or ba_si is not null or bg_si is not null or bl_si is not null or cw_si is not null or dr_si is not null or ep_si is not null or fd_si is not null or hm_si is not null or hw_si is not null or lt_si is not null or lw_si is not null or pa_si is not null or pl_si is not null or pw_si is not null or py_si is not null or sb_si is not null or se_si is not null or ss_si is not null or sw_si is not null or sx_si is not null or yc_si is not null)')
-  
-  sel_query2 <- paste0('select at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si from ',t_name,' where (at_si > 0 or ba_si > 0 or bg_si > 0 or bl_si > 0 or cw_si > 0 or dr_si > 0 or ep_si > 0 or fd_si > 0 or hm_si > 0 or hw_si > 0 or lt_si > 0 or lw_si > 0 or pa_si > 0 or pl_si > 0 or pw_si > 0 or py_si > 0 or sb_si > 0 or se_si > 0 or ss_si > 0 or sw_si > 0 or sx_si > 0 or yc_si > 0)')
-  
-  # select only the si columns
-  sel_query3 <- paste0('select  at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si from ',t_name)
-  
+
   # read the point file
   #point_set <- vect(pf)
   
@@ -102,18 +82,17 @@ rast_intersect <- function(r,pf,n){
   
   # Note that terre vect(pf) treats NULL values as zero 
   # could possibly use si > 0 as query 
-  point_set <- vect(sf::st_read(pf,query = sel_query1 ))
+  point_set <- vect(pf)
+  #point_set <- vect(sf::st_read(pf))
   
   
-  # lower case the names
-  #names(point_set) <- c("id_tag","at_si","ba_si","bg_si","bl_si","cw_si","dr_si","ep_si","fd_si","hm_si","hw_si","lt_si","lw_si","pa_si","pl_si","pw_si","py_si","sb_si","se_si","ss_si","sw_si","sx_si","yc_si","bapid","pem_spp","bgc_label","tsa_number")
   
-  # number points i pspl
+  # number points in pspl
   n_points <- nrow(point_set)
 
 
   # add id to point data
-  point_set$pspl_id <- seq(1:nrow(point_set))
+  #point_set$pspl_id <- seq(1:nrow(point_set))
 
 
   #crop raster to point extent + 51
@@ -131,7 +110,7 @@ rast_intersect <- function(r,pf,n){
   
   
   # extract the raster data at the x,y of the points
-  x <- extract(cropped_raster,point_set)
+  x <- terra::extract(cropped_raster,point_set)
 
   # drop the geometry by changing to data frame
   point_set <- as.data.frame(point_set)
@@ -151,25 +130,28 @@ rast_intersect <- function(r,pf,n){
   # but this has to be a named vector
   # handle the conversion in SQL
   
-  point_set[, 1:22] <- round(point_set[, 1:22], digits = 1)
-
+  point_set[, 2:23] <- round(point_set[, 2:23], digits = 1)
   
-  # add a table number to allow tracking
-  #point_set$tab_no <- n
+  # add unit number
+  point_set$unit_no <- n
   
-  # at this point can drop anything with a NULL feature_id
-  # or can do this as first step in SQL
+  # change 0 to null
+  point_set[point_set == 0] <- NA
   
-
-  # export to csv, append if exists
-  #fn3 <- paste0(substr(getwd(),1,1),':/Data/data_projects/PSPL_2021/data/csv/csv',n,'.csv')
-  #data.table::fwrite(p,fn3,sep=',',append=FALSE)
+  # lower case the name
+  names(point_set) <- tolower(names(point_set))
+  
+  # drop NULL rows
+  x <- point_set %>% subset(is.na(at_si) & is.na(ba_si) & is.na(bg_si) & is.na(bl_si) & is.na(cw_si) & is.na(dr_si) & is.na(ep_si) & is.na(fd_si) & is.na(hm_si) & is.na(hw_si) & is.na(lt_si) & is.na(lw_si) & is.na(pa_si) & is.na(pl_si) & is.na(pw_si) & is.na(py_si) & is.na(sb_si) & is.na(se_si) & is.na(ss_si) & is.na(sw_si) & is.na(sx_si) & is.na(yc_si)) %>% select(id_tag)
+  
+  point_set <- point_set %>% subset(!id_tag %in% x$id_tag)
+  
   
   # load to PostgreSQL
   if (n ==1) {
-    dbWriteTable(con,'pspl_intersected',point_set,row.names=FALSE,overwrite=TRUE)
+    dbWriteTable(con,'pspl_intersected2',point_set,row.names=FALSE,overwrite=TRUE)
   } else {
-    dbWriteTable(con,'pspl_intersected',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
+    dbWriteTable(con,'pspl_intersected2',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
   }
   
   

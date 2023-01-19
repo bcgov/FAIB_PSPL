@@ -1,8 +1,12 @@
 ## VRI raster intersect with PSPL points
 
+Requires 32GB RAM
+
+-   fails on Fort nelson with 8GB
+
 Assumes that PSPL GDBs are already copied and unzipped
 
-Start: 2022-09-07 10:13:05
+Start: 2023-01-18 10:31:45
 
     year <- '2022'
 
@@ -18,6 +22,22 @@ Start: 2022-09-07 10:13:05
 
     ## Loading required package: DBI
 
+    library(tidyverse)
+
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
+
+    ## v ggplot2 3.3.5     v purrr   0.3.4
+    ## v tibble  3.1.8     v dplyr   1.0.8
+    ## v tidyr   1.2.0     v stringr 1.4.0
+    ## v readr   2.1.2     v forcats 0.5.1
+
+    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+    ## x ggplot2::arrow() masks terra::arrow()
+    ## x tidyr::extract() masks terra::extract()
+    ## x dplyr::filter()  masks stats::filter()
+    ## x dplyr::lag()     masks stats::lag()
+    ## x dplyr::src()     masks terra::src()
+
     # set up for load to PostgreSQL
     schema <- paste0('msyt_',year)
     opt <- paste0("-c search_path=",schema)
@@ -28,7 +48,7 @@ Start: 2022-09-07 10:13:05
 
     # read Provincial fid tif
     fn1 <- paste0(substr(getwd(),1,1),':/data/data_projects/AR2022/PSPL/vri_raster.tif')
-    raster_fid <- rast(fn1)
+    raster_fid <- terra::rast(fn1)
 
 
     # this is where the unzipped files are placed locally
@@ -45,7 +65,7 @@ Start: 2022-09-07 10:13:05
 -   extract feature id from the raster using extract
 -   join to the point attribute data
 -   crop the PROV raster at the extent of each GDB + 51m
--   export to PostgreSQL table: pspl\_raw
+-   export to PostgreSQL table: pspl\_intersected
 
 <!-- -->
 
@@ -55,19 +75,31 @@ Start: 2022-09-07 10:13:05
       # pf = PSPL point set
       # n = counter
       
+      #r <- raster_fid
+      #pf <- f_list[1]
+      #n = 1
+      
+      t_name <- tools::file_path_sans_ext(basename(pf))
+      
+
       # read the point file
+      #point_set <- vect(pf)
+      
+      #point_set <- vect(pf,query = sel_query2)
+      
+      # Note that terre vect(pf) treats NULL values as zero 
+      # could possibly use si > 0 as query 
       point_set <- vect(pf)
+      #point_set <- vect(sf::st_read(pf))
       
       
-      # lower case the names
-      names(point_set) <- c("id_tag","at_si","ba_si","bg_si","bl_si","cw_si","dr_si","ep_si","fd_si","hm_si","hw_si","lt_si","lw_si","pa_si","pl_si","pw_si","py_si","sb_si","se_si","ss_si","sw_si","sx_si","yc_si","bapid","pem_spp","bgc_label","tsa_number")
       
-      # number points i pspl
+      # number points in pspl
       n_points <- nrow(point_set)
 
 
       # add id to point data
-      point_set$pspl_id <- seq(1:nrow(point_set))
+      #point_set$pspl_id <- seq(1:nrow(point_set))
 
 
       #crop raster to point extent + 51
@@ -85,14 +117,14 @@ Start: 2022-09-07 10:13:05
       
       
       # extract the raster data at the x,y of the points
-      x <- extract(cropped_raster,point_set)
+      x <- terra::extract(cropped_raster,point_set)
 
       # drop the geometry by changing to data frame
       point_set <- as.data.frame(point_set)
 
 
       # join raster data feature_id
-      point_set$feature_id <- x[,"feature_id"]
+      point_set$feature_id <- as.integer(x[,"feature_id"])
 
       
       
@@ -106,24 +138,27 @@ Start: 2022-09-07 10:13:05
       # handle the conversion in SQL
       
       point_set[, 2:23] <- round(point_set[, 2:23], digits = 1)
-
       
-      # add a table number to allow tracking
-      point_set$tab_no <- n
+      # add unit number
+      point_set$unit_no <- n
       
-      # at this point can drop anything with a NULL feature_id
-      # or can do this as first step in SQL
+      # change 0 to null
+      point_set[point_set == 0] <- NA
       
-
-      # export to csv, append if exists
-      #fn3 <- paste0(substr(getwd(),1,1),':/Data/data_projects/PSPL_2021/data/csv/csv',n,'.csv')
-      #data.table::fwrite(p,fn3,sep=',',append=FALSE)
+      # lower case the name
+      names(point_set) <- tolower(names(point_set))
+      
+      # drop NULL rows
+      x <- point_set %>% subset(is.na(at_si) & is.na(ba_si) & is.na(bg_si) & is.na(bl_si) & is.na(cw_si) & is.na(dr_si) & is.na(ep_si) & is.na(fd_si) & is.na(hm_si) & is.na(hw_si) & is.na(lt_si) & is.na(lw_si) & is.na(pa_si) & is.na(pl_si) & is.na(pw_si) & is.na(py_si) & is.na(sb_si) & is.na(se_si) & is.na(ss_si) & is.na(sw_si) & is.na(sx_si) & is.na(yc_si)) %>% select(id_tag)
+      
+      point_set <- point_set %>% subset(!id_tag %in% x$id_tag)
+      
       
       # load to PostgreSQL
       if (n ==1) {
-        dbWriteTable(con,'pspl_intersected',point_set,row.names=FALSE,overwrite=TRUE)
+        dbWriteTable(con,'pspl_intersected2',point_set,row.names=FALSE,overwrite=TRUE)
       } else {
-        dbWriteTable(con,'pspl_intersected',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
+        dbWriteTable(con,'pspl_intersected2',point_set,row.names=FALSE,overwrite=FALSE,append = TRUE)
       }
       
       
@@ -160,6 +195,13 @@ Start: 2022-09-07 10:13:05
 
     library(kableExtra)
 
+    ## 
+    ## Attaching package: 'kableExtra'
+
+    ## The following object is masked from 'package:dplyr':
+    ## 
+    ##     group_rows
+
     kable(report,format="markdown") %>%
     kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
@@ -183,187 +225,187 @@ Start: 2022-09-07 10:13:05
 </tr>
 <tr class="even">
 <td style="text-align: left;">1181106</td>
-<td style="text-align: left;">1181106</td>
+<td style="text-align: left;">1160754</td>
 <td style="text-align: left;">1</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1158840</td>
-<td style="text-align: left;">1158840</td>
+<td style="text-align: left;">1116480</td>
 <td style="text-align: left;">2</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1397598</td>
-<td style="text-align: left;">1397598</td>
+<td style="text-align: left;">1288985</td>
 <td style="text-align: left;">3</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">627848</td>
-<td style="text-align: left;">627848</td>
+<td style="text-align: left;">620797</td>
 <td style="text-align: left;">4</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">706549</td>
-<td style="text-align: left;">706549</td>
+<td style="text-align: left;">659512</td>
 <td style="text-align: left;">5</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">235530</td>
-<td style="text-align: left;">235530</td>
+<td style="text-align: left;">199285</td>
 <td style="text-align: left;">6</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">11584979</td>
-<td style="text-align: left;">11584979</td>
+<td style="text-align: left;">3698716</td>
 <td style="text-align: left;">7</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1163296</td>
-<td style="text-align: left;">1163296</td>
+<td style="text-align: left;">1111499</td>
 <td style="text-align: left;">8</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2886578</td>
-<td style="text-align: left;">2886578</td>
+<td style="text-align: left;">2781834</td>
 <td style="text-align: left;">9</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">8137232</td>
-<td style="text-align: left;">8137232</td>
+<td style="text-align: left;">6797838</td>
 <td style="text-align: left;">10</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">4575950</td>
-<td style="text-align: left;">4575950</td>
+<td style="text-align: left;">4083303</td>
 <td style="text-align: left;">11</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1277207</td>
-<td style="text-align: left;">1277207</td>
+<td style="text-align: left;">906451</td>
 <td style="text-align: left;">12</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">897676</td>
-<td style="text-align: left;">897676</td>
+<td style="text-align: left;">719288</td>
 <td style="text-align: left;">13</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3915758</td>
-<td style="text-align: left;">3915758</td>
+<td style="text-align: left;">3142989</td>
 <td style="text-align: left;">14</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">974722</td>
-<td style="text-align: left;">974722</td>
+<td style="text-align: left;">781318</td>
 <td style="text-align: left;">15</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1018812</td>
-<td style="text-align: left;">1018812</td>
+<td style="text-align: left;">949453</td>
 <td style="text-align: left;">16</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">960109</td>
-<td style="text-align: left;">960109</td>
+<td style="text-align: left;">790370</td>
 <td style="text-align: left;">17</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">564902</td>
-<td style="text-align: left;">564902</td>
+<td style="text-align: left;">410945</td>
 <td style="text-align: left;">18</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2464966</td>
-<td style="text-align: left;">2464966</td>
+<td style="text-align: left;">2289122</td>
 <td style="text-align: left;">19</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">970338</td>
-<td style="text-align: left;">970338</td>
+<td style="text-align: left;">912794</td>
 <td style="text-align: left;">20</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1066597</td>
-<td style="text-align: left;">1066597</td>
+<td style="text-align: left;">935854</td>
 <td style="text-align: left;">21</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1377731</td>
-<td style="text-align: left;">1377731</td>
+<td style="text-align: left;">1346762</td>
 <td style="text-align: left;">22</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">836864</td>
-<td style="text-align: left;">836864</td>
+<td style="text-align: left;">719550</td>
 <td style="text-align: left;">23</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">5408180</td>
-<td style="text-align: left;">5408180</td>
+<td style="text-align: left;">3233514</td>
 <td style="text-align: left;">24</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">1112873</td>
-<td style="text-align: left;">1112873</td>
+<td style="text-align: left;">1067346</td>
 <td style="text-align: left;">25</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1300445</td>
-<td style="text-align: left;">1300445</td>
+<td style="text-align: left;">1235066</td>
 <td style="text-align: left;">26</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">842986</td>
-<td style="text-align: left;">842986</td>
+<td style="text-align: left;">638000</td>
 <td style="text-align: left;">27</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1385525</td>
-<td style="text-align: left;">1385525</td>
+<td style="text-align: left;">1265909</td>
 <td style="text-align: left;">28</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2281523</td>
-<td style="text-align: left;">2281523</td>
+<td style="text-align: left;">2153611</td>
 <td style="text-align: left;">29</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">518560</td>
-<td style="text-align: left;">518560</td>
+<td style="text-align: left;">376936</td>
 <td style="text-align: left;">30</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">7507664</td>
-<td style="text-align: left;">7507664</td>
+<td style="text-align: left;">7043866</td>
 <td style="text-align: left;">31</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">1964607</td>
-<td style="text-align: left;">1964607</td>
+<td style="text-align: left;">1951201</td>
 <td style="text-align: left;">32</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">506172</td>
-<td style="text-align: left;">506172</td>
+<td style="text-align: left;">470103</td>
 <td style="text-align: left;">33</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">756254</td>
-<td style="text-align: left;">756254</td>
+<td style="text-align: left;">717652</td>
 <td style="text-align: left;">34</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">585414</td>
-<td style="text-align: left;">585414</td>
+<td style="text-align: left;">439837</td>
 <td style="text-align: left;">35</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">849903</td>
-<td style="text-align: left;">849903</td>
+<td style="text-align: left;">699062</td>
 <td style="text-align: left;">36</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">4153662</td>
-<td style="text-align: left;">4153662</td>
+<td style="text-align: left;">4048763</td>
 <td style="text-align: left;">37</td>
 </tr>
 </tbody>
@@ -384,13 +426,17 @@ Start: 2022-09-07 10:13:05
                    " -f ",
                    f_out )
       
-      #system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
+      system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
       print(q1)
       
     }
 
     dump_to_folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/')
     pg_dump_table('pspl_intersected',dump_to_folder)
+
+    ## Warning in system2("pg_dump", args = q1, stderr = TRUE, wait = TRUE): running
+    ## command '"pg_dump" -d msyt -O -t msyt_2022.pspl_intersected -f D:/data/
+    ## data_projects/AR2022/PSPL/si_data/msyt_2022_pspl_intersected.sql' had status 1
 
     ## [1] "-d msyt -O -t msyt_2022.pspl_intersected -f D:/data/data_projects/AR2022/PSPL/si_data/msyt_2022_pspl_intersected.sql"
 
@@ -400,4 +446,4 @@ Start: 2022-09-07 10:13:05
 
 Table 1. PSPL Summary
 
-End: 2022-09-07 11:19:15
+End: 2023-01-18 11:29:47
