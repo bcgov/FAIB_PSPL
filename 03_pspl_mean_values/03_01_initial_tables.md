@@ -33,7 +33,7 @@ calculation. It is also important to check that 0 is not substituted for
 a NULL. This can happen inadvertently when using a DUCK Typed language
 such as R.
 
-Start: 2023-01-03 17:25:47
+Start: 2023-01-19 15:34:18
 
 ### Initialize PostgreSQL Connection
 
@@ -103,7 +103,10 @@ This contains the entire Provincial set of PSPL points
     -- create id as unique
 
     -- use NULLIF to change 0 si values to NULL
-    -- required so AVG() ignores the 0 values 
+    -- required so AVG() ignores the NULL values 
+
+    -- this is redundant as the intersection process should have set NULLs properly
+    --  keep just in case
 
     create table pspl_init_t as 
     select 
@@ -133,8 +136,8 @@ This contains the entire Provincial set of PSPL points
         NULLIF(yc_si,0) as yc_si
         --trim(substring(bgc_label,1,4)) as bec_zone,
         --trim(substring(bgc_label,5,3)) as bec_subzone
-    from pspl_intersected 
-    where feature_id is not NULL;
+    from pspl_intersected ;
+    --where feature_id is not NULL;
 
     select now() as "end init";
 
@@ -147,28 +150,28 @@ This contains the entire Provincial set of PSPL points
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">2023-01-03 17:25:48</td>
+<td style="text-align: left;">2023-01-19 15:34:19</td>
 </tr>
 </tbody>
 </table>
 
 1 records
 
-Initial Table: 2023-01-03 17:28:21
+Initial Table: 2023-01-19 15:36:06
 
 ### Index the intial table
 
      
     create index m_idx_sr2 on pspl_init_t(feature_id);
 
-Index: 2023-01-03 17:30:05
+Index: 2023-01-19 15:37:18
 
     tbl <- paste0(schema,'.pspl_init_t')
     db_vac(tbl)
 
     ## character(0)
 
-Vacuum Analyze: 2023-01-03 17:30:38
+Vacuum Analyze: 2023-01-19 15:37:55
 
 ## Create pre convert table
 
@@ -232,14 +235,14 @@ The VRI has BEC assigned by largest BEC within opening.
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">2023-01-03 17:30:38</td>
+<td style="text-align: left;">2023-01-19 15:37:55</td>
 </tr>
 </tbody>
 </table>
 
 1 records
 
-Pspl Init: 2023-01-03 17:34:54
+Pspl Init: 2023-01-19 15:41:47
 
 ### generate feature\_id mean values using SQL
 
@@ -252,7 +255,7 @@ mean values.
 
 Processing note:
 
-This process requires tuning on 8GB or less processor
+This process requires 8GB
 
 ERROR: out of memory DETAIL: Failed on request of size 848 in memory
 context “Caller tuples”. CONTEXT: parallel worker
@@ -303,7 +306,7 @@ Cast final values to Numeric(5,1)
 
     select count (*) as n from pspl_site_index_mean_fid;
 
-Mean si FID: 2023-01-03 17:42:43
+Mean si FID: 2023-01-19 15:47:39
 
 ### generate BEC mean values
 
@@ -346,7 +349,7 @@ Note that this uses the BEC 12 assigned BEC updated in VRI
 
     select count(*) as n from pspl_site_index_mean_bec;
 
-BEC Mean si: 2023-01-03 17:45:11
+BEC Mean si: 2023-01-19 15:48:24
 
 -   original values from PSPL are numeric(n,1)
 -   values in PostreSQL are double
@@ -355,4 +358,4 @@ BEC Mean si: 2023-01-03 17:45:11
 
     dbDisconnect(con)
 
-End: 2023-01-03 17:45:11
+End: 2023-01-19 15:48:24

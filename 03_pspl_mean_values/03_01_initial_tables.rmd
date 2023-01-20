@@ -1,7 +1,7 @@
 ---
 title: "Generate Initial PSPL tables"
 author: "dwaddell"
-date: '2022-12-15'
+date: '2023_01_19'
 output: md_document
 ---
 
@@ -116,7 +116,10 @@ select now() as "start create pspl raw initialze";
 -- create id as unique
 
 -- use NULLIF to change 0 si values to NULL
--- required so AVG() ignores the 0 values 
+-- required so AVG() ignores the NULL values 
+
+-- this is redundant as the intersection process should have set NULLs properly
+--  keep just in case
 
 create table pspl_init_t as 
 select 
@@ -146,8 +149,8 @@ select
 	NULLIF(yc_si,0) as yc_si
 	--trim(substring(bgc_label,1,4)) as bec_zone,
 	--trim(substring(bgc_label,5,3)) as bec_subzone
-from pspl_intersected 
-where feature_id is not NULL;
+from pspl_intersected ;
+--where feature_id is not NULL;
 
 select now() as "end init";
 
@@ -255,7 +258,7 @@ Take the original PSPL data by pid and generate the feature_id based mean values
 
 Processing note:
 
-This process requires tuning on 8GB or less processor
+This process requires 8GB
 
 ERROR:  out of memory
 DETAIL:  Failed on request of size 848 in memory context "Caller tuples".
