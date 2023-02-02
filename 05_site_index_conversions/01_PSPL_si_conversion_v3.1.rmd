@@ -8,13 +8,13 @@ output: html_document
 
 ## Version testing
 
-2022.dec.13
+2023.feb.01
 
-Version 3.0
+Version 3.1
 
 Fixes:  
 
-- do spruce sx as seperate function
+- do spruce sx as separate function
 - split the missing and not missing from fid convert
 
 
@@ -116,7 +116,7 @@ assign_missing <- function(d){
 
 call_si_conversion <- function(inp,tag) {
   
-	# cast to table
+	# cast to data.table
   dt <- setDT(inp)
   
   # ************************************
@@ -334,58 +334,28 @@ avg_BEC_data <- left_join(avg_BEC_data,species)
 
 
 
-df_base <- avg_BEC_data
 
-#df <- avg_BEC_data
+avg_BEC_data$id <- 1:nrow(avg_BEC_data)
 
-df_base$id <- 1:nrow(df_base)
-
-df_base <- assign_missing(df_base)
+avg_BEC_data <- assign_missing(avg_BEC_data)
 
 # split into those with missing and those without
-df <- df_base %>% subset(missing != '') 
-df_base <- df_base %>% subset(!id %in% df$id)
+df_missing <- avg_BEC_data %>% subset(missing != '') 
+avg_BEC_data <- avg_BEC_data %>% subset(!id %in% df_missing$id)
   
- 
 
-df <- call_si_conversion(df,0)
-
-
-df <- assign_missing(df)
+# run the si conversion
+df_missing <- call_si_conversion(df_missing,0)
 
 
-#x1 <- df %>% subset(missing != '')
+df_missing <- assign_missing(df_missing)
 
-# Force balsam BA Bg swap
-# Lw Lt swap
 
-#df$missing <- ':Ba:Bg:Bl:Lt'
-#df <- call_si_conversion(df)
 
 # back together
-avg_BEC_data <- rbind(df_base,df)
-#avg_BEC_data$missing <- ':Ba:Bg:Bl:Lt'
-#avg_BEC_data <- call_si_conversion(avg_BEC_data)
-#avg_BEC_data$missing <- ''
+avg_BEC_data <- rbind(avg_BEC_data,df_missing)
 
-#x <- assign_missing(avg_BEC_data)
-#x <- x %>% subset(missing != '')
-# write the data
-#file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_bec.csv')
-#fwrite(avg_BEC_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
-
-
-#tbl_name <- paste0('pspl_site_index_bec')
-
-
-# pre delete table
-#if(dbExistsTable(con,tbl_name)) {
-#  dbRemoveTable(con,tbl_name)
-#}
-
-
-# write to table
-#dbWriteTable(con,tbl_name,avg_BEC_data,row.names = FALSE)
+avg_BEC_data <- assign_missing(avg_BEC_data)
 
 
 ```
@@ -403,43 +373,38 @@ mean value data
 ```{r  si_convert_init,echo=FALSE,message=FALSE,warning=FALSE}
 
 
-# read avg_op_data: table = pspl_site_index_mean_op
+
 # this is the mean value feature_id data
-
-#q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_mean_op')
 q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_mean_fid')
-
-
 si_data <- dbGetQuery(con,q1)
 
-
-#species <- dbGetQuery(con,"select opening_id,array_to_string(species,',') as species ,b.bec_zone,b.bec_subzone from species_list_op a left join veg_bec_op b using(opening_id)")
-#species <- dbGetQuery(con,"select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_current_fid")
 species <- dbGetQuery(con,"select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid")
 
-
-
-#si_data <- left_join(species,si_data,by='opening_id')
 si_data <- left_join(species,si_data,by='feature_id')
 
-#avg_data <- avg_data %>% subset(!is.na(species))
+si_data$src <- 'pspl'
 
-# required to assing the missing
-# si conversion only applis where there are missing values
+
+# required to assign the missing
+# si conversion only applies where there are missing values
 si_data <- assign_missing(si_data)
 
+# split
 
+fix_si <- si_data %>% subset(missing != '') 
+si_data <- si_data %>% subset(!feature_id %in% fix_si$feature_id)
 
+fix_si <- call_si_conversion(fix_si,0)
 
+fix_si <- assign_missing(fix_si)
+fix_si$src <- 'convert0'
 
+# put the fixed back 
+si_data <- rbind(si_data,fix_si[fix_si$missing == '',])
 
-#avg_data <- avg_data %>% subset(missing != '')  # %>% subset(bec_zone != 'IMA')
+fix_si <- fix_si %>% subset(missing != '')
 
-si_data <- call_si_conversion(si_data,0)
-
-si_data <- assign_missing(si_data)
-
-c1 <- count(si_data,missing) %>% arrange(desc(n))
+c1 <- count(fix_si,missing) %>% arrange(desc(n))
 c1 <- head(c1,4)
 
 
@@ -459,11 +424,19 @@ Table 1. Initial missing species site index
 
 ```{r si_convert_step2,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
-si_data <- bec_conversions(si_data)
+fix_si <- bec_conversions(fix_si)
   
-si_data <- assign_missing(si_data)
+fix_si <- assign_missing(fix_si)
 
-c1 <- count(si_data,missing) %>% arrange(desc(n))
+fix_si$src <- 'bec_convert'
+
+# put the fixed back 
+si_data <- rbind(si_data,fix_si[fix_si$missing == '',])
+
+fix_si <- fix_si %>% subset(missing != '')
+
+c1 <- count(fix_si,missing) %>% arrange(desc(n))
+
 kablep(c1)
 
 ```
@@ -475,11 +448,22 @@ Table 2. After BEC substitutions
 ```{r si_convert_step3,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
 # run the conversions again to fill in the final missing site index values
-si_data <- call_si_conversion(si_data,1)
+fix_si <- call_si_conversion(fix_si,1)
 
-si_data <- assign_missing(si_data)
+fix_si <- assign_missing(fix_si)
+fix_si$src <- 'convert1'
 
-c1 <- count(si_data,missing) %>% arrange(desc(n))
+si_data <- rbind(si_data,fix_si[fix_si$missing == '',])
+
+fix_si <- fix_si %>% subset(missing != '')
+
+fix_si$src <- 'missing'
+
+c1 <- count(fix_si,bec_zone,bec_subzone) %>% arrange(desc(n))
+
+
+
+#c1 <- count(si_data,missing) %>% arrange(desc(n))
  
 kablep(c1)
 
@@ -487,15 +471,11 @@ kablep(c1)
 
 Table 3. Final missing
 
-```{r write,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+```{r write,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
-
-# add src
-
-avg_fid_data$si_src <- 'PSPL'
 
 # write the data
-file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_fid.csv')
+#file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_fid.csv')
 #fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
@@ -508,7 +488,12 @@ if(dbExistsTable(con,tbl_name)) {
 
 # write to table
 
-dbWriteTable(con,tbl_name,avg_fid_data,row.names = FALSE)
+dbWriteTable(con,tbl_name,si_data,row.names = FALSE,overwrite=TRUE)
+
+# append the missing
+
+dbWriteTable(con,tbl_name,fix_si,row.names = FALSE,overwrite=FALSE,append=TRUE)
+
 
 ```
 
@@ -518,7 +503,7 @@ dbWriteTable(con,tbl_name,avg_fid_data,row.names = FALSE)
 
 
 
-```{r dump_table, echo=FALSE,message=FALSE,warning=FALSE}
+```{r dump_table, eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
 
 pg_dump <- function(t_name,folder){
   
@@ -569,6 +554,29 @@ pg_dump(table,folder)
 
 
 ```{r discon, echo=FALSE,message=FALSE,warning=FALSE}
+
+# final report
+
+q1 <- dbGetQuery(con,'select count(*),src from pspl_site_index_fid group by 2')
+
+q1$ord <- case_when(
+  q1$src =='pspl' ~ 1,
+  q1$src == 'convert0' ~ 2,
+  q1$src == 'bec_convert' ~ 3,
+  q1$src == 'convert1' ~ 4,
+  q1$src == 'missing'  ~ 5
+)
+
+q1 <- q1 %>% arrange(ord) %>% select(ord,src,count)
+
+q1$pct <- as.integer(q1$count/sum(q1$count) * 100)
+
+q1 <- rbind(q1,data.frame('ord' = '','src' = 'Total','count' = sum(q1$count),'pct' = ''))
+
+
+
+kablep(q1)
+
 
 z <- dbDisconnect(con)
 
