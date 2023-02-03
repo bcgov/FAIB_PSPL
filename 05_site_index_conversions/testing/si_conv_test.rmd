@@ -5,38 +5,90 @@ date: '2022-05-26'
 output: html_document
 ---
 
+
+# test for table lookup
+
+
 ```{r}
 
+
+year <- '2022'
+
+library(RPostgreSQL)
+library(tidyverse)
+library(data.table)
+library(ggplot2)
+library(kableExtra)
+
+# set up for schema and user
+schema <- 'msyt_2022'
+opt <- paste0("-c search_path=",schema)
+user_name <- 'results'
+database <- 'msyt'
+con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
+
+
+
+
+```
+
+
+```{r create_data,eval = FALSE}
+
 # base data
-fn <- 'C:/Data/data_projects/pspl_2022/si_data/pspl_fid_site_index_pre_convert.csv'
+# extracted from : copy pspl_site_index_mean_fid to 'c:/data/temp/pspl_site_index_mean_fid.csv' csv header;
+fn <- 'C:/Data/temp/pspl_site_index_mean_fid.csv'
 
 # read 2022 data (unconverted)
 si_data <- data.table::fread(fn,sep=',')
 
 # subset 
 #si_data <- si_data[is.na(fd_si)]
-si_data <- head(si_data,n=1000)
+si_data <- sample_n(si_data,20)
 
 
-# keep only certain columns
-keep <- c("feature_id","at_si","ba_si","bg_si","bl_si","cw_si","dr_si","ep_si","fd_si","hm_si","hw_si","lt_si","lw_si","pa_si","pl_si","pw_si","py_si","sb_si","se_si","ss_si" ,"sw_si","sx_si","yc_si","bec_zone","bec_subzone") 
-si_data <- si_data[, keep, with = FALSE]
+si_data$bec_zone <- 'ESSF'
+si_data$bec_subzone <- 'mk'
 
-#si_data <- si_data[si_data$feature_id == 1834957 | si_data$feature_id==1835249]
+# random set Coast
 
-#si_data <- si_data[feature_id %in% c(1810859,2029893,2032739,2055201,18099674)]
+r <- sample_n(si_data,5)
+r$bec_zone <- 'CDF'
+
+si_data <- rbind(si_data,r)
+
+data.table::fwrite(si_data,'c:/data/temp/test_si_data.csv',sep=',',row.names = FALSE)
+
+```
+
+
+```{r }
+
+
+fn <- paste0(getwd(),'/test_si_data.csv')
+
+# read 2022 data (unconverted)
+si_data <- data.table::fread(fn,sep=',')
+
+
+fid <- si_data$feature_id
+
+q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
+species <- dbGetQuery(con,q1)
+
+si_data <- left_join(si_data,species,by='feature_id')
 
 # all si values NA need to be zero
 si_data[is.na(si_data)] <- 0
 
 
-names(si_data) <- c("feature_id","at","ba","bg","bl","cw","dr","ep","fd","hm","hw","lt","lw","pa","pl","pw","py","sb","se","ss" ,"sw","sx","yc","bec_zone" ,"bec_subzone")
+names(si_data) <- c("id","feature_id","at","ba","bg","bl","cw","dr","ep","fd","hm","hw","lt","lw","pa","pl","pw","py","sb","se","ss" ,"sw","sx","yc","species","bec_zone" ,"bec_subzone")
 
 #names(si_data) <- c("feature_id","at","ba","bl","cw","fd","hw","lw","pl","sb","se","ss" ,"sw","sx","bec_zone" ) 
 
-si_data[, c_i:= 'I'][bec_zone %in% c('CDF','CWH','MH'), c_i:='C']
+#si_data[, c_i:= 'I'][bec_zone %in% c('CDF','CWH','MH'), c_i:='C']
 
-si_data$si <- 0
+
 
 
 
@@ -51,8 +103,6 @@ fnc2 <- paste0(getwd(),'/conversion_coefficients_1_1.txt')
 coef_1_1 <- data.table::fread(fnc2,sep=',')
 
 
-
-library(tidyverse)
 library(kableExtra)
 
 kable(coef,format="html",caption = 'Table of species site index conversion coefficients') %>%
@@ -67,13 +117,66 @@ kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,positio
 
 ```{r}
 
+
+
+# function to derive where species do no have a site index
+assign_missing <- function(d){
+  
+  # d <- si_data
+  
+  d <- setDT(d)
+  
+  # set NA to 0 
+  d[is.na(d)] <- 0
+  
+  # convert 3 char species to 2 char
+  # Cwc,Fdc,Hwc
+  d$species <- gsub('Cwc','Cw',d$species)
+  d$species <- gsub('Cwi','Cw',d$species)
+  d$species <- gsub('Fdc','Fd',d$species)
+  d$species <- gsub('Fdi','Fd',d$species)
+  d$species <- gsub('Hwc','Hw',d$species)
+  d$species <- gsub('Hwi','Hw',d$species)
+  
+  d$missing <- ''
+  
+  d$missing <- case_when(
+    grepl('At',d$species) & d$at == 0 ~ 'At',
+    TRUE ~ ''
+  )
+  
+  sp <- c('Ba','Bg','Bl','Cw','Dr','Ep','Fd','Hm','Hw','Lt','Lw','Pa','Pl','Pw','Py','Sb','Se','Ss','Sw','Yc')
+  
+  # use the at_si column as reference
+  n <- which(colnames(d)=='at')
+  #n <- 3
+  for (s in sp) {
+    
+    n <- n + 1
+    d$missing <- case_when(
+      grepl(s,d$species) & d[,n] == 0 ~ paste0(d$missing,':',s),
+      TRUE ~ paste0(d$missing,'')
+    )
+    
+  }
+  
+  return(d)
+  
+}
+
+
 # function to look up coefficients based on the species that has a zero for site index
 # feed it the data table that is a subset of the species
+# this looks up the column that holds the data
 
 update_site_index <- function(df,sp) {
   
   # df is the data table
   # sp is the species to be converted
+  
+  # dummy column for updating single species site index
+  # we are passing by column reference
+  df$dummy_si <- 0
   
   # subset for only the species in question
   cx <- coef[coef$s1 == sp,]
@@ -81,7 +184,7 @@ update_site_index <- function(df,sp) {
   #  loop over the set of coefficients that are available for the species that has a 0 site index
   for (i in 1:nrow(cx)){
     x <- cx[i,]
-    df[get(x$s2) > 0 & si == 0,si := x$b0 + ( x$b1* get(x$s2))]
+    df[get(x$s2) > 0 ,dummy_si := x$b0 + ( x$b1* get(x$s2))]
   }
   
   # pass back the site index values
@@ -95,8 +198,13 @@ update_site_index <- function(df,sp) {
 
 # function to look up coefficients based on the species that has a zero for site index
 # feed it the data table that is a subset of the species
+# this looks up the column that holds the data
 
 update_site_index_1_1 <- function(df,sp) {
+  
+  # dummy column for updating single species site index
+  # we are passing by column reference
+  df$dummy_si <- 0
   
   # df is the data table
   # sp is the species to be converted
@@ -104,14 +212,17 @@ update_site_index_1_1 <- function(df,sp) {
   # subset for only the species in question
   cx <- coef_1_1[coef_1_1$s1 == sp,]
 
-  #  loop over the set of coefficients that are available for the species that has a 0 site index
+  # loop over the set of coefficients that are available for the species that has a 0 site index
+  # grab the replacement data from the column name
   for (i in 1:nrow(cx)){
     x <- cx[i,]
-    df[get(x$s2) > 0 & si == 0,si := get(x$s2)]
+    #df[get(x$s2) > 0 & si == 0,si := get(x$s2)]
+    df[get(x$s2) > 0,dummy_si := get(x$s2)]
+    
   }
   
-  # pass back the site index values
-  return(df$si)
+  # pass back the site index values from the dummy column as a vector
+  return(df$dummy_si)
   
 }
 
@@ -125,6 +236,17 @@ update_site_index_1_1 <- function(df,sp) {
 # universal update for sw = sx & ss = sx
 # does a one to one translation
 # coded in the coefficient table as s1 = sz
+
+
+
+si_data <- assign_missing(si_data)
+
+# split
+
+# those that require fixing
+fix_si <- si_data %>% subset(missing != '') 
+
+
 
 si_data$sw[which(si_data$sw==0) ] <- update_site_index_1_1(si_data[which(si_data$sw==0 )],'sw')
 si_data$se[which(si_data$se==0) ] <- update_site_index_1_1(si_data[which(si_data$se==0 )],'se')
@@ -160,6 +282,10 @@ si_data$sw[which(si_data$sw==0)] <- update_site_index(si_data[which(si_data$sw==
 
 # notes 
 # Sx off
+
+
+
+isTRUE(all.equal(si_data,c1))
 
 
 
