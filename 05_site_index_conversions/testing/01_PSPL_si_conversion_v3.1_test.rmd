@@ -321,49 +321,6 @@ return(inp)
 ### run SI conversion 
 
 
-- run SI conversion on BEC based si 
-
-This has to be run first as any missing values in fid or opening use this table
-
-```{r bec_si_convert, echo=FALSE,message=FALSE,warning=FALSE}
-
-# read avg_BEC_data: table = psql_bec_site_index_pre_convert
-q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_mean_bec')
-avg_BEC_data <- dbGetQuery(con,q1)
-
-# get species that are assigned from RESULTS
-# can be a combination of Planted and Natural
-species <- dbGetQuery(con,"select bec_zone,bec_subzone,array_to_string(species,',') as species from species_list_bec_agg")
-
-# join species to BEC
-avg_BEC_data <- left_join(avg_BEC_data,species)
-
-# add an id column
-avg_BEC_data$id <- 1:nrow(avg_BEC_data)
-
-avg_BEC_data <- assign_missing(avg_BEC_data)
-
-# split into those with missing and those without
-df_missing <- avg_BEC_data %>% subset(missing != '') 
-avg_BEC_data <- avg_BEC_data %>% subset(!id %in% df_missing$id)
-  
-
-# run the si conversion for those with missing
-df_missing <- spruce_conversion(df_missing)
-df_missing <- base_si_conversion(df_missing)
-
-
-#df_missing <- assign_missing(df_missing)
-
-
-
-# back together
-avg_BEC_data <- rbind(avg_BEC_data,df_missing)
-
-avg_BEC_data <- assign_missing(avg_BEC_data)
-
-
-```
 
 
 
@@ -379,15 +336,22 @@ mean value data
 
 
 
-# this is the mean value feature_id data
-q1 <- paste0('select *  from msyt_',year,'.pspl_site_index_mean_fid')
-si_data <- dbGetQuery(con,q1)
 
-species <- dbGetQuery(con,"select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid")
+fn <- paste0(getwd(),'/test_si_data.csv')
 
-si_data <- left_join(species,si_data,by='feature_id')
+# read 2022 data (unconverted)
+si_data <- data.table::fread(fn,sep=',')
 
-si_data$src <- 'pspl'
+fid <- si_data$feature_id
+
+
+q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
+species <- dbGetQuery(con,q1)
+
+si_data <- left_join(si_data,species,by='feature_id')
+
+
+si_data[is.na(si_data)] <- 0
 
 
 # required to assign the missing
@@ -396,10 +360,15 @@ si_data <- assign_missing(si_data)
 
 # split
 
+# those that require fixing
 fix_si <- si_data %>% subset(missing != '') 
-si_data <- si_data %>% subset(!feature_id %in% fix_si$feature_id)
+
 
 fix_si <- spruce_conversion(fix_si)
+
+d1 <- fix_si %>% select(feature_id,at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si, yc_si)
+
+data.table::fwrite(d1,'t1.csv')
 
 fix_si <- assign_missing(fix_si)
 
