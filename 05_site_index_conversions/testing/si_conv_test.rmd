@@ -1,12 +1,15 @@
 ---
 title: "Test SI Conversion"
 author: "dwaddell"
-date: '2022-05-26'
 output: html_document
 ---
 
 
 # test for table lookup
+
+2023_feb_06
+
+
 
 
 ```{r}
@@ -25,9 +28,13 @@ schema <- 'msyt_2022'
 opt <- paste0("-c search_path=",schema)
 user_name <- 'results'
 database <- 'msyt'
-con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
+#con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 
 
+kablep <- function (x) {
+  kable(x) %>%
+  kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+}
 
 
 ```
@@ -64,26 +71,6 @@ data.table::fwrite(si_data,'c:/data/temp/test_si_data.csv',sep=',',row.names = F
 
 ```{r }
 
-
-fn <- paste0(getwd(),'/test_si_data.csv')
-
-# read 2022 data (unconverted)
-si_data <- data.table::fread(fn,sep=',')
-
-
-fid <- si_data$feature_id
-
-q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
-species <- dbGetQuery(con,q1)
-
-si_data <- left_join(si_data,species,by='feature_id')
-
-# all si values NA need to be zero
-si_data[is.na(si_data)] <- 0
-
-
-names(si_data) <- c("id","feature_id","at","ba","bg","bl","cw","dr","ep","fd","hm","hw","lt","lw","pa","pl","pw","py","sb","se","ss" ,"sw","sx","yc","species","bec_zone" ,"bec_subzone")
-
 #names(si_data) <- c("feature_id","at","ba","bl","cw","fd","hw","lw","pl","sb","se","ss" ,"sw","sx","bec_zone" ) 
 
 #si_data[, c_i:= 'I'][bec_zone %in% c('CDF','CWH','MH'), c_i:='C']
@@ -103,10 +90,10 @@ fnc2 <- paste0(getwd(),'/conversion_coefficients_1_1.txt')
 coef_1_1 <- data.table::fread(fnc2,sep=',')
 
 
-library(kableExtra)
 
-kable(coef,format="html",caption = 'Table of species site index conversion coefficients') %>%
-kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+
+#kable(coef,format="html",caption = 'Table of species site index conversion coefficients') %>%
+#kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
 ```
 
@@ -122,9 +109,8 @@ kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,positio
 # function to derive where species do no have a site index
 assign_missing <- function(d){
   
-  # d <- si_data
-  
-  d <- setDT(d)
+  # force as data frame to be able to use column locaiton
+  setDT(d)
   
   # set NA to 0 
   d[is.na(d)] <- 0
@@ -154,7 +140,7 @@ assign_missing <- function(d){
     
     n <- n + 1
     d$missing <- case_when(
-      grepl(s,d$species) & d[,n] == 0 ~ paste0(d$missing,':',s),
+      grepl(s,d$species) & d[,..n] == 0 ~ paste0(d$missing,':',s),
       TRUE ~ paste0(d$missing,'')
     )
     
@@ -174,21 +160,32 @@ update_site_index <- function(df,sp) {
   # df is the data table
   # sp is the species to be converted
   
+  setDT(df)
+  
   # dummy column for updating single species site index
   # we are passing by column reference
   df$dummy_si <- 0
   
   # subset for only the species in question
   cx <- coef[coef$s1 == sp,]
+  
+  # sort for cw, fd, hw
+  #if (df$bec_zone %in% c('CDF','CWH','MH') & sp %in% c('cw','fd','hw')){ 
+  #    cx <- cx %>% subset(l0 =='c')
+  #} else {
+  #      cx <- cx %>% subset(l0 == '') 
+  #    }
+  
 
   #  loop over the set of coefficients that are available for the species that has a 0 site index
   for (i in 1:nrow(cx)){
     x <- cx[i,]
-    df[get(x$s2) > 0 ,dummy_si := x$b0 + ( x$b1* get(x$s2))]
+    df[get(x$s2) > 0 & dummy_si == 0 ,dummy_si := x$b0 + ( x$b1* get(x$s2))]
   }
   
+  
   # pass back the site index values
-  return(df$si)
+  return(df$dummy_si)
   
 }
 
@@ -202,6 +199,7 @@ update_site_index <- function(df,sp) {
 
 update_site_index_1_1 <- function(df,sp) {
   
+  setDT(df)
   # dummy column for updating single species site index
   # we are passing by column reference
   df$dummy_si <- 0
@@ -222,6 +220,7 @@ update_site_index_1_1 <- function(df,sp) {
   }
   
   # pass back the site index values from the dummy column as a vector
+
   return(df$dummy_si)
   
 }
@@ -231,7 +230,7 @@ update_site_index_1_1 <- function(df,sp) {
 
 
 
-```{r eval = FALSE}
+```{r }
 
 # universal update for sw = sx & ss = sx
 # does a one to one translation
@@ -239,51 +238,133 @@ update_site_index_1_1 <- function(df,sp) {
 
 
 
+fn <- paste0(getwd(),'/test_si_data.csv')
+fn2 <- paste0(getwd(),'/test_species_data.csv')
+
+# read 2022 data (unconverted)
+si_data <- data.table::fread(fn,sep=',')
+
+fid <- si_data$feature_id
+
+#q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
+#species <- dbGetQuery(con,q1)
+
+species <- data.table::fread(fn2,sep=',')
+
+si_data <- left_join(si_data,species,by='feature_id')
+
+# all si values NA need to be zero
+si_data[is.na(si_data)] <- 0
+
+si_data$bec_zone <- 'ESSF'
+si_data$bec_subzone <- 'mk'
+
+si_data$bec_zone[si_data$id> 20] <- 'CDF'
+
+
+
+names(si_data) <- c("id","feature_id","at","ba","bg","bl","cw","dr","ep","fd","hm","hw","lt","lw","pa","pl","pw","py","sb","se","ss" ,"sw","sx","yc","species","bec_zone" ,"bec_subzone")
+
+
+
 si_data <- assign_missing(si_data)
+
+si_data$src <- 'pspl'
 
 # split
 
 # those that require fixing
 fix_si <- si_data %>% subset(missing != '') 
+# those that are good
+si_data <- si_data %>% subset(!missing != '') 
+
+fix_si$src <- 'spruce_conv'
+
+fix_si$sw[which(fix_si$sw==0) ] <- update_site_index_1_1(fix_si[which(fix_si$sw==0 )],'sw')
+fix_si$se[which(fix_si$se==0) ] <- update_site_index_1_1(fix_si[which(fix_si$se==0 )],'se')
+
+#fix_si <- spruce_conversion(fix_si)
+fix_si <- assign_missing(fix_si)
+
+# put those that are fixed back into base
+si_data <- rbind(si_data,fix_si[fix_si$missing=='',])
+
+# those that require fixing
+fix_si <- fix_si %>% subset(missing != '')
+
+fix_si$src <- 'base1'
+
+#x1 <- fix_si[fix_si$id == 1,]
+#x1 <- rbind(x1,x1,x1)
+#x1$at <- 0
+#x1$pl <- 0
+#x1$sw <- 0
+#x1$id <- c(1,2,3)
+#x1$pl[x1$id %in% c(1,3)] <- 1
+#x1$sw[x1$id %in% c(2,3)] <- 1
+#
+#x1$at<- update_site_index(x1,'at')
 
 
 
-si_data$sw[which(si_data$sw==0) ] <- update_site_index_1_1(si_data[which(si_data$sw==0 )],'sw')
-si_data$se[which(si_data$se==0) ] <- update_site_index_1_1(si_data[which(si_data$se==0 )],'se')
 
-
-
-si_data$at[which(si_data$at==0)] <- update_site_index(si_data[which(si_data$at==0)],'at')
-si_data$ba[which(si_data$ba==0)] <- update_site_index(si_data[which(si_data$ba==0)],'ba')
+fix_si$at[which(fix_si$at==0 & grepl('At',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$at==0 & grepl('At',fix_si$missing))],'at')
+fix_si$ba[which(fix_si$ba==0 & grepl('Ba',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$ba==0) & grepl('Ba',fix_si$missing) ],'ba')
 
 # there are no coefficients for Bg
-#si_data$bg[which(si_data$bg==0)] <- update_site_index(si_data[which(si_data$bg==0)],'bg')
+#fix_si$bg[which(fix_si$bg==0)] <- update_site_index(fix_si[which(fix_si$bg==0)],'bg')
 
 # bl is assumed to be interior
-si_data$bl[which(si_data$bl==0)] <- update_site_index(si_data[which(si_data$bl==0)],'bl')
+fix_si$bl[which(fix_si$bl==0  & grepl('Bl',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$bl==0  & grepl('Bl',fix_si$missing) )],'bl')
 
-# cwc
-si_data$cw[which(si_data$cw==0 & si_data$c_i =='C')] <- update_site_index(si_data[which(si_data$cw==0 & si_data$c_i =='C')],'cwc')
+# cw
+fix_si$cw[which(fix_si$cw==0 & !fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Cw',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$cw==0 & !fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Cw',fix_si$missing) )],'cw')
+
+fix_si$cw[which(fix_si$cw==0 & fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Cw',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$cw==0 & fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Cw',fix_si$missing) )],'cwc')
+
+x1 <- fix_si[fix_si$id == 1]
+x1$fd[which(x1$fd==0 & !x1$bec_zone %in% c('CDF','CWH','MH')  & grepl('Fd',x1$missing) )] <- update_site_index(x1[which(x1$fd==0 & !x1$bec_zone %in% c('CDF','CWH','MH')  & grepl('Fd',x1$missing) )],'fd')
+
+#fd
+fix_si$fd[which(fix_si$fd==0 & !fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Fd',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$fd==0 & !fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Fd',fix_si$missing) )],'fd')
+fix_si$fd[which(fix_si$fd==0 & fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Fd',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$fd==0 & fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Fd',fix_si$missing) )],'fdc')
+
+#hw
+fix_si$hw[which(fix_si$hw==0 & !fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Hw',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$hw==0 & !fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Hw',fix_si$missing) )],'hw')
+fix_si$hw[which(fix_si$hw==0 & fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Hw',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$hw==0 & fix_si$bec_zone %in% c('CDF','CWH','MH')  & grepl('Hw',fix_si$missing) )],'hwc')
 
 
+fix_si$lw[which(fix_si$lw==0  & grepl('Lw',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$lw==0  & grepl('Lw',fix_si$missing) )],'lw')
+fix_si$pl[which(fix_si$pl==0  & grepl('Pl',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$pl==0  & grepl('Pl',fix_si$missing) )],'pl')
+fix_si$sb[which(fix_si$sb==0  & grepl('Sb',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$sb==0  & grepl('Sb',fix_si$missing) )],'sb')
 
-si_data$fd[which(si_data$fd==0 & si_data$c_i =='C')] <- update_site_index(si_data[which(si_data$fd==0 & si_data$c_i =='C')],'fdc')
-si_data$fd[which(si_data$fd==0 & si_data$c_i =='I')] <- update_site_index(si_data[which(si_data$fd==0 & si_data$c_i =='I')],'fdi')
-
-si_data$hw[which(si_data$hw==0 & si_data$c_i =='C')] <- update_site_index(si_data[which(si_data$hw==0 & si_data$c_i =='C')],'hwc')
-si_data$hw[which(si_data$hw==0 & si_data$c_i =='I')] <- update_site_index(si_data[which(si_data$hw==0 & si_data$c_i =='I')],'hwi')
-
-si_data$lw[which(si_data$lw==0)] <- update_site_index(si_data[which(si_data$lw==0)],'lw')
-si_data$pl[which(si_data$pl==0)] <- update_site_index(si_data[which(si_data$pl==0)],'pl')
-si_data$sb[which(si_data$sb==0)] <- update_site_index(si_data[which(si_data$sb==0)],'sb')
-
-si_data$ss[which(si_data$ss==0)] <- update_site_index(si_data[which(si_data$ss==0)],'ss')
-si_data$sw[which(si_data$sw==0)] <- update_site_index(si_data[which(si_data$sw==0)],'sw')
+fix_si$ss[which(fix_si$ss==0  & grepl('Ss',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$ss==0  & grepl('Ss',fix_si$missing) )],'ss')
+fix_si$sw[which(fix_si$sw==0  & grepl('Sw',fix_si$missing) )] <- update_site_index(fix_si[which(fix_si$sw==0  & grepl('Sw',fix_si$missing) )],'sw')
 
 # notes 
 # Sx off
 
+fix_si <- assign_missing(fix_si)
 
+si_data <- rbind(si_data,fix_si)
+
+#convert to numeric 1
+  si_data <- si_data %>% mutate_if(is.numeric, round, digits=1)
+
+
+c1 <- count(si_data,src)
+c1 <- head(c1,4)
+
+si_data <- si_data %>% select(feature_id,at,ba,bg,bl,cw,dr,ep,fd,hm,hw,lt,lw,pa,pl,pw,py,sb,se,ss,sw,sx,yc,src) %>% arrange(feature_id)
+
+data.table::fwrite(si_data,'v2_t1.csv')
+
+kablep(c1)
+
+```
+
+
+```{r eval=FALSE}
 
 isTRUE(all.equal(si_data,c1))
 
