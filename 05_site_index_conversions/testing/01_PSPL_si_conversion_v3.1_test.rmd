@@ -6,9 +6,9 @@ output: html_document
 
 # PSPL Method 2022   
 
-## Version testing
+## Version testing  V1
 
-2023.feb.03
+2023.feb.06
 
 Version 3.1
 
@@ -113,9 +113,9 @@ assign_missing <- function(d){
 }
 
 # Sw, Se, Ss from Sx conversions based on BEC
-spruce_conversion <- function(inp){
+spruce_conversion <- function(dt){
   # cast to data.table
-  dt <- setDT(inp)
+  setDT(dt)
   
   # ************************************
   # Fix Sx: Sw, Se and Ss from Sx based on BEC
@@ -127,12 +127,12 @@ spruce_conversion <- function(inp){
   
     dt$se_si <- case_when(
       dt$bec_zone == 'ESSF' & dt$sx_si != 0 ~ dt$sx_si,
-      TRUE ~ inp$se_si
+      TRUE ~ dt$se_si
     )
   
-    inp$ss_si <- case_when(
+    dt$ss_si <- case_when(
       dt$bec_zone %in% c('CDF','CWH','MH') & dt$sx_si != 0 ~ dt$sx_si,
-      TRUE ~ inp$ss_si
+      TRUE ~ dt$ss_si
     )
     
     #### Spruce  swap Se Sw Sx
@@ -160,10 +160,10 @@ spruce_conversion <- function(inp){
 
 
 
-base_si_conversion <- function(inp) {
+base_si_conversion <- function(dt) {
   
 	# cast to data.table
-  dt <- setDT(inp)
+  setDT(dt)
   
 	
 	# sp <- At 'Ba','Bg','Bl','Cw','Dr','Ep','Fd','Hm','Hw','Lt','Lw','Pa','Pl','Pw','Py','Sb','Se','Ss','Sw','Yc')
@@ -338,15 +338,19 @@ mean value data
 
 
 fn <- paste0(getwd(),'/test_si_data.csv')
+fn2 <- paste0(getwd(),'/test_species_data.csv')
 
 # read 2022 data (unconverted)
 si_data <- data.table::fread(fn,sep=',')
 
-fid <- si_data$feature_id
+#fid <- si_data$feature_id
 
 
-q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
-species <- dbGetQuery(con,q1)
+#q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
+#species <- dbGetQuery(con,q1)
+#data.table::fwrite(species,fn2,sep=',')
+
+species <- data.table::fread(fn2,sep=',')
 
 si_data <- left_join(si_data,species,by='feature_id')
 
@@ -354,46 +358,54 @@ si_data <- left_join(si_data,species,by='feature_id')
 si_data[is.na(si_data)] <- 0
 
 
+
+si_data$bec_zone <- 'ESSF'
+si_data$bec_subzone <- 'mk'
+
+si_data$bec_zone[si_data$id> 20] <- 'CDF'
+
+
 # required to assign the missing
 # si conversion only applies where there are missing values
 si_data <- assign_missing(si_data)
+
+si_data$src <- 'pspl'
 
 # split
 
 # those that require fixing
 fix_si <- si_data %>% subset(missing != '') 
+# those that are good
+si_data <- si_data %>% subset(!missing != '') 
 
-
+fix_si$src <- 'spruce_conv'
 fix_si <- spruce_conversion(fix_si)
-
-d1 <- fix_si %>% select(feature_id,at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si, yc_si)
-
-data.table::fwrite(d1,'t1.csv')
-
 fix_si <- assign_missing(fix_si)
 
-spruce_fixed <- fix_si[fix_si$missing =='',]
+# put those that are fixed back into base
+si_data <- rbind(si_data,fix_si[fix_si$missing=='',])
 
-spruce_fixed$src <- 'spruce_fix'
-# put the fixed back 
-si_data <- rbind(si_data,spruce_fixed)
+# those that require fixing
+fix_si <- fix_si %>% subset(missing != '') 
 
-# take out spruce fixed
-fix_si <- fix_si[fix_si$missing != '',]
 
+
+fix_si$src <- 'base1'
 fix_si <- base_si_conversion(fix_si)
-
 fix_si <- assign_missing(fix_si)
-fix_si$src <- 'convert0'
 
-# put the fixed back 
-si_data <- rbind(si_data,fix_si[fix_si$missing == '',])
 
-# take out the fixed
-fix_si <- fix_si %>% subset(missing != '')
 
-c1 <- count(fix_si,missing) %>% arrange(desc(n))
+si_data <- rbind(si_data,fix_si)
+
+
+
+c1 <- count(si_data,src)
 c1 <- head(c1,4)
+
+si_data <- si_data %>% select(feature_id,at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si,src) %>% arrange(feature_id)
+
+data.table::fwrite(si_data,'v1_t1.csv')
 
 
 kablep(c1)
@@ -408,7 +420,7 @@ Table 1. Initial missing species site index
 
 `r format(Sys.time(),"%c")`
 
-```{r si_convert_step2,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
+```{r si_convert_step2,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
 
 # for those still missing species site index
 # use the bec based averages
@@ -434,7 +446,7 @@ Table 2. After BEC substitutions
 
 `r format(Sys.time(),"%c")`
 
-```{r si_convert_step3,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
+```{r si_convert_step3,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
 
 # run the conversions again to fill in the final missing site index values
 fix_si <- base_si_conversion(fix_si)
@@ -460,7 +472,7 @@ kablep(c1)
 
 Table 3. Final missing
 
-```{r write,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
+```{r write,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
 
 
 # write the data
@@ -468,20 +480,24 @@ Table 3. Final missing
 #fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
 
-tbl_name <- paste0('pspl_site_index_fid')
+tbl_name <- paste0('pspl_site_index_fid_t1')
+
+# write to csv
+
+data.table::fwrite(fix_si,tbl_name,sep=',')
 
 # pre delete table
-if(dbExistsTable(con,tbl_name)) {
-  dbRemoveTable(con,tbl_name)
-}
+#if(dbExistsTable(con,tbl_name)) {
+#  dbRemoveTable(con,tbl_name)
+#}
 
 # write to table
 
-dbWriteTable(con,tbl_name,si_data,row.names = FALSE,overwrite=TRUE)
+#dbWriteTable(con,tbl_name,si_data,row.names = FALSE,overwrite=TRUE)
 
 # append the missing
 
-dbWriteTable(con,tbl_name,fix_si,row.names = FALSE,overwrite=FALSE,append=TRUE)
+#dbWriteTable(con,tbl_name,fix_si,row.names = FALSE,overwrite=FALSE,append=TRUE)
 
 
 ```
@@ -492,57 +508,9 @@ dbWriteTable(con,tbl_name,fix_si,row.names = FALSE,overwrite=FALSE,append=TRUE)
 
 
 
-```{r dump_table, eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
-
-pg_dump <- function(t_name,folder){
-  
-  # -O required to negate ownership
-  
-  f_out <- paste0(folder,'msyt_',year,'_',t_name,'.sql')
-  tbl <- paste0('msyt_',year,'.',t_name)
-  
-  q1 <- paste0("-d ",
-               database,
-               " -O",
-                " -t ",
-                tbl,
-               " -f ",
-               f_out )
-  
-  system2("pg_dump",args=q1,stderr=TRUE,wait=TRUE)
-  #print(q1)
-}
-
-```
 
 
-```{r dump,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
-
-folder <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/pg_dump/')
-
-table <- 'pspl_site_index_bec'
-pg_dump(table,folder)
-
-table <- 'pspl_site_index_fid'
-pg_dump(table,folder)
-
-table <- 'pspl_site_index_op'
-pg_dump(table,folder)
-
-
-
-
-# drop the foreign table
-
-#q1 <- paste0('drop foreign table load_',year,'.veg_comp_lyr_r1_poly')
-#dbExecute(con,q1)
-
-```
-
-
-
-
-```{r discon, echo=FALSE,message=FALSE,warning=FALSE}
+```{r discon, eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
 
 # final report
 
@@ -570,6 +538,9 @@ q1 <- rbind(q1,data.frame('src' = 'Total','n' = sum(q1$n),'pct' = ''))
 
 kablep(q1)
 
+```
+
+```{r}
 
 z <- dbDisconnect(con)
 
