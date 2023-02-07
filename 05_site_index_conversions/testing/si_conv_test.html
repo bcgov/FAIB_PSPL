@@ -844,6 +844,7 @@ fix_si$src &lt;- &#39;spruce_conv&#39;
 
 fix_si$sw[which(fix_si$sw==0) ] &lt;- update_site_index_1_1(fix_si[which(fix_si$sw==0 )],&#39;sw&#39;)
 fix_si$se[which(fix_si$se==0) ] &lt;- update_site_index_1_1(fix_si[which(fix_si$se==0 )],&#39;se&#39;)
+fix_si$ss[which(fix_si$ss==0 &amp; fix_si$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;))] &lt;- update_site_index_1_1(fix_si[which(fix_si$ss==0 &amp; fix_si$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;))],&#39;ss&#39;)
 
 #fix_si &lt;- spruce_conversion(fix_si)
 fix_si &lt;- assign_missing(fix_si)
@@ -867,8 +868,7 @@ fix_si$src &lt;- &#39;base1&#39;
 #
 #x1$at&lt;- update_site_index(x1,&#39;at&#39;)
 
-# At  
-#dt$at_si[which(dt$at_si==0 &amp; grepl(&#39;At&#39;,dt$missing))] &lt;- convert_at_si(dt[which(dt$at_si==0 &amp; grepl(&#39;At&#39;,dt$missing))])
+
 
 
 fix_si$at[which(fix_si$at==0 &amp; grepl(&#39;At&#39;,fix_si$missing) )] &lt;- update_site_index(fix_si[which(fix_si$at==0 &amp; grepl(&#39;At&#39;,fix_si$missing))],&#39;at&#39;)
@@ -885,6 +885,8 @@ fix_si$cw[which(fix_si$cw==0 &amp; !fix_si$bec_zone %in% c(&#39;CDF&#39;,&#39;CW
 
 fix_si$cw[which(fix_si$cw==0 &amp; fix_si$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;)  &amp; grepl(&#39;Cw&#39;,fix_si$missing) )] &lt;- update_site_index(fix_si[which(fix_si$cw==0 &amp; fix_si$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;)  &amp; grepl(&#39;Cw&#39;,fix_si$missing) )],&#39;cwc&#39;)
 
+x1 &lt;- fix_si[fix_si$id == 1]
+x1$fd[which(x1$fd==0 &amp; !x1$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;)  &amp; grepl(&#39;Fd&#39;,x1$missing) )] &lt;- update_site_index(x1[which(x1$fd==0 &amp; !x1$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;)  &amp; grepl(&#39;Fd&#39;,x1$missing) )],&#39;fd&#39;)
 
 #fd
 fix_si$fd[which(fix_si$fd==0 &amp; !fix_si$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;)  &amp; grepl(&#39;Fd&#39;,fix_si$missing) )] &lt;- update_site_index(fix_si[which(fix_si$fd==0 &amp; !fix_si$bec_zone %in% c(&#39;CDF&#39;,&#39;CWH&#39;,&#39;MH&#39;)  &amp; grepl(&#39;Fd&#39;,fix_si$missing) )],&#39;fd&#39;)

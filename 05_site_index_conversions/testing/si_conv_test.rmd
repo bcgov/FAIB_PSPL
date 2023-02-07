@@ -14,21 +14,8 @@ output: html_document
 
 ```{r}
 
-
-year <- '2022'
-
-library(RPostgreSQL)
 library(tidyverse)
 library(data.table)
-library(ggplot2)
-library(kableExtra)
-
-# set up for schema and user
-schema <- 'msyt_2022'
-opt <- paste0("-c search_path=",schema)
-user_name <- 'results'
-database <- 'msyt'
-#con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
 
 
 kablep <- function (x) {
@@ -40,42 +27,10 @@ kablep <- function (x) {
 ```
 
 
-```{r create_data,eval = FALSE}
-
-# base data
-# extracted from : copy pspl_site_index_mean_fid to 'c:/data/temp/pspl_site_index_mean_fid.csv' csv header;
-fn <- 'C:/Data/temp/pspl_site_index_mean_fid.csv'
-
-# read 2022 data (unconverted)
-si_data <- data.table::fread(fn,sep=',')
-
-# subset 
-#si_data <- si_data[is.na(fd_si)]
-si_data <- sample_n(si_data,20)
 
 
-si_data$bec_zone <- 'ESSF'
-si_data$bec_subzone <- 'mk'
 
-# random set Coast
-
-r <- sample_n(si_data,5)
-r$bec_zone <- 'CDF'
-
-si_data <- rbind(si_data,r)
-
-data.table::fwrite(si_data,'c:/data/temp/test_si_data.csv',sep=',',row.names = FALSE)
-
-```
-
-
-```{r }
-
-#names(si_data) <- c("feature_id","at","ba","bl","cw","fd","hw","lw","pl","sb","se","ss" ,"sw","sx","bec_zone" ) 
-
-#si_data[, c_i:= 'I'][bec_zone %in% c('CDF','CWH','MH'), c_i:='C']
-
-
+```{r read_coef}
 
 
 
@@ -89,11 +44,6 @@ coef <- data.table::fread(fnc,sep=',')
 fnc2 <- paste0(getwd(),'/conversion_coefficients_1_1.txt')
 coef_1_1 <- data.table::fread(fnc2,sep=',')
 
-
-
-
-#kable(coef,format="html",caption = 'Table of species site index conversion coefficients') %>%
-#kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
 
 ```
 
@@ -238,20 +188,12 @@ update_site_index_1_1 <- function(df,sp) {
 
 
 
-fn <- paste0(getwd(),'/test_si_data.csv')
-fn2 <- paste0(getwd(),'/test_species_data.csv')
+fn <- paste0(getwd(),'/pspl_sample_data.csv')
 
 # read 2022 data (unconverted)
 si_data <- data.table::fread(fn,sep=',')
 
-fid <- si_data$feature_id
 
-#q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
-#species <- dbGetQuery(con,q1)
-
-species <- data.table::fread(fn2,sep=',')
-
-si_data <- left_join(si_data,species,by='feature_id')
 
 # all si values NA need to be zero
 si_data[is.na(si_data)] <- 0
@@ -259,11 +201,11 @@ si_data[is.na(si_data)] <- 0
 si_data$bec_zone <- 'ESSF'
 si_data$bec_subzone <- 'mk'
 
-si_data$bec_zone[si_data$id> 20] <- 'CDF'
+#si_data$bec_zone[si_data$id> 20] <- 'CDF'
 
 
 
-names(si_data) <- c("id","feature_id","at","ba","bg","bl","cw","dr","ep","fd","hm","hw","lt","lw","pa","pl","pw","py","sb","se","ss" ,"sw","sx","yc","species","bec_zone" ,"bec_subzone")
+names(si_data) <- c("feature_id","at","ba","bg","bl","cw","dr","ep","fd","hm","hw","lt","lw","pa","pl","pw","py","sb","se","ss" ,"sw","sx","yc","species","bec_zone" ,"bec_subzone")
 
 
 
@@ -282,6 +224,7 @@ fix_si$src <- 'spruce_conv'
 
 fix_si$sw[which(fix_si$sw==0) ] <- update_site_index_1_1(fix_si[which(fix_si$sw==0 )],'sw')
 fix_si$se[which(fix_si$se==0) ] <- update_site_index_1_1(fix_si[which(fix_si$se==0 )],'se')
+fix_si$ss[which(fix_si$ss==0 & fix_si$bec_zone %in% c('CDF','CWH','MH'))] <- update_site_index_1_1(fix_si[which(fix_si$ss==0 & fix_si$bec_zone %in% c('CDF','CWH','MH'))],'ss')
 
 #fix_si <- spruce_conversion(fix_si)
 fix_si <- assign_missing(fix_si)
@@ -293,17 +236,6 @@ si_data <- rbind(si_data,fix_si[fix_si$missing=='',])
 fix_si <- fix_si %>% subset(missing != '')
 
 fix_si$src <- 'base1'
-
-#x1 <- fix_si[fix_si$id == 1,]
-#x1 <- rbind(x1,x1,x1)
-#x1$at <- 0
-#x1$pl <- 0
-#x1$sw <- 0
-#x1$id <- c(1,2,3)
-#x1$pl[x1$id %in% c(1,3)] <- 1
-#x1$sw[x1$id %in% c(2,3)] <- 1
-#
-#x1$at<- update_site_index(x1,'at')
 
 
 
@@ -349,13 +281,20 @@ fix_si <- assign_missing(fix_si)
 si_data <- rbind(si_data,fix_si)
 
 #convert to numeric 1
-  si_data <- si_data %>% mutate_if(is.numeric, round, digits=1)
+si_data <- si_data %>% mutate_if(is.numeric, round, digits=1)
+
+
 
 
 c1 <- count(si_data,src)
 c1 <- head(c1,4)
 
 si_data <- si_data %>% select(feature_id,at,ba,bg,bl,cw,dr,ep,fd,hm,hw,lt,lw,pa,pl,pw,py,sb,se,ss,sw,sx,yc,src) %>% arrange(feature_id)
+
+si_sum <- colSums(si_data[,1:23])
+si_sum[1] <- 99
+si_sum <- si_sum %>% mutate_if(is.numeric, round, digits=1)
+
 
 data.table::fwrite(si_data,'v2_t1.csv')
 

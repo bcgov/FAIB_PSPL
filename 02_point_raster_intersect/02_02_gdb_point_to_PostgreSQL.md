@@ -5,7 +5,7 @@ Compare 2 methods
 -   gdal\_utils.vectortranslate
 -   use GDAL OGR2OGR (installed)
 
-Start: 2023-01-19 07:24:04
+Start: 2023-02-07 07:47:28
 
     year <- '2022'
 
@@ -122,7 +122,7 @@ Change to client that matches your PostreSQL version.
     for(f in f_list){
           
       a <- gdal_utils_gdb_load(f,n)
-      b <- ogr_load(f,n)
+      #b <- ogr_load(f,n)
       
       n <- n + 1
           
@@ -132,4 +132,4 @@ Change to client that matches your PostreSQL version.
 
     ## [1] TRUE
 
-End: 2023-01-19 08:17:06
+End: 2023-02-07 08:18:17

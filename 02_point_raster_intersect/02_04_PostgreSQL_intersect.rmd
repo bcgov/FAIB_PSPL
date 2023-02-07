@@ -9,9 +9,11 @@ output: md_document
 
 
 Assumes veg_comp_spatial exists.  
-assumes that the PSPL points have been loaded: unit 1.. unit n
+assumes that the PSPL points have been loaded: unit 1.. unit n  
 
+## Table Created
 
+- pspl_intersected
 
 
 Start: `r Sys.time()`
