@@ -1,0 +1,59 @@
+---
+title: "SI Data Extract"
+author: "D. Waddell"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+
+Create random sample of PSPL mean data.  
+
+For comparing the 3 si conversion methods.
+
+
+```{r create_data,eval = TRUE}
+
+library(tidyverse)
+library(RPostgreSQL)
+
+
+
+year <- '2022'
+
+library(RPostgreSQL)
+library(tidyverse)
+library(data.table)
+
+
+# set up for schema and user
+schema <- 'msyt_2022'
+opt <- paste0("-c search_path=",schema)
+user_name <- 'results'
+database <- 'msyt'
+con <- dbConnect('PostgreSQL',dbname='msyt',user=user_name,options=opt)
+
+
+# base data
+# extracted from : copy pspl_site_index_mean_fid to 'D:/data/data_projects/AR2022/PSPL/si_data/pspl_site_index_mean_fid.csv' csv header;
+fn <- 'D:/data/data_projects/AR2022/PSPL/si_data/pspl_site_index_mean_fid.csv'
+
+# read 2022 data (unconverted)
+si_data <- data.table::fread(fn,sep=',')
+
+si_data <- sample_n(si_data,1000,replace=FALSE)
+
+fid <- si_data$feature_id
+
+
+q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
+species <- dbGetQuery(con,q1)
+
+
+si_data <- left_join(si_data,species,by='feature_id')
+
+
+si_data <- si_data %>% subset(!is.na(bec_zone))
+
+data.table::fwrite(si_data,'D:/data/GitManagedProjects/FAIB_PSPL/05_site_index_conversions/testing/pspl_sample_data.csv',sep=',')
+
+```

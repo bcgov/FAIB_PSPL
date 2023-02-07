@@ -8,7 +8,7 @@ output: html_document
 
 ## Version testing  V1
 
-2023.feb.06
+2023.feb.07
 
 Version 3.1
 
@@ -195,19 +195,19 @@ base_si_conversion <- function(dt) {
 	
 	
 	# Lw
-	dt$lw_si[which(dt$lw_si==0)] <- convert_lw_si(dt[which(dt$lw_si==0)])
+	dt$lw_si[which(dt$lw_si==0 & grepl('Lw',dt$missing))] <- convert_lw_si(dt[which(dt$lw_si==0 & grepl('Lw',dt$missing))])
 	
 	# Pl
-	dt$pl_si[which(dt$pl_si==0)] <- convert_pl_si(dt[which(dt$pl_si==0)])
+	dt$pl_si[which(dt$pl_si==0 & grepl('Pl',dt$missing))] <- convert_pl_si(dt[which(dt$pl_si==0 & grepl('Pl',dt$missing))])
 	
 	# Sb
-	dt$sb_si[which(dt$sb_si==0)] <- convert_sb_si(dt[which(dt$sb_si==0)])
+	dt$sb_si[which(dt$sb_si==0 & grepl('Sb',dt$missing))] <- convert_sb_si(dt[which(dt$sb_si==0 & grepl('Sb',dt$missing))])
 	
 	# Ss (coastal)
-	dt$ss_si[which(dt$ss_si==0)] <- convert_ss_si(dt[which(dt$ss_si==0)])
+	dt$ss_si[which(dt$ss_si==0 & grepl('Ss',dt$missing))] <- convert_ss_si(dt[which(dt$ss_si==0 & grepl('Ss',dt$missing))])
 	
 	# Sw
-	dt$sw_si[which(dt$sw_si==0)] <- convert_sw_si(dt[which(dt$sw_si==0)])
+	dt$sw_si[which(dt$sw_si==0 & grepl('Sw',dt$missing))] <- convert_sw_si(dt[which(dt$sw_si==0 & grepl('Sw',dt$missing))])
 	
 	# Pw
 	dt$pw_si[which(dt$pw_si==0 & grepl('Pw',dt$missing))] <- convert_pw(dt[which(dt$pw_si==0 & grepl('Pw',dt$missing))])
@@ -236,16 +236,16 @@ base_si_conversion <- function(dt) {
 	# Spruce   Se Sw Sx all interchange
 	# set sw = sx
 	
-	dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_sx(dt[which(dt$sw_si==0)]) 
+	#dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_sx(dt[which(dt$sw_si==0)]) 
 	
 	# set sw = se 
-	dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
+	#dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
 	
 	# set se = sw
-	dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)])
+	#dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)])
 	
 	# set ss = sx
-	dt$ss_si[which(dt$ss_si==0)] <- convert_ss_from_sx(dt[which(dt$ss_si==0)]) 
+	#dt$ss_si[which(dt$ss_si==0)] <- convert_ss_from_sx(dt[which(dt$ss_si==0)]) 
 	
 	# can not do this because opening id can be negative
   #dt[dt <0 ] <- 0.0
@@ -336,33 +336,18 @@ mean value data
 
 
 
-
-fn <- paste0(getwd(),'/test_si_data.csv')
-fn2 <- paste0(getwd(),'/test_species_data.csv')
+fn <- paste0(getwd(),'/pspl_sample_data.csv')
 
 # read 2022 data (unconverted)
 si_data <- data.table::fread(fn,sep=',')
 
-#fid <- si_data$feature_id
 
 
-#q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
-#species <- dbGetQuery(con,q1)
-#data.table::fwrite(species,fn2,sep=',')
-
-species <- data.table::fread(fn2,sep=',')
-
-si_data <- left_join(si_data,species,by='feature_id')
-
-
+# all si values NA need to be zero
 si_data[is.na(si_data)] <- 0
-
-
 
 si_data$bec_zone <- 'ESSF'
 si_data$bec_subzone <- 'mk'
-
-si_data$bec_zone[si_data$id> 20] <- 'CDF'
 
 
 # required to assign the missing
@@ -400,10 +385,16 @@ si_data <- rbind(si_data,fix_si)
 
 
 
+
 c1 <- count(si_data,src)
 c1 <- head(c1,4)
 
 si_data <- si_data %>% select(feature_id,at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si,src) %>% arrange(feature_id)
+
+si_sum <- colSums(si_data[,1:23])
+si_sum[1] <- 99
+
+si_sum <- si_sum %>% mutate_if(is.numeric, round, digits=1)
 
 data.table::fwrite(si_data,'v1_t1.csv')
 

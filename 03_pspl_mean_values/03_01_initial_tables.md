@@ -33,7 +33,7 @@ calculation. It is also important to check that 0 is not substituted for
 a NULL. This can happen inadvertently when using a DUCK Typed language
 such as R.
 
-Start: 2023-01-19 15:34:18
+Start: 2023-02-07 14:35:49
 
 ### Initialize PostgreSQL Connection
 
@@ -150,28 +150,28 @@ This contains the entire Provincial set of PSPL points
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">2023-01-19 15:34:19</td>
+<td style="text-align: left;">2023-02-07 14:35:50</td>
 </tr>
 </tbody>
 </table>
 
 1 records
 
-Initial Table: 2023-01-19 15:36:06
+Initial Table: 2023-02-07 14:37:03
 
 ### Index the intial table
 
      
     create index m_idx_sr2 on pspl_init_t(feature_id);
 
-Index: 2023-01-19 15:37:18
+Index: 2023-02-07 14:37:24
 
     tbl <- paste0(schema,'.pspl_init_t')
     db_vac(tbl)
 
     ## character(0)
 
-Vacuum Analyze: 2023-01-19 15:37:55
+Vacuum Analyze: 2023-02-07 14:37:32
 
 ## Create pre convert table
 
@@ -235,14 +235,14 @@ The VRI has BEC assigned by largest BEC within opening.
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">2023-01-19 15:37:55</td>
+<td style="text-align: left;">2023-02-07 14:37:32</td>
 </tr>
 </tbody>
 </table>
 
 1 records
 
-Pspl Init: 2023-01-19 15:41:47
+Pspl Init: 2023-02-07 14:39:14
 
 ### generate feature\_id mean values using SQL
 
@@ -306,7 +306,7 @@ Cast final values to Numeric(5,1)
 
     select count (*) as n from pspl_site_index_mean_fid;
 
-Mean si FID: 2023-01-19 15:47:39
+Mean si FID: 2023-02-07 14:42:01
 
 ### generate BEC mean values
 
@@ -349,7 +349,7 @@ Note that this uses the BEC 12 assigned BEC updated in VRI
 
     select count(*) as n from pspl_site_index_mean_bec;
 
-BEC Mean si: 2023-01-19 15:48:24
+BEC Mean si: 2023-02-07 14:42:17
 
 -   original values from PSPL are numeric(n,1)
 -   values in PostreSQL are double
@@ -358,4 +358,4 @@ BEC Mean si: 2023-01-19 15:48:24
 
     dbDisconnect(con)
 
-End: 2023-01-19 15:48:24
+End: 2023-02-07 14:42:17
