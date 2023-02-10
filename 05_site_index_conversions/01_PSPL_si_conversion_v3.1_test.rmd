@@ -8,7 +8,7 @@ output: html_document
 
 ## Version testing  V1
 
-2023.feb.07
+2023.feb.10
 
 Version 3.1
 
@@ -350,6 +350,9 @@ species <- dbGetQuery(con,'select feature_id,species ,bec_zone,bec_subzone from 
 species$species <- gsub('\\{','',species$species)
 species$species <- gsub('\\}','',species$species)
 
+
+# why are these so different in the row counts.
+
 species <- species %>% subset(feature_id %in% si_data$feature_id)
 si_data <- si_data %>% subset(feature_id %in% species$feature_id)
 
@@ -363,8 +366,8 @@ si_data <- left_join(si_data,species,by='feature_id')
 # all si values NA need to be zero
 si_data[is.na(si_data)] <- 0
 
-si_data$bec_zone <- 'ESSF'
-si_data$bec_subzone <- 'mk'
+#si_data$bec_zone <- 'ESSF'
+#si_data$bec_subzone <- 'mk'
 
 
 # required to assign the missing
@@ -400,8 +403,8 @@ fix_si <- assign_missing(fix_si)
 
 si_data <- rbind(si_data,fix_si)
 
-
-
+# still missin
+fix_si <- fix_si %>% subset(missing != '') 
 
 c1 <- count(si_data,src)
 c1 <- head(c1,4)
@@ -432,6 +435,9 @@ Table 1. Initial missing species site index
 
 # for those still missing species site index
 # use the bec based averages
+
+avg_BEC_data <- dbGetQuery(con,'select * from pspl_site_index_mean_bec')
+avg_BEC_data[is.na(avg_BEC_data)] <- 0
 
 fix_si <- bec_conversions(fix_si)
   
