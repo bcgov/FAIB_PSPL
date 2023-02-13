@@ -57,7 +57,7 @@ convert_cw_si <- function(inp){
     inp$ss_si > 0 ~ 2.580152661 + 0.764312974 * inp$ss_si ,
     inp$sx_si > 0 & inp$bec_zone %in% c('CDF','CWH','MH')  ~  2.580152661 + 0.764312974 * inp$sx_si ,
     inp$fd_si > 0 & inp$bec_zone %in% c('CDF','CWH','MH')~  -1.610687019 + 0.857824425 * inp$fd_si  , 
-    inp$sw_si > 0 ~ inp$sw_si, 
+    inp$sw_si > 0 ~ inp$sw_si,   # added for fail over
     TRUE ~ inp$cw_si )
   
   return(si)
@@ -296,6 +296,7 @@ convert_sx <- function(inp){
 ##########################################
 
 ## ba/bl/bg all interchangeable
+## not in SIndex
 
 convert_ba <- function(inp){
     si <- case_when(
@@ -330,7 +331,8 @@ convert_bg <- function(inp) {
 
 convert_pw <- function(inp){
   si <- case_when(
-    inp$ss_si > 0 ~ inp$ss_si , # coastal
+    inp$ss_si > 0 & inp$bec_zone %in% c('CDF','CWH','MH') ~ inp$ss_si , # coastal
+    inp$hw_si > 0 & inp$bec_zone %in% c('CDF','CWH','MH') ~ inp$hw_si , # coastal added to fill missings
     inp$sw_si >0 ~ inp$sw_si,
     TRUE ~ inp$pw_si)
   
@@ -424,6 +426,7 @@ convert_dr <- function(inp){
 
 ####################################################################
 # py is special
+# added, this is not in SIndex
 convert_py <- function(inp){
   si <- case_when(
     inp$fd_si > 0 ~ inp$fd_si ,  

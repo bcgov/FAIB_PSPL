@@ -1,6 +1,6 @@
 ---
 title: "PSPL Site Index Conversion"
-output: html_document
+output: md_document
 ---
 
 
@@ -8,7 +8,7 @@ output: html_document
 
 ## Version testing  V1
 
-2023.feb.10
+2023.feb.13
 
 Version 3.1
 
@@ -54,10 +54,10 @@ si_convert <- paste0(getwd(),'/site_index_conversion_equations_v3.r')
 
 source(si_convert, local = knitr::knit_global())
 
-kablep <- function (x) {
-  kable(x) %>%
-  kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
-}
+#kablep <- function (x) {
+#  kable(x) %>%
+#  kable_styling(bootstrap_options = c("striped"),full_width=F,font_size=13,position = 'left')
+#}
 
 
 ```
@@ -278,6 +278,126 @@ base_si_conversion <- function(dt) {
 
 
 
+
+base_si_conversion_pass2 <- function(dt) {
+  
+	# cast to data.table
+  setDT(dt)
+	
+	# At  
+	dt$at_si[which(dt$at_si==0 )] <- convert_at_si(dt[which(dt$at_si==0  )])
+	
+	# Ba 
+	dt$ba_si[which(dt$ba_si==0 )] <- convert_ba_si(dt[which(dt$ba_si==0 )])
+	
+	
+	# Bl
+	dt$bl_si[which(dt$bl_si==0 )] <- convert_bl_si(dt[which(dt$bl_si==0 )])
+	
+	# Cwc
+	dt$cw_si[which(dt$cw_si==0 )] <- convert_cw_si(dt[which(dt$cw_si==0 )])
+	
+	# Fdc
+	dt$fd_si[which(dt$fd_si==0  & dt$bec_zone %in% c('CDF','CWH','MH') )] <- convert_fdc_si(dt[which(dt$fd_si==0  & dt$bec_zone %in% c('CDF','CWH','MH') )])
+	
+	# Fdi
+	dt$fd_si[which(dt$fd_si==0  & !dt$bec_zone %in% c('CDF','CWH','MH') )] <- convert_fdi_si(dt[which(dt$fd_si==0  & !dt$bec_zone %in% c('CDF','CWH','MH') )])
+	
+	# hw coast
+	dt$hw_si[which(dt$hw_si==0  & dt$bec_zone %in% c('CDF','CWH','MH') )] <- convert_hwc_si(dt[which(dt$hw_si==0 & dt$bec_zone %in% c('CDF','CWH','MH') )])
+	
+	# hw interior
+	dt$hw_si[which(dt$hw_si==0  & !dt$bec_zone %in% c('CDF','CWH','MH') )] <- convert_hwi_si(dt[which(dt$hw_si==0 & !dt$bec_zone %in% c('CDF','CWH','MH') )])
+	
+	
+	# Lw
+	dt$lw_si[which(dt$lw_si==0)] <- convert_lw_si(dt[which(dt$lw_si==0 )])
+	
+	# Pl
+	dt$pl_si[which(dt$pl_si==0 )] <- convert_pl_si(dt[which(dt$pl_si==0)])
+	
+	# Sb
+	dt$sb_si[which(dt$sb_si==0 )] <- convert_sb_si(dt[which(dt$sb_si==0 )])
+	
+	# Ss (coastal)
+	dt$ss_si[which(dt$ss_si==0 )] <- convert_ss_si(dt[which(dt$ss_si==0)])
+	
+	# Sw
+	dt$sw_si[which(dt$sw_si==0)] <- convert_sw_si(dt[which(dt$sw_si==0 )])
+	
+	# Pw
+	dt$pw_si[which(dt$pw_si==0 )] <- convert_pw(dt[which(dt$pw_si==0 )])
+	
+	# Pa
+	dt$pa_si[which(dt$pa_si==0 )] <- convert_pa(dt[which(dt$pa_si==0 )])
+	
+	# Py
+	dt$py_si[which(dt$py_si==0 )] <- convert_py(dt[which(dt$py_si==0 )]) 
+	
+	
+	# Dr Coast/Interior
+	dt$dr_si[which(dt$dr_si==0)] <- convert_dr(dt[which(dt$dr_si==0 )])  
+	
+	# 1-1
+	
+	# Bg 1-1
+	dt$bg_si[which(dt$bg_si==0 )] <- convert_bg(dt[which(dt$bg_si==0 )])
+	dt$bl_si[which(dt$bl_si==0 )] <- convert_bl(dt[which(dt$bl_si==0 )])
+	dt$ba_si[which(dt$ba_si==0 )] <- convert_ba(dt[which(dt$ba_si==0 )])
+	
+	# Lw Lt 
+	dt$lt_si[which(dt$lt_si==0 )] <- convert_lt_from_lw(dt[which(dt$lt_si==0 )])
+	
+	# ********************************************************************
+	# Spruce   Se Sw Sx all interchange
+	# set sw = sx
+	
+	#dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_sx(dt[which(dt$sw_si==0)]) 
+	
+	# set sw = se 
+	#dt$sw_si[which(dt$sw_si==0)] <- convert_sw_from_se(dt[which(dt$sw_si==0)]) 
+	
+	# set se = sw
+	#dt$se_si[which(dt$se_si==0)] <- convert_se_from_sw(dt[which(dt$se_si==0)])
+	
+	# set ss = sx
+	#dt$ss_si[which(dt$ss_si==0)] <- convert_ss_from_sx(dt[which(dt$ss_si==0)]) 
+	
+	# can not do this because opening id can be negative
+  #dt[dt <0 ] <- 0.0
+  
+  dt$at_si[dt$at_si < 0 ] <- 0.0
+  dt$ba_si[dt$ba_si < 0 ] <- 0.0
+  dt$bg_si[dt$bg_si < 0 ] <- 0.0
+  dt$bl_si[dt$bl_si < 0 ] <- 0.0
+  dt$cw_si[dt$cw_si < 0 ] <- 0.0
+  dt$dr_si[dt$dr_si < 0 ] <- 0.0
+  dt$ep_si[dt$ep_si < 0 ] <- 0.0
+  dt$fd_si[dt$fd_si < 0 ] <- 0.0
+  dt$hm_si[dt$hm_si < 0 ] <- 0.0
+  dt$hw_si[dt$hw_si < 0 ] <- 0.0
+  dt$lt_si[dt$lt_si < 0 ] <- 0.0
+  dt$lw_si[dt$lw_si < 0 ] <- 0.0
+  dt$pa_si[dt$pa_si < 0 ] <- 0.0
+  dt$pl_si[dt$pl_si < 0 ] <- 0.0
+  dt$pw_si[dt$pw_si < 0 ] <- 0.0
+  dt$py_si[dt$py_si < 0 ] <- 0.0
+  dt$sb_si[dt$sb_si < 0 ] <- 0.0
+  dt$se_si[dt$se_si < 0 ] <- 0.0
+  dt$ss_si[dt$ss_si < 0 ] <- 0.0
+  dt$sw_si[dt$sw_si < 0 ] <- 0.0
+  dt$sx_si[dt$sx_si < 0 ] <- 0.0
+  dt$yc_si[dt$yc_si < 0 ] <- 0.0
+  
+
+  
+  #convert to numeric 1
+  dt <- dt %>% mutate_if(is.numeric, round, digits=1)
+	
+	return(dt)
+}
+
+
 bec_conversions <- function(inp){
 setDT(inp)
 
@@ -346,6 +466,16 @@ si_data <- dbGetQuery(con,'select * from pspl_site_index_mean_fid')
 # comes across as "{At,Cwi,Fdi,Lw,Pl,Sw}" into R
 species <- dbGetQuery(con,'select feature_id,species ,bec_zone,bec_subzone from species_list_future_fid')
 
+stand_type <- dbGetQuery(con,'select a.feature_id,a.stand_type,b.stand_label from integration_final a left join stand_types b using(stand_type)')
+
+
+si_not_in_species <- si_data %>% subset(!feature_id %in% species$feature_id)
+species_not_in_si <- species %>% subset(!feature_id %in% si_data$feature_id)
+
+si_not_in_species <- left_join(si_not_in_species,stand_type)
+
+species_not_in_si <- left_join(species_not_in_si,stand_type)
+
 # get rid of braces
 species$species <- gsub('\\{','',species$species)
 species$species <- gsub('\\}','',species$species)
@@ -399,27 +529,28 @@ fix_si$src <- 'base1'
 fix_si <- base_si_conversion(fix_si)
 fix_si <- assign_missing(fix_si)
 
+# put those that are fixed back into base
+si_data <- rbind(si_data,fix_si[fix_si$missing=='',])
 
-
-si_data <- rbind(si_data,fix_si)
-
-# still missin
+# those that still require fixing
 fix_si <- fix_si %>% subset(missing != '') 
+
+
 
 c1 <- count(si_data,src)
 c1 <- head(c1,4)
 
-si_data <- si_data %>% select(feature_id,at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si,src) %>% arrange(feature_id)
+#si_data <- si_data %>% select(feature_id,at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si,src) %>% arrange(feature_id)
 
-si_sum <- colSums(si_data[,1:23])
-si_sum[1] <- 99
+#si_sum <- colSums(si_data[,1:23])
+#si_sum[1] <- 99
 
-si_sum <- si_sum %>% mutate_if(is.numeric, round, digits=1)
+#si_sum <- si_sum %>% mutate_if(is.numeric, round, digits=1)
 
-data.table::fwrite(si_data,'v1_t1.csv')
+#data.table::fwrite(si_data,'v1_t1.csv')
 
 
-kablep(c1)
+kable(c1,format='markdown')
 
 
 
@@ -431,7 +562,7 @@ Table 1. Initial missing species site index
 
 `r format(Sys.time(),"%c")`
 
-```{r si_convert_step2,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+```{r si_convert_step2,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
 # for those still missing species site index
 # use the bec based averages
@@ -439,9 +570,24 @@ Table 1. Initial missing species site index
 avg_BEC_data <- dbGetQuery(con,'select * from pspl_site_index_mean_bec')
 avg_BEC_data[is.na(avg_BEC_data)] <- 0
 
+species2 <- dbGetQuery(con,'select species ,bec_zone,bec_subzone from species_list_bec_agg')
+
+# get rid of braces
+species2$species <- gsub('\\{','',species2$species)
+species2$species <- gsub('\\}','',species2$species)
+
+
+avg_BEC_data <- left_join(avg_BEC_data,species2,by=c('bec_zone','bec_subzone'))
+
+# do the spruce conversions to the BEC data
+avg_BEC_data <- spruce_conversion(avg_BEC_data)
+
+# apply the BEC conversions
 fix_si <- bec_conversions(fix_si)
   
 fix_si <- assign_missing(fix_si)
+
+
 
 fix_si$src <- 'bec_convert'
 
@@ -452,7 +598,7 @@ fix_si <- fix_si %>% subset(missing != '')
 
 c1 <- count(fix_si,missing) %>% arrange(desc(n))
 
-kablep(c1)
+kable(c1,format='markdown')
 
 ```
 
@@ -460,31 +606,71 @@ Table 2. After BEC substitutions
 
 `r format(Sys.time(),"%c")`
 
-```{r si_convert_step3,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+```{r si_convert_step3,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
-# run the conversions again to fill in the final missing site index values
-fix_si <- base_si_conversion(fix_si)
+# run the base conversions on BEC in the final missing site index values
+#avg_BEC_data <- base_si_conversion(avg_BEC_data)
+
+# run the bec conversions again
+#fix_si <- bec_conversions(fix_si)
+
+# run the base conversion a second time
+# this will fix the missing Pw
+# has to come from Ss
+fix_si <- base_si_conversion_pass2(fix_si)
 
 fix_si <- assign_missing(fix_si)
-fix_si$src <- 'convert1'
+fix_si$src <- 'base2'
 
 si_data <- rbind(si_data,fix_si[fix_si$missing == '',])
 
-fix_si <- fix_si %>% subset(missing != '')
+##fix_si <- fix_si %>% subset(missing != '')
 
 fix_si$src <- 'missing'
 
-c1 <- count(fix_si,bec_zone,bec_subzone) %>% arrange(desc(n))
+c1 <- count(fix_si,missing,bec_zone,bec_subzone) %>% arrange(desc(n))
+kable(c1,format='markdown')
 
 
+c2 <- count(si_data,src)
 
-#c1 <- count(si_data,missing) %>% arrange(desc(n))
+c2$ord <- case_when(
+  c2$src == 'pspl' ~ 1,
+  c2$src == 'spruce_conv' ~ 2,
+  c2$src == 'base1' ~ 3,
+  c2$src == 'bec_convert' ~ 4,
+  c2$src == 'base2' ~ 5,
+  TRUE ~ 99
+)
+
+c2 <- c2 %>% arrange(ord)
+
+c2$pct <- case_when(
+  c2$src == 'pspl' ~ c2$n/sum(c2$n) * 100 ,
+  c2$src == 'spruce_conv' ~ c2$n/sum(c2$n) * 100,
+  c2$src == 'base1' ~ c2$n/sum(c2$n) * 100,
+  c2$src == 'bec_convert' ~ c2$n/sum(c2$n) * 100,
+  c2$src == 'base2' ~ c2$n/sum(c2$n) * 100,
+  TRUE ~ c2$n/sum(c2$n) * 100
+)
+
+c2 <- c2 %>% mutate_if(is.numeric, round, digits=1)
  
-kablep(c1)
+kable(c2,format='markdown')
 
 ```
 
-Table 3. Final missing
+Table 3. Final results
+
+Notes:  
+
+| src | description |
+|:--|:--|
+| pspl | original data from PSPL that has all requires species site index values |
+| spruce_conv | Spruce conversions form SX to Sw, Se, Ss |
+| base1 | SIndex site index conversions |
+| bec_convert | Site index from BEC mean values |
+| base2 | SIndex conversions run a second time | 
 
 ```{r write,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
 
@@ -550,7 +736,7 @@ q1 <- rbind(q1,data.frame('src' = 'Total','n' = sum(q1$n),'pct' = ''))
 
 
 
-kablep(q1)
+kable(q1,format='markdown')
 
 ```
 

@@ -1,24 +1,24 @@
----
-title: "PSPL Process Readme"
-author: "dwaddell"
-date: "2022-09-21"
-output: html_document
----
-
 # PSPL Site Index Conversion
+
+___
+
+Author: Dave Waddell  
+Date: 2023_feb_13
+
+___
+
 
 After the mean site index values have been assigned, there can be species that have missing site index values.  We need to fill in missing values where possible using a formalized set of site index conversions.  
 
 
 Create the following tables:   
 
-- pspl_site_index_bec
 - pspl_site_index_fid
-- pspl_site_index_op
+- pspl_site_index_bec
 
-The following steps document the order of processing to obtain full site index values for as many species as possible. 
+The following steps document the order of processing to obtain full site index values for all species that require a site index value. 
 
-## Step 1 all tables: Initial One to one conversions before running formal conversions equations
+## Step 1: Initial One to one conversions before running formal conversions equations
 
 An initial assessment of species missing site index values shows the majority to be either Spruce or White pine. So some one to one conversions are run.
 
@@ -27,11 +27,11 @@ An initial assessment of species missing site index values shows the majority to
 | Sw | Sx|
 | Sw | Se |
 | Se | Sw |
-| Pw | Fd |  
+
 
 These conversions can probably be tuned more to BEC but for now a brute force conversion is run.  
 
-## Step 2 all tables: Conversions based on Sindex
+## Step 2: Conversions based on Sindex
 
 SIndex contains a set of conversion equations.  These equations were directly translated from C to R.  
 
@@ -124,9 +124,35 @@ s1<sub>si</sub> = b<sub>0</sub> + b<sub>1</sub> \* s2<sub>si</sub>
 |sw|sb|-6.846739125|1.702173910|
 
 
-## Step 3 all tables: Additional one to one conversions
+## Step 3: BEC mean site index substitution
 
-After running the SIndex conversions there are still species missing site index values.  It has been recommended that the SIndex conversion equations only be run once (Gord Night).  Following on this, we are the limited to a direct conversion from alternative species.  The following species conversion are therefore being used. 
+After running the SIndex conversions there are still species missing site index values.  
+
+It has been recommended that the SIndex conversion equations only be run once (Gord Night).  
+
+The BEC mean site index values are then used to fill missing required site index for species.  
+
+
+For AR2022 this left the following species with missing SiteIndex:
+
+|missing  |   n|
+|:--|:--|
+|Pw 10356|
+|Lw    73|
+|Lt    51|
+|Ba    14|
+|Bg     8|
+|Dr     1|
+
+### Processing Order notes
+
+The SIndex coefficients are processed in alphabetical order (sort of) and they are run only once.  
+The BEC substitutions are then used to fill in gaps, but in the case of Pw for example, Pw doesn't get a site index but Ss does.  
+
+So the SIndex conversions must be run a second time for the reduced subset with missing site index values. 
+
+
+## Site Index Conversions not in Sindex
 
 ### Alder
 
@@ -148,20 +174,14 @@ Sharad Baral produced the following height comparison:
 
 ___
 
-## First pass si conversions yield the following missing species:
 
-| missing   |    n |
-|:-----|:-----|
-|   none        | 188760 |
-|   Pl    |   659 |
-| Bg  |  198 |
-| Cw   | 138 |
-
-___
 
 ### Interior Cwi
 
-For missing values, substitute: Sw
+For missing values, substitute: Sw  
+
+Added to SIndex coefficient table
+
 
 ___
 
@@ -196,33 +216,23 @@ ___
 ### Pa
 Pa / Pl interchangeable  
 
-### Spruce again
 
-| Species with missing si | Substitute from |
-|:-----|:----|
-| Sw | Sx|
-| Sw | Se |
-| Se | Sw |
-| Ss | Sx |
-| Ss | Pw |
-| Ss | Fd | 
+## Step 4: Run base conversions again
 
-These spruce conversions are complicated by the use of Sx in identifying hybrid spruce.  A simple use Se if ESSF and otheriwse Sw for the interior doesn't work as I sometimes get Se planted outside the ESSF.  Then everything gets confused.  
+The BEC substitutions will fill in some missing values, but may not solve all problems. 
 
-### Discussion
+Consider where we have a missing site index value for Pw.  
+The BEC substitution fills in Ss, but still leaves Pw NULL.  
 
-At this point, I am NOT using BEC breakdowns to subset areas of application of the one to one conversions.  I am bluntly forcing, to check for broad level impacts.  In particular, the use of Sx as a species is causing problems in general.  To tune this conversion, I should probably add the appropriate BEC zones for application.  Then do a cross check to see how this affects performance of the conversions.  
+In this case, we need to run the base site index conversions again so that the Ss will substitute for the Pw.
 
-I can easily add Coast Interior splits for these conversions.  For Coast Interior definition I use:
 
-- Coast = CDF, CWH, MH
-- Interior = everything else
-
-## Step 4: Derive BEC based site index
 
 ### BEC CrossWalk substitution
 
-The table of mean bec based site index values has all the above conversions applied to it.  In addition, since SWB has no PEM/TEM nor a biophysical model there will be no site index values.  Instead, the SWB will use a BEC CrossWalk substitution from BWBS dk.   
+The BEC mean site index values do not have crosswalks applied to the data derived from PSPL.  
+If a specific BEC has missing species site index values at the end of this process, then a BEC crosswalk can be considered.
+
 
 
 
@@ -231,24 +241,9 @@ The table of mean bec based site index values has all the above conversions appl
 | SWB mk,mks,un,vk | BWBS dk|
 
 
-This was suggested via conversations with either Will Will MacKenzie or Deb MacKillop.  (I will confirm)  
+This was suggested via conversations with either Will MacKenzie or Deb MacKillop.  (I will confirm)  
 
 This gives us a table of BEC aggregates for each BEC zone and subzone.
 
-## Step 5: Derive Opening level site index
 
-The table of mean opening based site index values has all the base site index conversions applied.  
-
-### Use BEC aggregates
-
-In addition, the  BEC aggregate site index values are used where there are missing values.
-
-## Step 6: Derive Feature id based site index
-
-### Replace site index from opening
-Since the MSYT process is opening based, the feature_id based site index values are overwritten where there is an opening and the opening site index values derived above are substituted.  
-
-### Use BEC aggregates
-
-Apply BEC aggregate substitutions for missing values
 
