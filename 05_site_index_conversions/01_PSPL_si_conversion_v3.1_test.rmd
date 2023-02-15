@@ -8,7 +8,7 @@ output: md_document
 
 ## Version testing  V1
 
-2023.feb.13
+2023.feb.15
 
 Version 3.1
 
@@ -25,7 +25,8 @@ Fixes:
 
 Requires the following tables:
 
-- pspl_site_index_mean_op
+- site_index_mean_fid
+- site_index_mean_bec
 
 
 
@@ -447,12 +448,19 @@ mean value data
 
 `r format(Sys.time(),"%c")`
 
+
+# Spruce conversions
+
+Change SX to Sw, Se Ss based on BEC.  
+
+
 ```{r  si_convert_init,echo=FALSE,message=FALSE,warning=FALSE}
 
 # read data
 
 # from PostgreSQL
-si_data <- dbGetQuery(con,'select * from pspl_site_index_mean_fid')
+#si_data <- dbGetQuery(con,'select * from pspl_site_index_mean_fid')
+si_data <- dbGetQuery(con,'select * from site_index_fid')
 
 # or from CSV
 #fn <- paste0(getwd(),'/pspl_sample_data.csv')
@@ -464,40 +472,29 @@ si_data <- dbGetQuery(con,'select * from pspl_site_index_mean_fid')
 
 # species is an array in PostgreSQl
 # comes across as "{At,Cwi,Fdi,Lw,Pl,Sw}" into R
-species <- dbGetQuery(con,'select feature_id,species ,bec_zone,bec_subzone from species_list_future_fid')
+#species <- dbGetQuery(con,'select feature_id,species ,bec_zone,bec_subzone from species_list_future_fid')
 
-stand_type <- dbGetQuery(con,'select a.feature_id,a.stand_type,b.stand_label from integration_final a left join stand_types b using(stand_type)')
+#stand_type <- dbGetQuery(con,'select a.feature_id,a.stand_type,b.stand_label from integration_final a left join stand_types b using(stand_type)')
 
 
-si_not_in_species <- si_data %>% subset(!feature_id %in% species$feature_id)
-species_not_in_si <- species %>% subset(!feature_id %in% si_data$feature_id)
+#si_not_in_species <- si_data %>% subset(!feature_id %in% species$feature_id)
+#species_not_in_si <- species %>% subset(!feature_id %in% si_data$feature_id)
 
-si_not_in_species <- left_join(si_not_in_species,stand_type)
+#si_not_in_species <- left_join(si_not_in_species,stand_type)
 
-species_not_in_si <- left_join(species_not_in_si,stand_type)
+#species_not_in_si <- left_join(species_not_in_si,stand_type)
 
 # get rid of braces
-species$species <- gsub('\\{','',species$species)
-species$species <- gsub('\\}','',species$species)
+si_data$species <- gsub('\\{','',si_data$species)
+si_data$species <- gsub('\\}','',si_data$species)
 
 
-# why are these so different in the row counts.
-
-species <- species %>% subset(feature_id %in% si_data$feature_id)
-si_data <- si_data %>% subset(feature_id %in% species$feature_id)
-
-
-si_data <- left_join(si_data,species,by='feature_id')
-
-
-
+#si_data <- left_join(si_data,species,by='feature_id')
 
 
 # all si values NA need to be zero
 si_data[is.na(si_data)] <- 0
 
-#si_data$bec_zone <- 'ESSF'
-#si_data$bec_subzone <- 'mk'
 
 
 # required to assign the missing
@@ -523,7 +520,13 @@ si_data <- rbind(si_data,fix_si[fix_si$missing=='',])
 # those that require fixing
 fix_si <- fix_si %>% subset(missing != '') 
 
+```
 
+# Base conversion
+
+Using SIndex coefficients
+
+```{r base_convert,echo=FALSE,message=FALSE,warning=FALSE}
 
 fix_si$src <- 'base1'
 fix_si <- base_si_conversion(fix_si)
@@ -537,30 +540,12 @@ fix_si <- fix_si %>% subset(missing != '')
 
 
 
-c1 <- count(si_data,src)
-c1 <- head(c1,4)
-
-#si_data <- si_data %>% select(feature_id,at_si,ba_si,bg_si,bl_si,cw_si,dr_si,ep_si,fd_si,hm_si,hw_si,lt_si,lw_si,pa_si,pl_si,pw_si,py_si,sb_si,se_si,ss_si,sw_si,sx_si,yc_si,src) %>% arrange(feature_id)
-
-#si_sum <- colSums(si_data[,1:23])
-#si_sum[1] <- 99
-
-#si_sum <- si_sum %>% mutate_if(is.numeric, round, digits=1)
-
-#data.table::fwrite(si_data,'v1_t1.csv')
-
-
-kable(c1,format='markdown')
-
-
-
-
 ```
 
-Table 1. Initial missing species site index
 
+# BEC site index substitutions
 
-`r format(Sys.time(),"%c")`
+Based on mean BEC site index values from PSPL
 
 ```{r si_convert_step2,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
@@ -602,9 +587,8 @@ kable(c1,format='markdown')
 
 ```
 
-Table 2. After BEC substitutions
+Table 1. Missing After BEC substitutions
 
-`r format(Sys.time(),"%c")`
 
 ```{r si_convert_step3,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
@@ -626,10 +610,21 @@ si_data <- rbind(si_data,fix_si[fix_si$missing == '',])
 
 ##fix_si <- fix_si %>% subset(missing != '')
 
-fix_si$src <- 'missing'
+#fix_si$src <- 'missing'
 
-c1 <- count(fix_si,missing,bec_zone,bec_subzone) %>% arrange(desc(n))
+c1 <- count(fix_si,missing) %>% arrange(desc(n))
 kable(c1,format='markdown')
+
+```
+
+Table 2.  After running base SIndex conversions a second time
+
+If missing = BLANK, then we are done.
+
+
+# summary of Conversion Results
+
+```{r eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
 
 c2 <- count(si_data,src)
@@ -706,41 +701,7 @@ data.table::fwrite(fix_si,tbl_name,sep=',')
 
 
 
-
-
-
-
-```{r discon, eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
-
-# final report
-
-#q1 <- dbGetQuery(con,'select count(*),src from pspl_site_index_fid group by 2')
-c1 <- rbind(si_data,fix_si)
-
-q1 <- count(c1,src)
-
-q1$ord <- case_when(
-  q1$src =='pspl' ~ 1,
-  q1$src == 'spruce_fix' ~ 2,
-  q1$src == 'convert0' ~ 3,
-  q1$src == 'bec_convert' ~ 4,
-  q1$src == 'convert1' ~ 5,
-  q1$src == 'missing'  ~ 6
-)
-
-q1 <- q1 %>% arrange(ord) %>% select(ord,src,n) %>% select(-ord)
-
-q1$pct <- as.integer(q1$n/sum(q1$n) * 100)
-
-q1 <- rbind(q1,data.frame('src' = 'Total','n' = sum(q1$n),'pct' = ''))
-
-
-
-kable(q1,format='markdown')
-
-```
-
-```{r}
+```{r echo=FALSE,message=FALSE,warning=FALSE}
 
 z <- dbDisconnect(con)
 
