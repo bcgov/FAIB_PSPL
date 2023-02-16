@@ -8,14 +8,16 @@ output: md_document
 
 ## Version testing  V1
 
-2023.feb.15
+2023.feb.16
 
 Version 3.1
 
-Fixes:  
+Process Order:  
 
-- do spruce sx as separate function
-- split the missing and not missing from fid convert
+- load features with species from MSYT process
+- Sx conversion
+- First conversion SIndex coefficients
+- BEC bases substitutions
 
 
 
@@ -434,24 +436,12 @@ return(inp)
 
 ```
 
-### run SI conversion 
-
-
-
-
-
-### Site Index Conversions
-
   
 
-mean value data
+## Load mean value site inde data from PSPL 
 
 `r format(Sys.time(),"%c")`
 
-
-# Spruce conversions
-
-Change SX to Sw, Se Ss based on BEC.  
 
 
 ```{r  si_convert_init,echo=FALSE,message=FALSE,warning=FALSE}
@@ -501,16 +491,45 @@ si_data[is.na(si_data)] <- 0
 # si conversion only applies where there are missing values
 si_data <- assign_missing(si_data)
 
-si_data$src <- 'pspl'
+# assign sort label
+si_data$src <- 'PSPL'
 
-# split
+# total rows
+n_tot <- nrow(si_data)
+
+
+# split into those that have valid si and those that have si missing
 
 # those that require fixing
 fix_si <- si_data %>% subset(missing != '') 
 # those that are good
 si_data <- si_data %>% subset(!missing != '') 
 
-fix_si$src <- 'spruce_conv'
+c1 <- count(si_data,src)
+
+c1$pct <- as.integer(c1$n/n_tot*100)
+p1 <- c1$pct
+c1 <- rbind(c1,data.frame('src' = 'Total','n' = n_tot,'pct' = ''))
+
+kable(c1,format='markdown')
+
+
+```
+
+Table 1.  Base PSPL Missing Site Index values
+
+Initially, the raw PSPL has site index values for all required species for `r p1`%.
+
+
+
+# Spruce conversions
+
+Change SX to Sw, Se Ss based on BEC.  
+
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
+fix_si$src <- 'Spruce Conversion'
 fix_si <- spruce_conversion(fix_si)
 fix_si <- assign_missing(fix_si)
 
@@ -520,7 +539,21 @@ si_data <- rbind(si_data,fix_si[fix_si$missing=='',])
 # those that require fixing
 fix_si <- fix_si %>% subset(missing != '') 
 
+c1 <- count(si_data,src)
+
+c1$pct <- as.integer(c1$n/n_tot*100)
+p2 <- sum(c1$pct)
+c1 <- rbind(c1,data.frame('src' = 'Total','n' = n_tot,'pct' = ''))
+
+kable(c1,format='markdown')
+
 ```
+
+Table 2. After SX substitutions
+
+After substituting for Sx, the valid site index percentage has increased to `r p2`%.
+
+
 
 # Base conversion
 
@@ -528,7 +561,7 @@ Using SIndex coefficients
 
 ```{r base_convert,echo=FALSE,message=FALSE,warning=FALSE}
 
-fix_si$src <- 'base1'
+fix_si$src <- 'SIndex Conversion(1)'
 fix_si <- base_si_conversion(fix_si)
 fix_si <- assign_missing(fix_si)
 
@@ -538,9 +571,33 @@ si_data <- rbind(si_data,fix_si[fix_si$missing=='',])
 # those that still require fixing
 fix_si <- fix_si %>% subset(missing != '') 
 
+c1 <- count(si_data,src)
+
+c1$pct <- as.integer(c1$n/n_tot*100)
+p2 <- sum(c1$pct)
+
+
+c1 <- rbind(c1,data.frame('src' = 'Total','n' = n_tot,'pct' = ''))
+
+c1$ord<- case_when(
+  c1$src == 'PSPL' ~ 1,
+  c1$src == 'Spruce Conversion' ~ 2,
+  c1$src == 'SIndex Conversion(1)' ~ 3,
+  TRUE ~ 4
+)
+
+c1 <- c1 %>% arrange(ord)
+c1 <- c1 %>% select(-ord)
+
+kable(c1,format='markdown')
+
 
 
 ```
+
+Table 3. After SIndex conversions where a species is mising a site index.
+
+The valid site index percentage has increased to `r p2`%.
 
 
 # BEC site index substitutions
@@ -574,12 +631,45 @@ fix_si <- assign_missing(fix_si)
 
 
 
-fix_si$src <- 'bec_convert'
+fix_si$src <- 'BEC Conversion'
 
 # put the fixed back 
 si_data <- rbind(si_data,fix_si[fix_si$missing == '',])
 
 fix_si <- fix_si %>% subset(missing != '')
+
+c1 <- count(si_data,src)
+
+c1$pct <- as.integer(c1$n/n_tot*100)
+p2 <- sum(c1$pct)
+
+
+c1 <- rbind(c1,data.frame('src' = 'Total','n' = n_tot,'pct' = ''))
+
+c1$ord<- case_when(
+  c1$src == 'PSPL' ~ 1,
+  c1$src == 'Spruce Conversion' ~ 2,
+  c1$src == 'SIndex Conversion(1)' ~ 3,
+  c1$src == 'BEC Conversion' ~ 4,
+  TRUE ~ 5
+)
+
+c1 <- c1 %>% arrange(ord)
+c1 <- c1 %>% select(-ord)
+
+kable(c1,format='markdown')
+
+```
+
+Table 4. After BEC substitutions. 
+
+The valid site index percentage has increased to `r p2`%.
+
+## Still missing
+
+
+```{r echo=FALSE,message=FALSE,warning=FALSE}
+
 
 c1 <- count(fix_si,missing) %>% arrange(desc(n))
 
@@ -587,8 +677,13 @@ kable(c1,format='markdown')
 
 ```
 
-Table 1. Missing After BEC substitutions
+Table 5. Missing Species site index values after BEC substitutions
 
+The major missing species after this substitution is Pw.
+
+## Final Conversion
+
+Run SIndex conversion a second time.
 
 ```{r si_convert_step3,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
@@ -604,7 +699,7 @@ Table 1. Missing After BEC substitutions
 fix_si <- base_si_conversion_pass2(fix_si)
 
 fix_si <- assign_missing(fix_si)
-fix_si$src <- 'base2'
+fix_si$src <- 'SIndex Conversion(2)'
 
 si_data <- rbind(si_data,fix_si[fix_si$missing == '',])
 
@@ -617,7 +712,7 @@ kable(c1,format='markdown')
 
 ```
 
-Table 2.  After running base SIndex conversions a second time
+Table 6.  After running base SIndex conversions a second time
 
 If missing = BLANK, then we are done.
 
@@ -630,22 +725,22 @@ If missing = BLANK, then we are done.
 c2 <- count(si_data,src)
 
 c2$ord <- case_when(
-  c2$src == 'pspl' ~ 1,
-  c2$src == 'spruce_conv' ~ 2,
-  c2$src == 'base1' ~ 3,
-  c2$src == 'bec_convert' ~ 4,
-  c2$src == 'base2' ~ 5,
+  c2$src == 'PSPL' ~ 1,
+  c2$src == 'Spruce Conversion' ~ 2,
+  c2$src == 'SIndex Conversion(1)' ~ 3,
+  c2$src == 'BEC Conversion' ~ 4,
+  c2$src == 'SIndex Conversion(2)' ~ 5,
   TRUE ~ 99
 )
 
 c2 <- c2 %>% arrange(ord)
 
 c2$pct <- case_when(
-  c2$src == 'pspl' ~ c2$n/sum(c2$n) * 100 ,
-  c2$src == 'spruce_conv' ~ c2$n/sum(c2$n) * 100,
-  c2$src == 'base1' ~ c2$n/sum(c2$n) * 100,
-  c2$src == 'bec_convert' ~ c2$n/sum(c2$n) * 100,
-  c2$src == 'base2' ~ c2$n/sum(c2$n) * 100,
+  c2$src == 'PSPL' ~ c2$n/sum(c2$n) * 100 ,
+  c2$src == 'Spruce Conversion' ~ c2$n/sum(c2$n) * 100,
+  c2$src == 'SIndex Conversion(1)' ~ c2$n/sum(c2$n) * 100,
+  c2$src == 'BEC Conversion' ~ c2$n/sum(c2$n) * 100,
+  c2$src == 'SIndex Conversion(2)' ~ c2$n/sum(c2$n) * 100,
   TRUE ~ c2$n/sum(c2$n) * 100
 )
 
@@ -655,17 +750,17 @@ kable(c2,format='markdown')
 
 ```
 
-Table 3. Final results
+Table 7. Final results
 
 Notes:  
 
 | src | description |
 |:--|:--|
-| pspl | original data from PSPL that has all requires species site index values |
-| spruce_conv | Spruce conversions form SX to Sw, Se, Ss |
-| base1 | SIndex site index conversions |
-| bec_convert | Site index from BEC mean values |
-| base2 | SIndex conversions run a second time | 
+| PSPL | original data from PSPL that has all requires species site index values |
+| Spruce Conversion | Spruce conversions from SX to Sw, Se, Ss |
+| SIndex Conversion(1) | SIndex site index conversions |
+| BEC Conversion | Site index from BEC mean values |
+| SIndex Conversion(2) | SIndex conversions run a second time | 
 
 ```{r write,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
 

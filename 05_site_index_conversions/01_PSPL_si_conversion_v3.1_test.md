@@ -2,14 +2,16 @@
 
 ## Version testing V1
 
-2023.feb.15
+2023.feb.16
 
 Version 3.1
 
-Fixes:
+Process Order:
 
--   do spruce sx as separate function
--   split the missing and not missing from fid convert
+-   load features with species from MSYT process
+-   Sx conversion
+-   First conversion SIndex coefficients
+-   BEC bases substitutions
 
 ## feature\_id processing
 
@@ -18,27 +20,162 @@ Requires the following tables:
 -   site\_index\_mean\_fid
 -   site\_index\_mean\_bec
 
-Start: Wed Feb 15 14:49:47 2023
+Start: Thu Feb 16 08:37:09 2023
 
-### run SI conversion
+## Load mean value site inde data from PSPL
 
-### Site Index Conversions
+Thu Feb 16 08:37:13 2023
 
-mean value data
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">src</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: left;">pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">PSPL</td>
+<td style="text-align: right;">1382340</td>
+<td style="text-align: left;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Total</td>
+<td style="text-align: right;">5061415</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
 
-Wed Feb 15 14:49:50 2023
+Table 1. Base PSPL Missing Site Index values
+
+Initially, the raw PSPL has site index values for all required species
+for 27%.
 
 # Spruce conversions
 
 Change SX to Sw, Se Ss based on BEC.
 
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">src</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: left;">pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">PSPL</td>
+<td style="text-align: right;">1382340</td>
+<td style="text-align: left;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spruce Conversion</td>
+<td style="text-align: right;">668018</td>
+<td style="text-align: left;">13</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Total</td>
+<td style="text-align: right;">5061415</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+
+Table 2. After SX substitutions
+
+After substituting for Sx, the valid site index percentage has increased
+to 40%.
+
 # Base conversion
 
 Using SIndex coefficients
 
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">src</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: left;">pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">PSPL</td>
+<td style="text-align: right;">1382340</td>
+<td style="text-align: left;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spruce Conversion</td>
+<td style="text-align: right;">668018</td>
+<td style="text-align: left;">13</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SIndex Conversion(1)</td>
+<td style="text-align: right;">2885987</td>
+<td style="text-align: left;">57</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Total</td>
+<td style="text-align: right;">5061415</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+
+Table 3. After SIndex conversions where a species is mising a site
+index.
+
+The valid site index percentage has increased to 97%.
+
 # BEC site index substitutions
 
 Based on mean BEC site index values from PSPL
+
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">src</th>
+<th style="text-align: right;">n</th>
+<th style="text-align: left;">pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">PSPL</td>
+<td style="text-align: right;">1382340</td>
+<td style="text-align: left;">27</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spruce Conversion</td>
+<td style="text-align: right;">668018</td>
+<td style="text-align: left;">13</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">SIndex Conversion(1)</td>
+<td style="text-align: right;">2885987</td>
+<td style="text-align: left;">57</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">BEC Conversion</td>
+<td style="text-align: right;">114563</td>
+<td style="text-align: left;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Total</td>
+<td style="text-align: right;">5061415</td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+
+Table 4. After BEC substitutions.
+
+The valid site index percentage has increased to 99%.
+
+## Still missing
 
 <table>
 <thead>
@@ -75,7 +212,13 @@ Based on mean BEC site index values from PSPL
 </tbody>
 </table>
 
-Table 1. Missing After BEC substitutions
+Table 5. Missing Species site index values after BEC substitutions
+
+The major missing species after this substitution is Pw.
+
+## Final Conversion
+
+Run SIndex conversion a second time.
 
 <table>
 <thead>
@@ -92,7 +235,7 @@ Table 1. Missing After BEC substitutions
 </tbody>
 </table>
 
-Table 2. After running base SIndex conversions a second time
+Table 6. After running base SIndex conversions a second time
 
 If missing = BLANK, then we are done.
 
@@ -109,31 +252,31 @@ If missing = BLANK, then we are done.
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">pspl</td>
+<td style="text-align: left;">PSPL</td>
 <td style="text-align: right;">1382340</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">27.3</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">spruce_conv</td>
+<td style="text-align: left;">Spruce Conversion</td>
 <td style="text-align: right;">668018</td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">13.2</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">base1</td>
+<td style="text-align: left;">SIndex Conversion(1)</td>
 <td style="text-align: right;">2885987</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">57.0</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">bec_convert</td>
+<td style="text-align: left;">BEC Conversion</td>
 <td style="text-align: right;">114563</td>
 <td style="text-align: right;">4</td>
 <td style="text-align: right;">2.3</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">base2</td>
+<td style="text-align: left;">SIndex Conversion(2)</td>
 <td style="text-align: right;">10507</td>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">0.2</td>
@@ -141,7 +284,7 @@ If missing = BLANK, then we are done.
 </tbody>
 </table>
 
-Table 3. Final results
+Table 7. Final results
 
 Notes:
 
@@ -158,28 +301,28 @@ Notes:
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">pspl</td>
+<td style="text-align: left;">PSPL</td>
 <td style="text-align: left;">original data from PSPL that has all
 requires species site index values</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">spruce_conv</td>
-<td style="text-align: left;">Spruce conversions form SX to Sw, Se,
+<td style="text-align: left;">Spruce Conversion</td>
+<td style="text-align: left;">Spruce conversions from SX to Sw, Se,
 Ss</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">base1</td>
+<td style="text-align: left;">SIndex Conversion(1)</td>
 <td style="text-align: left;">SIndex site index conversions</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">bec_convert</td>
+<td style="text-align: left;">BEC Conversion</td>
 <td style="text-align: left;">Site index from BEC mean values</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">base2</td>
+<td style="text-align: left;">SIndex Conversion(2)</td>
 <td style="text-align: left;">SIndex conversions run a second time</td>
 </tr>
 </tbody>
 </table>
 
-End: Wed Feb 15 14:55:00 2023
+End: Thu Feb 16 08:42:49 2023
