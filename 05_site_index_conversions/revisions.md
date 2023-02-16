@@ -30,4 +30,13 @@
 - applied spruce site index conversion as second step
 	- Sw_si = Sx_si where Sw_si = 0 and Sx_si > 0
 - this only impacts Sw
+
+### v3.1
+
+- base PSPL
+- SX conversion
+- SIndex Conversion(1)
+- BEC conversion
+- SIndex Conversion(2)
+
 	
