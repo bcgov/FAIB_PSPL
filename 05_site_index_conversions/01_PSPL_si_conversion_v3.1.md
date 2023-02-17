@@ -1,8 +1,8 @@
 # PSPL Method 2022
 
-## Version testing V1
+## Version 3.1
 
-2023.feb.16
+2023.feb.17
 
 Version 3.1
 
@@ -20,11 +20,11 @@ Requires the following tables:
 -   site\_index\_mean\_fid
 -   site\_index\_mean\_bec
 
-Start: Thu Feb 16 08:37:09 2023
+Start: Fri Feb 17 13:28:04 2023
 
 ## Load mean value site inde data from PSPL
 
-Thu Feb 16 08:37:13 2023
+Fri Feb 17 13:28:08 2023
 
 <table>
 <thead>
@@ -37,12 +37,12 @@ Thu Feb 16 08:37:13 2023
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">PSPL</td>
-<td style="text-align: right;">1382340</td>
+<td style="text-align: right;">1381316</td>
 <td style="text-align: left;">27</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Total</td>
-<td style="text-align: right;">5061415</td>
+<td style="text-align: right;">5073557</td>
 <td style="text-align: left;"></td>
 </tr>
 </tbody>
@@ -68,17 +68,17 @@ Change SX to Sw, Se Ss based on BEC.
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">PSPL</td>
-<td style="text-align: right;">1382340</td>
+<td style="text-align: right;">1381316</td>
 <td style="text-align: left;">27</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Spruce Conversion</td>
-<td style="text-align: right;">668018</td>
+<td style="text-align: right;">667903</td>
 <td style="text-align: left;">13</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Total</td>
-<td style="text-align: right;">5061415</td>
+<td style="text-align: right;">5073557</td>
 <td style="text-align: left;"></td>
 </tr>
 </tbody>
@@ -104,22 +104,22 @@ Using SIndex coefficients
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">PSPL</td>
-<td style="text-align: right;">1382340</td>
+<td style="text-align: right;">1381316</td>
 <td style="text-align: left;">27</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Spruce Conversion</td>
-<td style="text-align: right;">668018</td>
+<td style="text-align: right;">667903</td>
 <td style="text-align: left;">13</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">SIndex Conversion(1)</td>
-<td style="text-align: right;">2885987</td>
+<td style="text-align: right;">2897863</td>
 <td style="text-align: left;">57</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Total</td>
-<td style="text-align: right;">5061415</td>
+<td style="text-align: right;">5073557</td>
 <td style="text-align: left;"></td>
 </tr>
 </tbody>
@@ -145,27 +145,27 @@ Based on mean BEC site index values from PSPL
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">PSPL</td>
-<td style="text-align: right;">1382340</td>
+<td style="text-align: right;">1381316</td>
 <td style="text-align: left;">27</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Spruce Conversion</td>
-<td style="text-align: right;">668018</td>
+<td style="text-align: right;">667903</td>
 <td style="text-align: left;">13</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">SIndex Conversion(1)</td>
-<td style="text-align: right;">2885987</td>
+<td style="text-align: right;">2897863</td>
 <td style="text-align: left;">57</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">BEC Conversion</td>
-<td style="text-align: right;">114563</td>
+<td style="text-align: right;">115980</td>
 <td style="text-align: left;">2</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Total</td>
-<td style="text-align: right;">5061415</td>
+<td style="text-align: right;">5073557</td>
 <td style="text-align: left;"></td>
 </tr>
 </tbody>
@@ -187,7 +187,7 @@ The valid site index percentage has increased to 99%.
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">:Pw</td>
-<td style="text-align: right;">10360</td>
+<td style="text-align: right;">10344</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">:Lw</td>
@@ -195,7 +195,7 @@ The valid site index percentage has increased to 99%.
 </tr>
 <tr class="odd">
 <td style="text-align: left;">:Lt</td>
-<td style="text-align: right;">51</td>
+<td style="text-align: right;">55</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">:Ba</td>
@@ -230,7 +230,7 @@ Run SIndex conversion a second time.
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: right;">10507</td>
+<td style="text-align: right;">10495</td>
 </tr>
 </tbody>
 </table>
@@ -253,31 +253,31 @@ If missing = BLANK, then we are done.
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">PSPL</td>
-<td style="text-align: right;">1382340</td>
+<td style="text-align: right;">1381316</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">27.3</td>
+<td style="text-align: right;">27.2</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Spruce Conversion</td>
-<td style="text-align: right;">668018</td>
+<td style="text-align: right;">667903</td>
 <td style="text-align: right;">2</td>
 <td style="text-align: right;">13.2</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">SIndex Conversion(1)</td>
-<td style="text-align: right;">2885987</td>
+<td style="text-align: right;">2897863</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: right;">57.0</td>
+<td style="text-align: right;">57.1</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">BEC Conversion</td>
-<td style="text-align: right;">114563</td>
+<td style="text-align: right;">115980</td>
 <td style="text-align: right;">4</td>
 <td style="text-align: right;">2.3</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">SIndex Conversion(2)</td>
-<td style="text-align: right;">10507</td>
+<td style="text-align: right;">10495</td>
 <td style="text-align: right;">5</td>
 <td style="text-align: right;">0.2</td>
 </tr>
@@ -325,4 +325,8 @@ Ss</td>
 </tbody>
 </table>
 
-End: Thu Feb 16 08:42:49 2023
+    ## [1] TRUE
+
+    ## [1] TRUE
+
+End: Fri Feb 17 13:34:08 2023

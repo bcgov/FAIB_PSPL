@@ -6,9 +6,9 @@ output: md_document
 
 # PSPL Method 2022   
 
-## Version testing  V1
+## Version 3.1
 
-2023.feb.16
+2023.feb.17
 
 Version 3.1
 
@@ -449,37 +449,15 @@ return(inp)
 # read data
 
 # from PostgreSQL
-#si_data <- dbGetQuery(con,'select * from pspl_site_index_mean_fid')
-si_data <- dbGetQuery(con,'select * from site_index_fid')
-
-# or from CSV
-#fn <- paste0(getwd(),'/pspl_sample_data.csv')
-#si_data <- data.table::fread(fn,sep=',')
-
-# get species list
-#fid <- si_data$feature_id
-#q1 <- glue::glue_sql("select feature_id,array_to_string(species,',') as species ,bec_zone,bec_subzone from species_list_future_fid where feature_id in ({fid*})")
-
-# species is an array in PostgreSQl
-# comes across as "{At,Cwi,Fdi,Lw,Pl,Sw}" into R
-#species <- dbGetQuery(con,'select feature_id,species ,bec_zone,bec_subzone from species_list_future_fid')
-
-#stand_type <- dbGetQuery(con,'select a.feature_id,a.stand_type,b.stand_label from integration_final a left join stand_types b using(stand_type)')
+# read the pre convert table of site index with species list
+si_data <- dbGetQuery(con,'select * from site_index_pre_conv_fid')
 
 
-#si_not_in_species <- si_data %>% subset(!feature_id %in% species$feature_id)
-#species_not_in_si <- species %>% subset(!feature_id %in% si_data$feature_id)
-
-#si_not_in_species <- left_join(si_not_in_species,stand_type)
-
-#species_not_in_si <- left_join(species_not_in_si,stand_type)
-
+# species in PostgreSQL is an array
+# this reads into R as a string with braces
 # get rid of braces
 si_data$species <- gsub('\\{','',si_data$species)
 si_data$species <- gsub('\\}','',si_data$species)
-
-
-#si_data <- left_join(si_data,species,by='feature_id')
 
 
 # all si values NA need to be zero
@@ -687,11 +665,6 @@ Run SIndex conversion a second time.
 
 ```{r si_convert_step3,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
-# run the base conversions on BEC in the final missing site index values
-#avg_BEC_data <- base_si_conversion(avg_BEC_data)
-
-# run the bec conversions again
-#fix_si <- bec_conversions(fix_si)
 
 # run the base conversion a second time
 # this will fix the missing Pw
@@ -762,32 +735,18 @@ Notes:
 | BEC Conversion | Site index from BEC mean values |
 | SIndex Conversion(2) | SIndex conversions run a second time | 
 
-```{r write,eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+```{r write,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
 
 
 # write the data
-#file_name <- paste0(substr(getwd(),1,1),':/data/data_projects/AR',year,'/PSPL/si_data/pspl_site_index_fid.csv')
-#fwrite(avg_fid_data, file_name, col.names=TRUE, row.names=FALSE, quote = FALSE, sep=",")
 
+tbl_name <- paste0('site_index_fid')
 
-tbl_name <- paste0('pspl_site_index_fid_t1')
-
-# write to csv
-
-data.table::fwrite(fix_si,tbl_name,sep=',')
-
-# pre delete table
-#if(dbExistsTable(con,tbl_name)) {
-#  dbRemoveTable(con,tbl_name)
-#}
-
-# write to table
-
-#dbWriteTable(con,tbl_name,si_data,row.names = FALSE,overwrite=TRUE)
+dbWriteTable(con,tbl_name,si_data,row.names = FALSE,overwrite=TRUE)
 
 # append the missing
 
-#dbWriteTable(con,tbl_name,fix_si,row.names = FALSE,overwrite=FALSE,append=TRUE)
+dbWriteTable(con,'site_index_bec',avg_BEC_data,row.names = FALSE,overwrite=FALSE,append=TRUE)
 
 
 ```
