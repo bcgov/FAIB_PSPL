@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>PSPL Processing 2023</title>
+  <meta name="description" content="<p>This is the bookdown for PSPL Processing
+The HTML output format for this example is bookdown::gitbook,
+set in the _output.yml file.</p>" />
+  <meta name="generator" content="bookdown 0.32 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="PSPL Processing 2023" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="<p>This is the bookdown for PSPL Processing
+The HTML output format for this example is bookdown::gitbook,
+set in the _output.yml file.</p>" />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="PSPL Processing 2023" />
+  
+  <meta name="twitter:description" content="<p>This is the bookdown for PSPL Processing
+The HTML output format for this example is bookdown::gitbook,
+set in the _output.yml file.</p>" />
+  
+
+<meta name="author" content="Dave Waddell, RPF, MF" />
+
+
+<meta name="date" content="2023-03-02" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+
+
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">FAIB MSYT Process Documentation</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="#pspl"><i class="fa fa-check"></i><b>1</b> PSPL</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="#site-productivity-sp-points"><i class="fa fa-check"></i><b>1.1</b> Site Productivity (SP) Points</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="#features-missing-pspl-points"><i class="fa fa-check"></i><b>1.2</b> Features missing PSPL points</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="index.html"><a href="#pspl-process-overview"><i class="fa fa-check"></i><b>2</b> PSPL Process Overview</a></li>
+<li class="chapter" data-level="3" data-path="index.html"><a href="#create-feature_id-means"><i class="fa fa-check"></i><b>3</b> Create feature_id means</a></li>
+<li class="chapter" data-level="4" data-path="index.html"><a href="#create-bec-zonesubzone-means"><i class="fa fa-check"></i><b>4</b> Create BEC zone/subzone means</a></li>
+<li class="chapter" data-level="5" data-path="index.html"><a href="#missing-site-index-values"><i class="fa fa-check"></i><b>5</b> Missing Site Index Values</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="index.html"><a href="#species-required-for-each-feature_id"><i class="fa fa-check"></i><b>5.1</b> Species required for each feature_id</a></li>
+<li class="chapter" data-level="5.2" data-path="index.html"><a href="#find-where-species-is-missing-a-site-index"><i class="fa fa-check"></i><b>5.2</b> Find where species is missing a site index</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="index.html"><a href="#run-the-spruce-substitution"><i class="fa fa-check"></i><b>6</b> Run the Spruce Substitution</a></li>
+<li class="chapter" data-level="7" data-path="index.html"><a href="#use-sindex-site-conversions"><i class="fa fa-check"></i><b>7</b> Use SIndex site conversions</a></li>
+<li class="chapter" data-level="8" data-path="index.html"><a href="#additional-site-index-conversions"><i class="fa fa-check"></i><b>8</b> Additional Site Index conversions</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="index.html"><a href="#interior-western-cedar-cw"><i class="fa fa-check"></i><b>8.1</b> Interior Western Cedar (Cw)</a></li>
+<li class="chapter" data-level="8.2" data-path="index.html"><a href="#sitka-spruce"><i class="fa fa-check"></i><b>8.2</b> Sitka Spruce</a></li>
+<li class="chapter" data-level="8.3" data-path="index.html"><a href="#white-pine"><i class="fa fa-check"></i><b>8.3</b> White Pine</a></li>
+<li class="chapter" data-level="8.4" data-path="index.html"><a href="#yellow-pine"><i class="fa fa-check"></i><b>8.4</b> Yellow Pine</a></li>
+<li class="chapter" data-level="8.5" data-path="index.html"><a href="#alder"><i class="fa fa-check"></i><b>8.5</b> Alder</a></li>
+<li class="chapter" data-level="8.6" data-path="index.html"><a href="#shore-pine"><i class="fa fa-check"></i><b>8.6</b> Shore Pine</a></li>
+<li class="chapter" data-level="8.7" data-path="index.html"><a href="#after-sindex-and-augmented-conversions"><i class="fa fa-check"></i><b>8.7</b> After SIndex and augmented conversions</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="index.html"><a href="#use-bec-zonal-means"><i class="fa fa-check"></i><b>9</b> Use BEC zonal means</a></li>
+<li class="chapter" data-level="10" data-path="index.html"><a href="#bec-substitutions"><i class="fa fa-check"></i><b>10</b> BEC Substitutions</a></li>
+<li class="chapter" data-level="11" data-path="index.html"><a href="#input-requirements"><i class="fa fa-check"></i><b>11</b> Input Requirements</a></li>
+<li class="chapter" data-level="12" data-path="index.html"><a href="#processing-requirements"><i class="fa fa-check"></i><b>12</b> Processing requirements</a></li>
+<li class="chapter" data-level="13" data-path="index.html"><a href="#appendices"><i class="fa fa-check"></i><b>13</b> Appendices</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="index.html"><a href="#sindex-conversion-coefficients"><i class="fa fa-check"></i><b>13.1</b> SIndex conversion coefficients</a></li>
+<li class="chapter" data-level="13.2" data-path="index.html"><a href="#species-specific-site-curves"><i class="fa fa-check"></i><b>13.2</b> Species Specific Site Curves</a></li>
+<li class="chapter" data-level="13.3" data-path="index.html"><a href="#species-volume-curves"><i class="fa fa-check"></i><b>13.3</b> Species Volume Curves</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">PSPL Processing 2023</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="header">
+<h1 class="title">PSPL Processing 2023</h1>
+<p class="author"><em>Dave Waddell, RPF, MF</em></p>
+<p class="date"><em>2023-03-02</em></p>
+</div>
+<div id="pspl" class="section level1 hasAnchor" number="1">
+<h1><span class="header-section-number">Section - 1</span> PSPL<a href="#pspl" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>The Provincial Site Productivity Layer (PSPL) is used to provide the site index by species for preparation of the provincial managed stand yield tables (MSYTs).</p>
+<p>The processing of PSPL has changed for 2023. The revised process reflects how an input to Batch TIPSY would handle site index conversion to provide site index for species that are missing a site index.</p>
+<p>Note that the PSPL data was prepared by Jeff Kruys (under contract).<br />
+Version 8, released oct 2021</p>
+<div id="site-productivity-sp-points" class="section level2 hasAnchor" number="1.1">
+<h2><span class="header-section-number">1.1</span> Site Productivity (SP) Points<a href="#site-productivity-sp-points" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>A set of points are generated that cover the province in a regular grid</p>
+<ul>
+<li>a grid point is only generated where the point covers a “forested” area</li>
+<li>a site index is assigned to this point in a hierarchical manner</li>
+</ul>
+<ol style="list-style-type: decimal">
+<li><p>PEM/TEM + SIBEC</p>
+<ul>
+<li>PEM/TEM map the spatial site series</li>
+<li>SIBEC provides the site index look up tables for the site series</li>
+<li>SIBEC currently does not cover all site series found in PEM/TEM</li>
+<li>PEM/TEM does not cover the entire province</li>
+<li>only the approved PEM/TEM are used for TSR</li>
+</ul></li>
+<li><p>BIOPHYSICAL Model</p>
+<ul>
+<li>where SIBEC is not complete or a PEM/TEM is not available, a biophysical model is used to generate site index</li>
+<li>the biophysical model is expanded by +/-5% beyond the range of the climate association to encompass more than the original range.</li>
+<li>beyond this, NULL site index values are generated, leading to some SP points appearing in the data with NULL values</li>
+<li>based on climate BC data 2002</li>
+</ul></li>
+</ol>
+</div>
+<div id="features-missing-pspl-points" class="section level2 hasAnchor" number="1.2">
+<h2><span class="header-section-number">1.2</span> Features missing PSPL points<a href="#features-missing-pspl-points" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p><img src="images/pspl_points_missing.PNG" /></p>
+<p>The species that are assigned a site index are those for which there is
+an ecological site association for those species. This can sometimes
+differ from species that are actually planted on the site. This can lead
+to gaps. These missing site index values can cause an ERROR and
+termination of Batch TIPSY during processing. In these cases,
+alternative methods of supplying a site index are used preemptively to
+prevent processing errors.</p>
+</div>
+</div>
+<div id="pspl-process-overview" class="section level1 hasAnchor" number="2">
+<h1><span class="header-section-number">Section - 2</span> PSPL Process Overview<a href="#pspl-process-overview" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>The following figure represents the process used to mill in missig site index values for the AR2022 processing.</p>
+<p><img src="images/pspl_process.PNG" /></p>
+</div>
+<div id="create-feature_id-means" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number">Section - 3</span> Create feature_id means<a href="#create-feature_id-means" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<ol style="list-style-type: decimal">
+<li>Import all PSPL points from GDB into PostgreSQL</li>
+<li>Import the veg_comp_lyr_r1_poly geometry and feature_id into PostgreSQL</li>
+<li>Intersect all PSPL points with the veg comp feature_id</li>
+<li>Derive Mean values for each feature_id</li>
+</ol>
+<p>Example</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">feature_id</th>
+<th align="left">at_si</th>
+<th align="left">ba_si</th>
+<th align="left">…</th>
+<th align="left">sw_si</th>
+<th align="left">sx_si</th>
+<th align="left">yc_si</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1810686</td>
+<td align="left">18.2</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">15.0</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">2001498</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">19.3</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>There are 22 site index by species column in the PSPL data.</p>
+</div>
+<div id="create-bec-zonesubzone-means" class="section level1 hasAnchor" number="4">
+<h1><span class="header-section-number">Section - 4</span> Create BEC zone/subzone means<a href="#create-bec-zonesubzone-means" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<ol style="list-style-type: decimal">
+<li>Group Data from the feature values into BEC zone/subzone</li>
+<li>Derive group mean</li>
+</ol>
+</div>
+<div id="missing-site-index-values" class="section level1 hasAnchor" number="5">
+<h1><span class="header-section-number">Section - 5</span> Missing Site Index Values<a href="#missing-site-index-values" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>Fill in missing values associated with the species list for each feature</p>
+<div id="species-required-for-each-feature_id" class="section level2 hasAnchor" number="5.1">
+<h2><span class="header-section-number">5.1</span> Species required for each feature_id<a href="#species-required-for-each-feature_id" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The MSYT process generates a species list for each feature_id that includes both the current and future assignment of species composition.</p>
+<p>For the 2 features listed above the species that require site index are:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">feature_id</th>
+<th align="left">species</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1810686</td>
+<td align="left">{At,Fdi,Lw,Pl,Py,Sw}</td>
+</tr>
+<tr class="even">
+<td align="left">2001498</td>
+<td align="left">{At,Cwi,Fdi,Hwi,Pl,Pw,Sw}</td>
+</tr>
+</tbody>
+</table>
+<p>And the PSPL mean data has the following site index values.</p>
+<table>
+<colgroup>
+<col width="14%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="4%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">feature_id</th>
+<th align="left">at_si</th>
+<th align="left">cw_si</th>
+<th align="left">fd_si</th>
+<th align="left">hw_si</th>
+<th align="left">lw_si</th>
+<th align="left">pl_si</th>
+<th align="left">pw_si</th>
+<th align="left">py_si</th>
+<th align="left">sw_si</th>
+<th align="left">sx_si</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1810686</td>
+<td align="left">18.2</td>
+<td align="left"></td>
+<td align="left">17.2</td>
+<td align="left"></td>
+<td align="left">*</td>
+<td align="left">17.1</td>
+<td align="left"></td>
+<td align="left">15.0</td>
+<td align="left">*</td>
+<td align="left">15.0</td>
+</tr>
+<tr class="even">
+<td align="left">2001498</td>
+<td align="left">*</td>
+<td align="left">18.7</td>
+<td align="left">17.1</td>
+<td align="left">15.0</td>
+<td align="left"></td>
+<td align="left">17.1</td>
+<td align="left">*</td>
+<td align="left"></td>
+<td align="left">*</td>
+<td align="left">19.3</td>
+</tr>
+</tbody>
+</table>
+<p>Feature 1810686, has site index values are missing for Lw and Sw.<br />
+Feature 2001498, has site index values are missing for At, Pw and Sw.</p>
+<p>It is important to note that while Sw site index is missing for both features, a site index is supplied for Sx.<br />
+This will be used as one of the first site index substitutions as Sx is commonly used in the PSPL as opposed to the more specific Sw, Se or Ss.</p>
+<p>Since there are only site index equations for Se, Sw and Ss these will be substituted base on BEC.</p>
+</div>
+<div id="find-where-species-is-missing-a-site-index" class="section level2 hasAnchor" number="5.2">
+<h2><span class="header-section-number">5.2</span> Find where species is missing a site index<a href="#find-where-species-is-missing-a-site-index" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Join the species list to the feature site index data.<br />
+Find where a species is missing a site index and tag them.</p>
+<p>At this point, this table summarizes how many features have complete site index for species:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">src</th>
+<th align="left">n</th>
+<th align="left">pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">PSPL</td>
+<td align="left">1039574</td>
+<td align="left">18</td>
+</tr>
+<tr class="even">
+<td align="left">Total</td>
+<td align="left">5526737</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>Table 1. Base PSPL Missing Site Index values</p>
+<p>Initially, the raw PSPL has site index values for all required species for 18%.</p>
+</div>
+</div>
+<div id="run-the-spruce-substitution" class="section level1 hasAnchor" number="6">
+<h1><span class="header-section-number">Section - 6</span> Run the Spruce Substitution<a href="#run-the-spruce-substitution" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>Substitute Sx site index under the following conditions</p>
+<p>Se = Sx where BEC = ‘ESSF’<br />
+Sw = Sx where BEC != ‘ESSF’ and BEC is not coastal<br />
+Ss = Sx where BEC is coastal (CDF, CWH, MH)</p>
+<p>Update the tags for missing where the Spruce Substitution has filled the site index.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">src</th>
+<th align="left">n</th>
+<th align="left">pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">PSPL</td>
+<td align="left">1039574</td>
+<td align="left">18</td>
+</tr>
+<tr class="even">
+<td align="left">Spruce Conversion</td>
+<td align="left">667801</td>
+<td align="left">12</td>
+</tr>
+<tr class="odd">
+<td align="left">Total</td>
+<td align="left">5526737</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>Table 2. After SX substitutions</p>
+<p>After substituting for Sx, the valid site index percentage has increased to 30%.</p>
+</div>
+<div id="use-sindex-site-conversions" class="section level1 hasAnchor" number="7">
+<h1><span class="header-section-number">Section - 7</span> Use SIndex site conversions<a href="#use-sindex-site-conversions" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>Site tools SIndex provides a standard set of coefficients for site index conversions. These are provided in the appendix.</p>
+<p>The next step is to apply the site index conversions only for those species that have a missing site index. This procedure is used so that chaining of the site index conversions are minimized.</p>
+<p>Again, update the tags for missing where the Spruce Substitution has filled the site index.</p>
+</div>
+<div id="additional-site-index-conversions" class="section level1 hasAnchor" number="8">
+<h1><span class="header-section-number">Section - 8</span> Additional Site Index conversions<a href="#additional-site-index-conversions" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>The use of the standard SIndex conversion coefficients has shown that there are some species conversions that are missing. The following substitutions are being used to address this.</p>
+<div id="interior-western-cedar-cw" class="section level2 hasAnchor" number="8.1">
+<h2><span class="header-section-number">8.1</span> Interior Western Cedar (Cw)<a href="#interior-western-cedar-cw" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>If there is no site index provided for Cw and the BEC zone is NOT in
+CWH, CDF, or MH, then it is assigned using the White Spruce site index:</p>
+<ul>
+<li>cw_si = sw_si</li>
+</ul>
+</div>
+<div id="sitka-spruce" class="section level2 hasAnchor" number="8.2">
+<h2><span class="header-section-number">8.2</span> Sitka Spruce<a href="#sitka-spruce" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The standard PSPL process runs a set of site index conversion equations
+only once. That is, the use of a converted site index is avoided if
+possible. Under certain conditions, this may leave site index values
+missing. In the case of Sitka Spruce (Ss), the conversion equation for
+Western Hemlock(Hw) is used a second time to fill in gaps:</p>
+<ul>
+<li>ss_si = -4.943820220 + 1.248439450 * hw_si</li>
+</ul>
+</div>
+<div id="white-pine" class="section level2 hasAnchor" number="8.3">
+<h2><span class="header-section-number">8.3</span> White Pine<a href="#white-pine" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Similar to Sitka Spruce, White Pine can end up with missing site index
+values. In this case, two equations were required to fill in missing
+site index values, one for the coast and one for the interior:</p>
+<ul>
+<li>pw_si = ss_si (coastal)</li>
+<li>pw_si = fd_si (interior)</li>
+</ul>
+</div>
+<div id="yellow-pine" class="section level2 hasAnchor" number="8.4">
+<h2><span class="header-section-number">8.4</span> Yellow Pine<a href="#yellow-pine" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Also similar to Sitka Spruce, Yellow Pine can end up with missing site
+index values. In this case, Douglas Fir site index is used:</p>
+<ul>
+<li>py_si = fd_si</li>
+</ul>
+</div>
+<div id="alder" class="section level2 hasAnchor" number="8.5">
+<h2><span class="header-section-number">8.5</span> Alder<a href="#alder" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The first discussions around missing site index values for Alder (Dr)
+suggested a direct site index substitution using Douglas Fir. An
+examination of these site indices lead to a discussion that possibly the
+values were too high. Limited data from RPB (George Harper) suggested
+the following:</p>
+<ul>
+<li>Coast dry: bec_zone in (‘CWH’,‘CDF’,‘MH’) and bec_subzone in
+(‘ds’,‘db’,‘xm’)
+<ul>
+<li>dr_si = fd_si * 0.55</li>
+</ul></li>
+<li>Coast Wet: bec_zone in (‘CWH’,‘CDF’,‘MH’)
+<ul>
+<li>dr_si = fd_si * 0.73</li>
+</ul></li>
+</ul>
+</div>
+<div id="shore-pine" class="section level2 hasAnchor" number="8.6">
+<h2><span class="header-section-number">8.6</span> Shore Pine<a href="#shore-pine" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>There are occurrences of low density Shore Pine (Pl in coastal BEC).
+These are being treated as Non Commercial or are being removed it they
+are the last species in the list.</p>
+<p>Examples:</p>
+<p>CWH wh, Pl with planted density = 20 removed from planted species list</p>
+<p>BEC zone CDF, CWH or MH, if natural species 5 is Pl, replace with Ncc</p>
+<p>Ncc is not counted in the reported merchantable volume, but occupies
+space in terms of overall site occupancy.</p>
+</div>
+<div id="after-sindex-and-augmented-conversions" class="section level2 hasAnchor" number="8.7">
+<h2><span class="header-section-number">8.7</span> After SIndex and augmented conversions<a href="#after-sindex-and-augmented-conversions" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<table>
+<thead>
+<tr class="header">
+<th align="left">src</th>
+<th align="left">n</th>
+<th align="left">pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">PSPL</td>
+<td align="left">1039574</td>
+<td align="left">18</td>
+</tr>
+<tr class="even">
+<td align="left">Spruce Conversion</td>
+<td align="left">667801</td>
+<td align="left">12</td>
+</tr>
+<tr class="odd">
+<td align="left">SIndex Conversion(1)</td>
+<td align="left">3249093</td>
+<td align="left">58</td>
+</tr>
+<tr class="even">
+<td align="left">Total</td>
+<td align="left">5526737</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p>Table 3. After SIndex conversions where a species is mising a site index.</p>
+<p>The valid site index percentage has increased to 88%.</p>
+</div>
+</div>
+<div id="use-bec-zonal-means" class="section level1 hasAnchor" number="9">
+<h1><span class="header-section-number">Section - 9</span> Use BEC zonal means<a href="#use-bec-zonal-means" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>At this point, we are still missing site index for approx 10% of the features. The PSPL zonal BEC means will be used to substitute where missing, but they need to be processed further before use. The Spruce Substitution is run first, followed by the SIndex conversions. In this case, a species missing approach is not used and the SIndex conversions are run in a brute force manner.</p>
+<p>The updated BEC means are then used to substitute where a species is missing a site index in the feature based data.</p>
+<p>Again, update the tags for missing.</p>
+<p>At this point, there should be no missing site index values.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">src</th>
+<th align="left">n</th>
+<th align="left">pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">PSPL</td>
+<td align="left">1039574</td>
+<td align="left">18.8</td>
+</tr>
+<tr class="even">
+<td align="left">Spruce Conversion</td>
+<td align="left">667801</td>
+<td align="left">12.1</td>
+</tr>
+<tr class="odd">
+<td align="left">SIndex Conversion(1)</td>
+<td align="left">3249093</td>
+<td align="left">58.8</td>
+</tr>
+<tr class="even">
+<td align="left">BEC Conversion</td>
+<td align="left">570269</td>
+<td align="left">10.3</td>
+</tr>
+<tr class="odd">
+<td align="left">Total</td>
+<td align="left">5526737</td>
+<td align="left">100</td>
+</tr>
+</tbody>
+</table>
+<p>Table 4. After BEC substitutions.</p>
+</div>
+<div id="bec-substitutions" class="section level1 hasAnchor" number="10">
+<h1><span class="header-section-number">Section - 10</span> BEC Substitutions<a href="#bec-substitutions" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>At this point, there may still be missing values in the features. To overcome this, the
+recommendations from Regional Ecologist were used to build an acceptable
+BEC substitution (crosswalk) table.</p>
+<table>
+<thead>
+<tr class="header">
+<th>
+Missing BEC
+</th>
+<th>
+Substitution
+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>
+BWBSvk
+</td>
+<td>
+BWBSwk
+</td>
+</tr>
+<tr class="even">
+<td>
+CWHwm
+</td>
+<td>
+CWHvm
+</td>
+</tr>
+<tr class="odd">
+<td>
+ESSFdvw
+</td>
+<td>
+ESSFdv
+</td>
+</tr>
+<tr class="even">
+<td>
+ESSFmvp
+</td>
+<td>
+ESSFmv
+</td>
+</tr>
+<tr class="odd">
+<td>
+ESSFmww
+</td>
+<td>
+ESSFmw
+</td>
+</tr>
+<tr class="even">
+<td>
+ESSFmz
+</td>
+<td>
+ESSFun
+</td>
+</tr>
+<tr class="odd">
+<td>
+ESSFwcp
+</td>
+<td>
+ESSFwc
+</td>
+</tr>
+<tr class="even">
+<td>
+MHun
+</td>
+<td>
+MHmm
+</td>
+</tr>
+<tr class="odd">
+<td>
+MSdv
+</td>
+<td>
+MSxv
+</td>
+</tr>
+<tr class="even">
+<td>
+SBSmv
+</td>
+<td>
+SBSun
+</td>
+</tr>
+<tr class="odd">
+<td>
+SWBmk
+</td>
+<td>
+BWBSdk
+</td>
+</tr>
+<tr class="even">
+<td>
+SWBmks
+</td>
+<td>
+BWBSdk
+</td>
+</tr>
+<tr class="odd">
+<td>
+SWBun
+</td>
+<td>
+BWBSdk
+</td>
+</tr>
+<tr class="even">
+<td>
+SWBvk
+</td>
+<td>
+BWBSdk
+</td>
+</tr>
+</tbody>
+</table>
+<p>Table 1. BEC Substitution table</p>
+</div>
+<div id="input-requirements" class="section level1 hasAnchor" number="11">
+<h1><span class="header-section-number">Section - 11</span> Input Requirements<a href="#input-requirements" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<ul>
+<li>PSPL point sets by TSA</li>
+<li>VRI (geometry and feature_id in raster form)</li>
+<li>BEC(x) (associated with PSPL)</li>
+<li>TSA updated for additions and depletions</li>
+</ul>
+</div>
+<div id="processing-requirements" class="section level1 hasAnchor" number="12">
+<h1><span class="header-section-number">Section - 12</span> Processing requirements<a href="#processing-requirements" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<ul>
+<li>Spatially intersect PSPL with VRI features</li>
+<li>Spatially intersect BEC(x) with VRI features</li>
+<li>Generate mean feature_id based PSPL site index</li>
+<li>Generate BEC for each VRI feature (most points)</li>
+</ul>
+</div>
+<div id="appendices" class="section level1 hasAnchor" number="13">
+<h1><span class="header-section-number">Section - 13</span> Appendices<a href="#appendices" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="sindex-conversion-coefficients" class="section level2 hasAnchor" number="13.1">
+<h2><span class="header-section-number">13.1</span> SIndex conversion coefficients<a href="#sindex-conversion-coefficients" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>SIndex contains a set of conversion equations. These equations were directly translated from C to R.</p>
+<p>The following table documents the conversions coefficients.</p>
+<p>The conversion equation is of the form:</p>
+<p>s1<sub>si</sub> = b<sub>0</sub> + b<sub>1</sub> * s2<sub>si</sub></p>
+<table>
+<thead>
+<tr class="header">
+<th>s1</th>
+<th>s2</th>
+<th>b<sub>0</sub></th>
+<th>b<sub>1</sub></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>at</td>
+<td>sw</td>
+<td>-4.768112309</td>
+<td>1.253446979</td>
+</tr>
+<tr class="even">
+<td>at</td>
+<td>sx</td>
+<td>-4.768112309</td>
+<td>1.253446979</td>
+</tr>
+<tr class="odd">
+<td>at</td>
+<td>se</td>
+<td>-4.768112309</td>
+<td>1.253446979</td>
+</tr>
+<tr class="even">
+<td>at</td>
+<td>bl</td>
+<td>-7.216706405</td>
+<td>1.457496490</td>
+</tr>
+<tr class="odd">
+<td>at</td>
+<td>pl</td>
+<td>-7.452123778</td>
+<td>1.362442366</td>
+</tr>
+<tr class="even">
+<td>at</td>
+<td>fd</td>
+<td>-12.846637615</td>
+<td>1.700742166</td>
+</tr>
+<tr class="odd">
+<td>ba</td>
+<td>hw</td>
+<td>-1.977317550</td>
+<td>0.986193290</td>
+</tr>
+<tr class="even">
+<td>ba</td>
+<td>ss</td>
+<td>1.928007878</td>
+<td>0.789940825</td>
+</tr>
+<tr class="odd">
+<td>ba</td>
+<td>sx</td>
+<td>1.928007878</td>
+<td>0.789940825</td>
+</tr>
+<tr class="even">
+<td>ba</td>
+<td>cw</td>
+<td>-0.738658778</td>
+<td>1.033530568</td>
+</tr>
+<tr class="odd">
+<td>ba</td>
+<td>fd</td>
+<td>-2.403353051</td>
+<td>0.886587768</td>
+</tr>
+<tr class="even">
+<td>bl</td>
+<td>sw</td>
+<td>1.680000000</td>
+<td>0.860000000</td>
+</tr>
+<tr class="odd">
+<td>bl</td>
+<td>sx</td>
+<td>1.680000000</td>
+<td>0.860000000</td>
+</tr>
+<tr class="even">
+<td>bl</td>
+<td>pl</td>
+<td>0.474311930</td>
+<td>0.917431190</td>
+</tr>
+<tr class="odd">
+<td>bl</td>
+<td>at</td>
+<td>4.951440000</td>
+<td>0.686108000</td>
+</tr>
+<tr class="even">
+<td>bl</td>
+<td>fd</td>
+<td>-0.221100912</td>
+<td>0.981651373</td>
+</tr>
+<tr class="odd">
+<td>bl</td>
+<td>lw</td>
+<td>-1.360550450</td>
+<td>0.954128438</td>
+</tr>
+<tr class="even">
+<td>bl</td>
+<td>sb</td>
+<td>-3.497247692</td>
+<td>1.436697244</td>
+</tr>
+<tr class="odd">
+<td>cwc</td>
+<td>hw</td>
+<td>-1.198473280</td>
+<td>0.95419847</td>
+</tr>
+<tr class="even">
+<td>cwc</td>
+<td>ba</td>
+<td>0.714694652</td>
+<td>0.967557249</td>
+</tr>
+<tr class="odd">
+<td>cwc</td>
+<td>ss</td>
+<td>2.580152661</td>
+<td>0.764312974</td>
+</tr>
+<tr class="even">
+<td>cwc</td>
+<td>sx</td>
+<td>2.580152661</td>
+<td>0.764312974</td>
+</tr>
+<tr class="odd">
+<td>cwc</td>
+<td>fd</td>
+<td>-1.610687019</td>
+<td>0.857824425</td>
+</tr>
+<tr class="even">
+<td>fdc</td>
+<td>hw</td>
+<td>0.480533930</td>
+<td>1.112347050</td>
+</tr>
+<tr class="odd">
+<td>fdc</td>
+<td>cw</td>
+<td>1.877641825</td>
+<td>1.165739708</td>
+</tr>
+<tr class="even">
+<td>fdc</td>
+<td>ba</td>
+<td>2.710789765</td>
+<td>1.127919909</td>
+</tr>
+<tr class="odd">
+<td>fdc</td>
+<td>ss</td>
+<td>4.885428248</td>
+<td>0.890989987</td>
+</tr>
+<tr class="even">
+<td>fdc</td>
+<td>sx</td>
+<td>4.885428248</td>
+<td>0.890989987</td>
+</tr>
+<tr class="odd">
+<td>fdi</td>
+<td>pl</td>
+<td>0.708411210</td>
+<td>0.934579440</td>
+</tr>
+<tr class="even">
+<td>fdi</td>
+<td>bl</td>
+<td>0.225233640</td>
+<td>1.018691590</td>
+</tr>
+<tr class="odd">
+<td>fdi</td>
+<td>hw</td>
+<td>4.560000000</td>
+<td>0.887000000</td>
+</tr>
+<tr class="even">
+<td>fdi</td>
+<td>sw</td>
+<td>4.750000000</td>
+<td>0.737000000</td>
+</tr>
+<tr class="odd">
+<td>fdi</td>
+<td>sx</td>
+<td>4.750000000</td>
+<td>0.737000000</td>
+</tr>
+<tr class="even">
+<td>fdi</td>
+<td>at</td>
+<td>7.553548000</td>
+<td>0.587978600</td>
+</tr>
+<tr class="odd">
+<td>fdi</td>
+<td>lw</td>
+<td>-0.690000000</td>
+<td>0.983000000</td>
+</tr>
+<tr class="even">
+<td>fdi</td>
+<td>sb</td>
+<td>-3.337383186</td>
+<td>1.463551403</td>
+</tr>
+<tr class="odd">
+<td>hwc</td>
+<td>cw</td>
+<td>1.256000000</td>
+<td>1.048000000</td>
+</tr>
+<tr class="even">
+<td>hwc</td>
+<td>ba</td>
+<td>2.005000000</td>
+<td>1.014000000</td>
+</tr>
+<tr class="odd">
+<td>hwc</td>
+<td>ss</td>
+<td>3.960000000</td>
+<td>0.801000000</td>
+</tr>
+<tr class="even">
+<td>hwc</td>
+<td>sx</td>
+<td>3.960000000</td>
+<td>0.801000000</td>
+</tr>
+<tr class="odd">
+<td>hwc</td>
+<td>fd</td>
+<td>-0.432000000</td>
+<td>0.89900000</td>
+</tr>
+<tr class="even">
+<td>hwi</td>
+<td>fd</td>
+<td>-5.140924460</td>
+<td>1.127395720</td>
+</tr>
+<tr class="odd">
+<td>hwi</td>
+<td>sw</td>
+<td>0.214205210</td>
+<td>0.830890646</td>
+</tr>
+<tr class="even">
+<td>hwi</td>
+<td>sx</td>
+<td>0.214205210</td>
+<td>0.830890646</td>
+</tr>
+<tr class="odd">
+<td>hwi</td>
+<td>pl</td>
+<td>-4.342264694</td>
+<td>1.053640861</td>
+</tr>
+<tr class="even">
+<td>hwi</td>
+<td>lw</td>
+<td>-5.918827507</td>
+<td>1.108229993</td>
+</tr>
+<tr class="odd">
+<td>lw</td>
+<td>fd</td>
+<td>0.701932860</td>
+<td>1.017294000</td>
+</tr>
+<tr class="even">
+<td>lw</td>
+<td>bl</td>
+<td>1.425961536</td>
+<td>1.048076921</td>
+</tr>
+<tr class="odd">
+<td>lw</td>
+<td>pl</td>
+<td>1.923076920</td>
+<td>0.961538460</td>
+</tr>
+<tr class="even">
+<td>lw</td>
+<td>sw</td>
+<td>3.817307686</td>
+<td>0.884615383</td>
+</tr>
+<tr class="odd">
+<td>lw</td>
+<td>sx</td>
+<td>3.817307686</td>
+<td>0.884615383</td>
+</tr>
+<tr class="even">
+<td>lw</td>
+<td>hw</td>
+<td>5.340793500</td>
+<td>0.902339778</td>
+</tr>
+<tr class="odd">
+<td>lw</td>
+<td>sb</td>
+<td>-2.239423073</td>
+<td>1.505769228</td>
+</tr>
+<tr class="even">
+<td>pl</td>
+<td>sw</td>
+<td>1.970000000</td>
+<td>0.920000000</td>
+</tr>
+<tr class="odd">
+<td>pl</td>
+<td>sx</td>
+<td>1.970000000</td>
+<td>0.920000000</td>
+</tr>
+<tr class="even">
+<td>pl</td>
+<td>hw</td>
+<td>4.121200000</td>
+<td>0.949090000</td>
+</tr>
+<tr class="odd">
+<td>pl</td>
+<td>at</td>
+<td>5.469680000</td>
+<td>0.733976000</td>
+</tr>
+<tr class="even">
+<td>pl</td>
+<td>bl</td>
+<td>-0.517000000</td>
+<td>1.090000000</td>
+</tr>
+<tr class="odd">
+<td>pl</td>
+<td>fd</td>
+<td>-0.758000000</td>
+<td>1.070000000</td>
+</tr>
+<tr class="even">
+<td>pl</td>
+<td>lw</td>
+<td>-2.000000000</td>
+<td>1.040000000</td>
+</tr>
+<tr class="odd">
+<td>pl</td>
+<td>sb</td>
+<td>-4.329000000</td>
+<td>1.566000000</td>
+</tr>
+<tr class="even">
+<td>sb</td>
+<td>pl</td>
+<td>2.764367820</td>
+<td>0.638569600</td>
+</tr>
+<tr class="odd">
+<td>sb</td>
+<td>lw</td>
+<td>1.487228620</td>
+<td>0.664112384</td>
+</tr>
+<tr class="even">
+<td>sb</td>
+<td>fd</td>
+<td>2.280332063</td>
+<td>0.683269472</td>
+</tr>
+<tr class="odd">
+<td>sb</td>
+<td>bl</td>
+<td>2.434227337</td>
+<td>0.696040864</td>
+</tr>
+<tr class="even">
+<td>sb</td>
+<td>sw</td>
+<td>4.022349932</td>
+<td>0.587484032</td>
+</tr>
+<tr class="odd">
+<td>sb</td>
+<td>sx</td>
+<td>4.022349932</td>
+<td>0.587484032</td>
+</tr>
+<tr class="even">
+<td>ss</td>
+<td>hw</td>
+<td>-4.943820220</td>
+<td>1.248439450</td>
+</tr>
+<tr class="odd">
+<td>ss</td>
+<td>ba</td>
+<td>-2.440699123</td>
+<td>1.265917602</td>
+</tr>
+<tr class="even">
+<td>ss</td>
+<td>cw</td>
+<td>-3.375780271</td>
+<td>1.308364544</td>
+</tr>
+<tr class="odd">
+<td>ss</td>
+<td>fd</td>
+<td>-5.483146062</td>
+<td>1.122347066</td>
+</tr>
+<tr class="even">
+<td>sw</td>
+<td>pl</td>
+<td>-2.141304350</td>
+<td>1.086956520</td>
+</tr>
+<tr class="odd">
+<td>sw</td>
+<td>at</td>
+<td>3.804000000</td>
+<td>0.797800000</td>
+</tr>
+<tr class="even">
+<td>sw</td>
+<td>hw</td>
+<td>-0.257801914</td>
+<td>1.203527813</td>
+</tr>
+<tr class="odd">
+<td>sw</td>
+<td>bl</td>
+<td>-1.953488370</td>
+<td>1.162790700</td>
+</tr>
+<tr class="even">
+<td>sw</td>
+<td>lw</td>
+<td>-4.315217390</td>
+<td>1.130434781</td>
+</tr>
+<tr class="odd">
+<td>sw</td>
+<td>fd</td>
+<td>-6.445047490</td>
+<td>1.356852100</td>
+</tr>
+<tr class="even">
+<td>sw</td>
+<td>sb</td>
+<td>-6.846739125</td>
+<td>1.702173910</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="species-specific-site-curves" class="section level2 hasAnchor" number="13.2">
+<h2><span class="header-section-number">13.2</span> Species Specific Site Curves<a href="#species-specific-site-curves" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>TASS II Specific Parameters:</p>
+<p>Species are generally calibrated to specific site curves, however mixing and matching can be done with caution. Each species defaults to its own curve; where there are multiple site curves per species the default is labelled.</p>
+<p>The following table contains all available site curves with the suggested species codes. See Appendix B: References for tree species code definitions and site curve references.</p>
+<p>site_curve must be one of the following Site Curve values:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Species Code</th>
+<th align="left">Site Curves</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Acb</td>
+<td align="left">ACB_HUANGAC</td>
+</tr>
+<tr class="even">
+<td align="left">Act</td>
+<td align="left">ACT_THROWERAC</td>
+</tr>
+<tr class="odd">
+<td align="left">At</td>
+<td align="left">AT_NIGH</td>
+</tr>
+<tr class="even">
+<td align="left">Ba</td>
+<td align="left">BA_NIGH</td>
+</tr>
+<tr class="odd">
+<td align="left">Bl</td>
+<td align="left">BL_CHENAC</td>
+</tr>
+<tr class="even">
+<td align="left">Bp</td>
+<td align="left">BP_CURTISAC</td>
+</tr>
+<tr class="odd">
+<td align="left">Cwc CWC_NIGH</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Cwi CWI_NIGH</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Dr</td>
+<td align="left">DR_NIGH</td>
+</tr>
+<tr class="even">
+<td align="left">Ep</td>
+<td align="left">EP_NIGH</td>
+</tr>
+<tr class="odd">
+<td align="left">Fdc</td>
+<td align="left">FDC_BRUCEAC</td>
+</tr>
+<tr class="even">
+<td align="left">Fdi</td>
+<td align="left">FDI_THROWERAC</td>
+</tr>
+<tr class="odd">
+<td align="left">Hm</td>
+<td align="left">HM_MEANSAC</td>
+</tr>
+<tr class="even">
+<td align="left">Hwc</td>
+<td align="left">HWC_WILEYAC</td>
+</tr>
+<tr class="odd">
+<td align="left">Hwi</td>
+<td align="left">HWI_NIGH</td>
+</tr>
+<tr class="even">
+<td align="left">Lw</td>
+<td align="left">LW_NIGH</td>
+</tr>
+<tr class="odd">
+<td align="left">Pj</td>
+<td align="left">PJ_HUANGAC</td>
+</tr>
+<tr class="even">
+<td align="left">Pli</td>
+<td align="left">PLI_THROWER (default), PLI_NIGH</td>
+</tr>
+<tr class="odd">
+<td align="left">Pw</td>
+<td align="left">PW_CURTISAC</td>
+</tr>
+<tr class="even">
+<td align="left">Py</td>
+<td align="left">PY_NIGH</td>
+</tr>
+<tr class="odd">
+<td align="left">Sb</td>
+<td align="left">SB_NIGH</td>
+</tr>
+<tr class="even">
+<td align="left">Se</td>
+<td align="left">SE_NIGH</td>
+</tr>
+<tr class="odd">
+<td align="left">Ss</td>
+<td align="left">SS_NIGH</td>
+</tr>
+<tr class="even">
+<td align="left">Sw</td>
+<td align="left">SW_GOUDIE_PLAAC (default), SW_GOUDIE_NATAC, SW_NIGH</td>
+</tr>
+</tbody>
+</table>
+<p>Source:</p>
+<p>MFLNROD 2021. Command Documentation for the Tree and Stand Simulator (TASS) Versions II and III. Internal draft. Forest Analysis and Inventory Branch. Ministry of Forests, Lands, and Natural Operations and Rural Development. Revised December 2021. 241p</p>
+</div>
+<div id="species-volume-curves" class="section level2 hasAnchor" number="13.3">
+<h2><span class="header-section-number">13.3</span> Species Volume Curves<a href="#species-volume-curves" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Input Code</th>
+<th align="left">FIZ *</th>
+<th align="left">Site Index Curve</th>
+<th align="left">Volume Curve</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">A</td>
+<td align="left">X</td>
+<td align="left">AT</td>
+<td align="left">AT  </td>
+</tr>
+<tr class="even">
+<td align="left">AC</td>
+<td align="left">X</td>
+<td align="left">ACT</td>
+<td align="left">AT  </td>
+</tr>
+<tr class="odd">
+<td align="left">ACB</td>
+<td align="left">X</td>
+<td align="left">ACB</td>
+<td align="left">AT  </td>
+</tr>
+<tr class="even">
+<td align="left">AT</td>
+<td align="left">X</td>
+<td align="left">AT</td>
+<td align="left">AT  </td>
+</tr>
+<tr class="odd">
+<td align="left">B</td>
+<td align="left">C</td>
+<td align="left">BA</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="even">
+<td align="left">B</td>
+<td align="left">I</td>
+<td align="left">BL</td>
+<td align="left">SW  </td>
+</tr>
+<tr class="odd">
+<td align="left">BA</td>
+<td align="left">C</td>
+<td align="left">BA</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="even">
+<td align="left">BA</td>
+<td align="left">I</td>
+<td align="left">BA</td>
+<td align="left">SW  </td>
+</tr>
+<tr class="odd">
+<td align="left">BG</td>
+<td align="left">C</td>
+<td align="left">BA</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="even">
+<td align="left">BG</td>
+<td align="left">I</td>
+<td align="left">BL</td>
+<td align="left">SW  </td>
+</tr>
+<tr class="odd">
+<td align="left">BL</td>
+<td align="left">C</td>
+<td align="left">BL</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="even">
+<td align="left">BL</td>
+<td align="left">I</td>
+<td align="left">BL</td>
+<td align="left">SW  </td>
+</tr>
+<tr class="odd">
+<td align="left">C</td>
+<td align="left">C</td>
+<td align="left">CWC</td>
+<td align="left">CWC</td>
+</tr>
+<tr class="even">
+<td align="left">C</td>
+<td align="left">I</td>
+<td align="left">CWI</td>
+<td align="left">CWI</td>
+</tr>
+<tr class="odd">
+<td align="left">CT</td>
+<td align="left">X</td>
+<td align="left">ACT</td>
+<td align="left">AT</td>
+</tr>
+<tr class="even">
+<td align="left">CW</td>
+<td align="left">C</td>
+<td align="left">CWC</td>
+<td align="left">CWC</td>
+</tr>
+<tr class="odd">
+<td align="left">CW</td>
+<td align="left">I</td>
+<td align="left">CWI</td>
+<td align="left">CWI</td>
+</tr>
+<tr class="even">
+<td align="left">CWC</td>
+<td align="left">C</td>
+<td align="left">CWC</td>
+<td align="left">CWC</td>
+</tr>
+<tr class="odd">
+<td align="left">CWC</td>
+<td align="left">~</td>
+<td align="left">CWC</td>
+<td align="left">CWC</td>
+</tr>
+<tr class="even">
+<td align="left">CWI</td>
+<td align="left">I</td>
+<td align="left">CWI</td>
+<td align="left">CWI</td>
+</tr>
+<tr class="odd">
+<td align="left">CWI</td>
+<td align="left">~</td>
+<td align="left">CWI</td>
+<td align="left">CWI</td>
+</tr>
+<tr class="even">
+<td align="left">CY</td>
+<td align="left">C</td>
+<td align="left">CWC</td>
+<td align="left">CWC</td>
+</tr>
+<tr class="odd">
+<td align="left">CY</td>
+<td align="left">I</td>
+<td align="left">CWI</td>
+<td align="left">CWI</td>
+</tr>
+<tr class="even">
+<td align="left">D</td>
+<td align="left">X</td>
+<td align="left">DR</td>
+<td align="left">DR</td>
+</tr>
+<tr class="odd">
+<td align="left">DR</td>
+<td align="left">X</td>
+<td align="left">DR</td>
+<td align="left">DR</td>
+</tr>
+<tr class="even">
+<td align="left">F</td>
+<td align="left">C</td>
+<td align="left">FDC</td>
+<td align="left">FDC</td>
+</tr>
+<tr class="odd">
+<td align="left">F</td>
+<td align="left">I</td>
+<td align="left">FDI</td>
+<td align="left">FDI</td>
+</tr>
+<tr class="even">
+<td align="left">FD</td>
+<td align="left">C</td>
+<td align="left">FDC</td>
+<td align="left">FDC</td>
+</tr>
+<tr class="odd">
+<td align="left">FD</td>
+<td align="left">I</td>
+<td align="left">FDI</td>
+<td align="left">FDI</td>
+</tr>
+<tr class="even">
+<td align="left">FDC</td>
+<td align="left">C</td>
+<td align="left">FDC</td>
+<td align="left">FDC</td>
+</tr>
+<tr class="odd">
+<td align="left">FDC</td>
+<td align="left">~</td>
+<td align="left">FDC</td>
+<td align="left">FDC</td>
+</tr>
+<tr class="even">
+<td align="left">FDI</td>
+<td align="left">I</td>
+<td align="left">FDI</td>
+<td align="left">FDI</td>
+</tr>
+<tr class="odd">
+<td align="left">FDI</td>
+<td align="left">~</td>
+<td align="left">FDI</td>
+<td align="left">FDI</td>
+</tr>
+<tr class="even">
+<td align="left">H</td>
+<td align="left">C</td>
+<td align="left">HWC</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="odd">
+<td align="left">H</td>
+<td align="left">I</td>
+<td align="left">HWI</td>
+<td align="left">HWI</td>
+</tr>
+<tr class="even">
+<td align="left">HM</td>
+<td align="left">X</td>
+<td align="left">HM</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="odd">
+<td align="left">HW</td>
+<td align="left">C</td>
+<td align="left">HWC</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="even">
+<td align="left">HW</td>
+<td align="left">I</td>
+<td align="left">HWI</td>
+<td align="left">HWI</td>
+</tr>
+<tr class="odd">
+<td align="left">HWC</td>
+<td align="left">C</td>
+<td align="left">HWC</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="even">
+<td align="left">HWC</td>
+<td align="left">~</td>
+<td align="left">HWC</td>
+<td align="left">HWC</td>
+</tr>
+<tr class="odd">
+<td align="left">HWI</td>
+<td align="left">I</td>
+<td align="left">HWI</td>
+<td align="left">HWI</td>
+</tr>
+<tr class="even">
+<td align="left">HWI</td>
+<td align="left">~</td>
+<td align="left">HWI</td>
+<td align="left">HWI</td>
+</tr>
+<tr class="odd">
+<td align="left">L</td>
+<td align="left">X</td>
+<td align="left">LW</td>
+<td align="left">FDI</td>
+</tr>
+<tr class="even">
+<td align="left">LW</td>
+<td align="left">X</td>
+<td align="left">LW</td>
+<td align="left">FDI</td>
+</tr>
+<tr class="odd">
+<td align="left">PL</td>
+<td align="left">X</td>
+<td align="left">PLI</td>
+<td align="left">PLI</td>
+</tr>
+<tr class="even">
+<td align="left">PLI</td>
+<td align="left">X</td>
+<td align="left">PLI</td>
+<td align="left">PLI</td>
+</tr>
+<tr class="odd">
+<td align="left">PLI</td>
+<td align="left">~</td>
+<td align="left">PLI</td>
+<td align="left">PLI</td>
+</tr>
+<tr class="even">
+<td align="left">PW</td>
+<td align="left">X</td>
+<td align="left">PW</td>
+<td align="left">FDI</td>
+</tr>
+<tr class="odd">
+<td align="left">PY</td>
+<td align="left">X</td>
+<td align="left">PY</td>
+<td align="left">FDI</td>
+</tr>
+<tr class="even">
+<td align="left">S</td>
+<td align="left">C</td>
+<td align="left">SS</td>
+<td align="left">SS</td>
+</tr>
+<tr class="odd">
+<td align="left">S</td>
+<td align="left">I</td>
+<td align="left">SW</td>
+<td align="left">SW</td>
+</tr>
+<tr class="even">
+<td align="left">SB</td>
+<td align="left">X</td>
+<td align="left">SB</td>
+<td align="left">SW</td>
+</tr>
+<tr class="odd">
+<td align="left">SE</td>
+<td align="left">X</td>
+<td align="left">SE</td>
+<td align="left">SW</td>
+</tr>
+<tr class="even">
+<td align="left">SS</td>
+<td align="left">X</td>
+<td align="left">SS</td>
+<td align="left">SS</td>
+</tr>
+<tr class="odd">
+<td align="left">SW</td>
+<td align="left">X</td>
+<td align="left">SW</td>
+<td align="left">SW</td>
+</tr>
+<tr class="even">
+<td align="left">YC</td>
+<td align="left">C</td>
+<td align="left">CWC</td>
+<td align="left">CWC</td>
+</tr>
+<tr class="odd">
+<td align="left">YC</td>
+<td align="left">I</td>
+<td align="left">CWI</td>
+<td align="left">CWI</td>
+</tr>
+</tbody>
+</table>
+<pre><code> </code></pre>
+<ul>
+<li>FIZ:  C for coast, I for interior, X for both, ~ for unspecified.</li>
+</ul>
+<p>For more information on recommended species substitutions, see the TIPSY help pages.</p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subssection",
+"scroll_highligt": true
+}
+});
+});
+</script>
+
+</body>
+
+</html>
