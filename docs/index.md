@@ -1,7 +1,7 @@
 --- 
 title: "PSPL Processing 2023"
 author: "Dave Waddell, RPF, MF"
-date: "2023-03-02"
+date: "2023-03-03"
 site: bookdown::bookdown_site
 description: |
   This is the bookdown for PSPL Processing
@@ -511,31 +511,31 @@ MFLNROD 2021. Command Documentation for the Tree and Stand Simulator (TASS) Vers
 
 |Input Code	|FIZ \*	|Site Index Curve	|Volume Curve	|
 |:---|:---|:---|:---|
-|A	|X	|AT	|AT	 |
-|AC	|X	|ACT	|AT	 |
-|ACB	|X	|ACB	|AT	 |
-|AT	|X	|AT	|AT	 |
-|B	|C	|BA	|HWC|	 
-|B	|I	|BL	|SW	 |
-|BA	|C	|BA	|HWC|	 
-|BA	|I	|BA	|SW	 |
-|BG	|C	|BA	|HWC|	 
-|BG	|I	|BL	|SW	 |
-|BL	|C	|BL	|HWC|	 
-|BL	|I	|BL	|SW	 |
-|C	|C	|CWC	|CWC|	 
-|C	|I	|CWI	|CWI|	 
-|CT	|X	|ACT	|AT	| 
-|CW	|C	|CWC	|CWC|	 
-|CW	|I	|CWI	|CWI|	 
-|CWC	|C	|CWC	|CWC|	 
-|CWC	|~	|CWC	|CWC|	 
-|CWI	|I	|CWI	|CWI|	 
-|CWI	|~	|CWI	|CWI|	 
-|CY	|C	|CWC	|CWC|	 
-|CY	|I	|CWI	|CWI|	 
-|D	|X	|DR	|DR	| 
-|DR	|X	|DR	|DR	| 
+|A	|X	|AT	|AT	|
+|AC	|X	|ACT	|AT	|
+|ACB	|X	|ACB	|AT	|
+|AT	|X	|AT	|AT	|
+|B	|C	|BA	|HWC|	
+|B	|I	|BL	|SW	|
+|BA	|C	|BA	|HWC|	
+|BA	|I	|BA	|SW	|
+|BG	|C	|BA	|HWC|	
+|BG	|I	|BL	|SW	|
+|BL	|C	|BL	|HWC|	
+|BL	|I	|BL	|SW	|
+|C	|C	|CWC	|CWC|	
+|C	|I	|CWI	|CWI|	
+|CT	|X	|ACT	|AT	|
+|CW	|C	|CWC	|CWC|	
+|CW	|I	|CWI	|CWI|	
+|CWC	|C	|CWC	|CWC|	
+|CWC	|~	|CWC	|CWC|	
+|CWI	|I	|CWI	|CWI|	
+|CWI	|~	|CWI	|CWI|	
+|CY	|C	|CWC	|CWC|	
+|CY	|I	|CWI	|CWI|	
+|D	|X	|DR	|DR	|
+|DR	|X	|DR	|DR	|
 |F	|C	|FDC	|FDC	|
 |F	|I	|FDI	|FDI	|
 |FD	|C	|FDC	|FDC	|
@@ -544,53 +544,45 @@ MFLNROD 2021. Command Documentation for the Tree and Stand Simulator (TASS) Vers
 |FDC	|~	|FDC	|FDC	|
 |FDI	|I	|FDI	|FDI	|
 |FDI	|~	|FDI	|FDI	|
-|H	|C	|HWC	|HWC|	 
-|H	|I	|HWI	|HWI|	 
-|HM	|X	|HM	|HWC|	 
-|HW	|C	|HWC	|HWC|	 
-|HW	|I	|HWI	|HWI|	 
-|HWC	|C	|HWC	|HWC|	 
-|HWC	|~	|HWC	|HWC|	 
-|HWI	|I	|HWI	|HWI|	 
-|HWI	|~	|HWI	|HWI|	 
-|L	|X	|LW	|FDI|	 
-|LW	|X	|LW	|FDI|	 
+|H	|C	|HWC	|HWC|	
+|H	|I	|HWI	|HWI|	
+|HM	|X	|HM	|HWC|	
+|HW	|C	|HWC	|HWC|	
+|HW	|I	|HWI	|HWI|	
+|HWC	|C	|HWC	|HWC|	
+|HWC	|~	|HWC	|HWC|	
+|HWI	|I	|HWI	|HWI|	
+|HWI	|~	|HWI	|HWI|	
+|L	|X	|LW	|FDI|	
+|LW	|X	|LW	|FDI|	
 |PL	|X	|PLI	|PLI	|
 |PLI	|X	|PLI	|PLI	|
 |PLI	|~	|PLI	|PLI	|
-|PW	|X	|PW	|FDI|	 
-|PY	|X	|PY	|FDI|	 
+|PW	|X	|PW	|FDI|	
+|PY	|X	|PY	|FDI|	
 |S	|C	|SS	|SS	|SS|
 |S	|I	|SW	|SW	|SW|
-|SB	|X	|SB	|SW	| 
-|SE	|X	|SE	|SW	| 
+|SB	|X	|SB	|SW	|
+|SE	|X	|SE	|SW	|
 |SS	|X	|SS	|SS	|SS|
 |SW	|X	|SW	|SW	|SW|
-|YC	|C	|CWC	|CWC|	 
+|YC	|C	|CWC	|CWC|	
 |YC	|I	|CWI	|CWI|
-	 
-* FIZ:  C for coast, I for interior, X for both, ~ for unspecified.
+	
+* FIZ: C for coast, I for interior, X for both, ~ for unspecified.
 
-For more information on recommended species substitutions, see the TIPSY help pages.
+For more information on recommended species substitutions, see the TIPSY help pages.
 
+## SIBEC
 
+**SIBEC first estimates vs Second**
 
+First estimates were exactly that, estimates. An initial estimate with no sampling. If a site index is indicated in the data as 12.0 it came from the first estimate as they were generated to the nearest meter.
 
-
-
-
-
-
-
+Second estimates had sampling and therefore carry data to the decimal meter. Based on ground samples.
 
 
-
-
-
-
-
-
-
+![](images/SIBEC_first_vs_second.PNG)
 
 
 
