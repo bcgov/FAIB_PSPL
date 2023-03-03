@@ -29,7 +29,7 @@ set in the _output.yml file.</p>" />
 <meta name="author" content="Dave Waddell, RPF, MF" />
 
 
-<meta name="date" content="2023-03-02" />
+<meta name="date" content="2023-03-03" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -112,6 +112,7 @@ set in the _output.yml file.</p>" />
 <li class="chapter" data-level="13.1" data-path="index.html"><a href="#sindex-conversion-coefficients"><i class="fa fa-check"></i><b>13.1</b> SIndex conversion coefficients</a></li>
 <li class="chapter" data-level="13.2" data-path="index.html"><a href="#species-specific-site-curves"><i class="fa fa-check"></i><b>13.2</b> Species Specific Site Curves</a></li>
 <li class="chapter" data-level="13.3" data-path="index.html"><a href="#species-volume-curves"><i class="fa fa-check"></i><b>13.3</b> Species Volume Curves</a></li>
+<li class="chapter" data-level="13.4" data-path="index.html"><a href="#sibec"><i class="fa fa-check"></i><b>13.4</b> SIBEC</a></li>
 </ul></li>
 </ul>
 
@@ -133,7 +134,7 @@ set in the _output.yml file.</p>" />
 <div id="header">
 <h1 class="title">PSPL Processing 2023</h1>
 <p class="author"><em>Dave Waddell, RPF, MF</em></p>
-<p class="date"><em>2023-03-02</em></p>
+<p class="date"><em>2023-03-03</em></p>
 </div>
 <div id="pspl" class="section level1 hasAnchor" number="1">
 <h1><span class="header-section-number">Section - 1</span> PSPL<a href="#pspl" class="anchor-section" aria-label="Anchor link to header"></a></h1>
@@ -1318,25 +1319,25 @@ BWBSdk
 <td align="left">A</td>
 <td align="left">X</td>
 <td align="left">AT</td>
-<td align="left">AT  </td>
+<td align="left">AT</td>
 </tr>
 <tr class="even">
 <td align="left">AC</td>
 <td align="left">X</td>
 <td align="left">ACT</td>
-<td align="left">AT  </td>
+<td align="left">AT</td>
 </tr>
 <tr class="odd">
 <td align="left">ACB</td>
 <td align="left">X</td>
 <td align="left">ACB</td>
-<td align="left">AT  </td>
+<td align="left">AT</td>
 </tr>
 <tr class="even">
 <td align="left">AT</td>
 <td align="left">X</td>
 <td align="left">AT</td>
-<td align="left">AT  </td>
+<td align="left">AT</td>
 </tr>
 <tr class="odd">
 <td align="left">B</td>
@@ -1348,7 +1349,7 @@ BWBSdk
 <td align="left">B</td>
 <td align="left">I</td>
 <td align="left">BL</td>
-<td align="left">SW  </td>
+<td align="left">SW</td>
 </tr>
 <tr class="odd">
 <td align="left">BA</td>
@@ -1360,7 +1361,7 @@ BWBSdk
 <td align="left">BA</td>
 <td align="left">I</td>
 <td align="left">BA</td>
-<td align="left">SW  </td>
+<td align="left">SW</td>
 </tr>
 <tr class="odd">
 <td align="left">BG</td>
@@ -1372,7 +1373,7 @@ BWBSdk
 <td align="left">BG</td>
 <td align="left">I</td>
 <td align="left">BL</td>
-<td align="left">SW  </td>
+<td align="left">SW</td>
 </tr>
 <tr class="odd">
 <td align="left">BL</td>
@@ -1384,7 +1385,7 @@ BWBSdk
 <td align="left">BL</td>
 <td align="left">I</td>
 <td align="left">BL</td>
-<td align="left">SW  </td>
+<td align="left">SW</td>
 </tr>
 <tr class="odd">
 <td align="left">C</td>
@@ -1658,11 +1659,17 @@ BWBSdk
 </tr>
 </tbody>
 </table>
-<pre><code> </code></pre>
 <ul>
-<li>FIZ:  C for coast, I for interior, X for both, ~ for unspecified.</li>
+<li>FIZ: C for coast, I for interior, X for both, ~ for unspecified.</li>
 </ul>
-<p>For more information on recommended species substitutions, see the TIPSY help pages.</p>
+<p>For more information on recommended species substitutions, see the TIPSY help pages.</p>
+</div>
+<div id="sibec" class="section level2 hasAnchor" number="13.4">
+<h2><span class="header-section-number">13.4</span> SIBEC<a href="#sibec" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p><strong>SIBEC first estimates vs Second</strong></p>
+<p>First estimates were exactly that, estimates. An initial estimate with no sampling. If a site index is indicated in the data as 12.0 it came from the first estimate as they were generated to the nearest meter.</p>
+<p>Second estimates had sampling and therefore carry data to the decimal meter. Based on ground samples.</p>
+<p><img src="images/SIBEC_first_vs_second.PNG" /></p>
 
 </div>
 </div>
