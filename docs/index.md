@@ -1,7 +1,7 @@
 --- 
 title: "PSPL Processing 2023"
 author: "Dave Waddell, RPF, MF"
-date: "2023-03-03"
+date: "2023-03-27"
 site: bookdown::bookdown_site
 description: |
   This is the bookdown for PSPL Processing
@@ -17,6 +17,17 @@ The processing of PSPL has changed for 2023. The revised process reflects how an
 
 Note that the PSPL data was prepared by Jeff Kruys (under contract).  
 Version 8, released oct 2021 
+
+
+
+The Provincial Site Productivity Layer (PSPL)
+
+https://www2.gov.bc.ca/gov/content/industry/forestry/managing-our-forest-resources/forest-inventory/site-productivity/provincial-site-productivity-layer
+
+PSPL documentation:
+
+https://bcgov.github.io/FAIB_PSPL/
+
 
 
 ## Site Productivity (SP) Points

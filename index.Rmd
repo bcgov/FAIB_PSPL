@@ -19,6 +19,17 @@ Note that the PSPL data was prepared by Jeff Kruys (under contract).
 Version 8, released oct 2021 
 
 
+
+The Provincial Site Productivity Layer (PSPL)
+
+https://www2.gov.bc.ca/gov/content/industry/forestry/managing-our-forest-resources/forest-inventory/site-productivity/provincial-site-productivity-layer
+
+PSPL documentation:
+
+https://bcgov.github.io/FAIB_PSPL/
+
+
+
 ## Site Productivity (SP) Points
 
 A set of points are generated that cover the province in a regular grid
